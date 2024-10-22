@@ -123,4 +123,11 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    // 'providers' => [
+
+    //     Spatie\Permission\PermissionServiceProvider::class,
+    //     Tymon\JWTAuth\Providers\LaravelServiceProvider::class,
+
+    // ],
+
 ];

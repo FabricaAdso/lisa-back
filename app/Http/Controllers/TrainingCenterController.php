@@ -11,7 +11,8 @@ class TrainingCenterController extends Controller
     public function index()
     {
       
-        $trainingCenter = TrainingCenter::all();
+       // $trainingCenter = TrainingCenter::all();
+        $trainingCenter = TrainingCenter::included()->get();
     
         return response()->json($trainingCenter);
     }
@@ -69,7 +70,7 @@ class TrainingCenterController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\Tipo_Transaccion
+     * @param  \App\Models\TrainingCenter
      * @return \Illuminate\Http\Response
      */
     public function destroy(TrainingCenter $trainingCenter)

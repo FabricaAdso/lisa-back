@@ -11,9 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('training_centers', function (Blueprint $table) {
+        Schema::create('municipalities', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+
+             //LLave Foranea Departamento
+             $table->unsignedBigInteger('departament_id');
+             $table->foreign('departament_id')->references('id')->on('departaments')->onDelete('cascade');
+      
+
             $table->timestamps();
         });
     }
@@ -23,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('training_centers');
+        Schema::dropIfExists('municipalities');
     }
 };

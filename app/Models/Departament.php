@@ -7,11 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 class Departament extends Model
 {
     //
-    protected $fillable = ['name'];
+    protected $fillable = ['name','municipality_id'];
+    protected $allowIncluded = ['municipalities'];
 
     public function municipalities(){
-        return $this->belongsTo(Municipality::class);
+        return $this->hasMany(Municipality::class);
     }
+    
 
     public function scopeIncluded(Builder $query)
     {

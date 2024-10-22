@@ -7,7 +7,10 @@ use Illuminate\Database\Eloquent\Model;
 class EnvironmentArea extends Model
 {
     //
+    protected $fillable = ['name'];
+   
+
     public function environments(){
-        return $this->belongsTo(Environment::class);
+        return $this->hasMany(Environment::class);
     }
 }

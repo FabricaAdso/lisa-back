@@ -8,15 +8,20 @@ class Headquarters extends Model
 {
     //
 
-    protected $fillable = ['name','adress','opening_time','closing_time'];
-    protected $allowIncluded = ['trainingCenters'];
+    protected $fillable = ['name','adress','opening_time','closing_time','municipality_id','training_center_id'];
+    protected $allowIncluded = ['trainingCenter','municipality'];
 
-    public function trainigCenters(){
-        return $this->hasMany(TrainingCenter::class);
+    public function trainingCenter(){
+        return $this->belongsTo(TrainingCenter::class);
     }
 
+    public function municipality(){
+        return $this->belongsTo(Municipality::class);
+    }
+
+
     public function environments(){
-        return $this->belongsTo(Environment::class);
+        return $this->hasMany(Environment::class);
     }
 
     public function scopeIncluded(Builder $query)

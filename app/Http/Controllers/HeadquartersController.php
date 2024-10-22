@@ -11,7 +11,8 @@ class HeadquartersController extends Controller
     public function index()
     {
       
-        $headquarter = Headquarters::all();
+     //   $headquarter = Headquarters::all();
+        $headquarter = Headquarters::included()->get();
     
         return response()->json($headquarter);
     }
@@ -30,6 +31,7 @@ class HeadquartersController extends Controller
       'adress'=>'required|max:100',
       'opening_time'=>'required|max:100',
       'closing_time'=>'required|max:100',
+      
         ]);
 
         $headquarter = Headquarters::create($request->all());

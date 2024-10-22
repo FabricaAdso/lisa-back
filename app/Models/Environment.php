@@ -8,17 +8,17 @@ class Environment extends Model
 {
     //
   
-    protected $fillable = ['name','capacity'];
-    protected $allowIncluded = ['headquartes','environmentsArea'];
+    protected $fillable = ['name','capacity','headquarter_id'];
+    protected $allowIncluded = ['headquarters','environmentArea'];
 
 
-    public function headquartes(){
-        return $this->hasMany(Headquarters::class);
+    public function headquarters(){
+        return $this->belongsTo(Headquarters::class);
         
     }
 
-    public function environmentsArea(){
-        return $this->hasMany(EnvironmentArea::class);
+    public function environmentArea(){
+        return $this->belongsTo(EnvironmentArea::class);
     }
 
 

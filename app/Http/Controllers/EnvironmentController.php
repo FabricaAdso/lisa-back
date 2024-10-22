@@ -11,7 +11,8 @@ class EnvironmentController extends Controller
     public function index()
     {
       
-        $environments = Environment::all();
+       // $environments = Environment::all();
+        $environments = Environment::included()->get();
     
         return response()->json($environments);
     }

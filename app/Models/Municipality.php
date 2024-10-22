@@ -7,12 +7,23 @@ use Illuminate\Database\Eloquent\Model;
 class Municipality extends Model
 {
     //
-    protected $fillable = ['name','departament_id'];
-   // protected $allowIncluded = ['departaments'];
+    protected $fillable = ['name'];
+    protected $allowIncluded = ['departament'];
 
-    public function departaments(){
-        return $this->hasMany(Departament::class);
+    public function departament(){
+        return $this->belongsTo(Departament::class);
     }
+
+    public function trainingCenters(){
+        return $this->hasMany(TrainingCenter::class);
+    }
+
+    public function headquarters(){
+        return $this->hasMany(Headquarters::class);
+        
+    }
+
+
 
     public function scopeIncluded(Builder $query)
     {

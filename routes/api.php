@@ -13,8 +13,9 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 Route::resource('days', DayController::class);
-Route::resource('shifts', ShiftController::class);
-Route::put('/shifts/{shiftId}/days', [ShiftController::class, 'updateDayShift']);
 Route::resource('educationLevel', EducationLevelController::class);
 Route::resource('programs', ProgramController::class);
 Route::resource('courses', CourseController::class);
+Route::put('courses/{courseId}/shifts', [CourseController::class, 'updateShifts']);
+Route::resource('shifts', ShiftController::class);
+Route::put('/shifts/{shiftId}/days', [ShiftController::class, 'updateDayShift']);

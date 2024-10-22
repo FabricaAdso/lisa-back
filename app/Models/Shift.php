@@ -13,7 +13,8 @@ class Shift extends Model
         'end_time',
     ];
     protected $allowIncluded = [
-        'days'
+        'days',
+        'courses'
     ];
 
     public function days()

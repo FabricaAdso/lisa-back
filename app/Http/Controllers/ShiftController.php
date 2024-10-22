@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Shift;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
-
 use function Psy\sh;
 
 class ShiftController extends Controller
@@ -85,7 +85,12 @@ class ShiftController extends Controller
             'day_ids.*' => 'integer|exists:days,id'
         ]);
 
-        $shift = Shift::findOrFail($shiftId);
+        try {
+            // Buscar la jornada, lanzará ModelNotFoundException si no existe
+            $shift = Shift::findOrFail($shiftId);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['error' => 'Jornada no encontrada.'], 404);
+        }
 
         //lista de relaciones
         $currentDayIds = $shift->days()->select('days.id')->pluck('id')->toArray();
@@ -105,4 +110,7 @@ class ShiftController extends Controller
 
         return response()->json(['message' => 'Días actualizados correctamente.']);
     }
+
+    /// asignar jornadas a cursos
+    
 }

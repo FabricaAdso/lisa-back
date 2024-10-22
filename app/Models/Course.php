@@ -9,6 +9,8 @@ class Course extends Model
 {
     protected $fillable = [
         'code',
+        'date_start',
+        'date_end',
         'program_id'
     ];
 

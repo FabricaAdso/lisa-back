@@ -78,7 +78,7 @@ class ShiftController extends Controller
 
     //requerimiento
 
-    public function updateDayShift(Request $request, $shiftId)
+    public function assignDaysToShift(Request $request, $shiftId)
     {
         $request->validate([
             'day_ids' => 'required|array',
@@ -94,16 +94,18 @@ class ShiftController extends Controller
 
         //lista de relaciones
         $currentDayIds = $shift->days()->select('days.id')->pluck('id')->toArray();
+        
+        //validar cruce de dias si es necesario
+        foreach ($currentDayIds as $currentDayId) {
+            if (!in_array($currentDayId, $request->day_ids)) {
+                // Eliminar días que no están en la nueva asignación
+                $shift->days()->detach($currentDayId);
+            }
+        }
+        
         //ver la vigencia de las relaciones anteriores con los nuevos parametros
         //array_diff compara el primer con el segundo y devuelve los valores primer que no este en el segundo
-        $daysRemove = array_diff($currentDayIds, $request->day_ids);
-
-        if(!empty($daysRemove)){
-            $shift->days()->detach($daysRemove);
-        }
-
         $daysAdd = array_diff($request->day_ids, $currentDayIds);
-
         if(!empty($daysAdd)){
             $shift->days()->attach($daysAdd);
         }

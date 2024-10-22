@@ -18,4 +18,4 @@ Route::resource('programs', ProgramController::class);
 Route::resource('courses', CourseController::class);
 Route::put('courses/{courseId}/shifts', [CourseController::class, 'updateShifts']);
 Route::resource('shifts', ShiftController::class);
-Route::put('/shifts/{shiftId}/days', [ShiftController::class, 'updateDayShift']);
+Route::put('/shifts/{shiftId}/days', [ShiftController::class, 'assignDaysToShift']);

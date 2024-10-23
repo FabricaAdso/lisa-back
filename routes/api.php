@@ -3,6 +3,11 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\CourseController;
+use App\Http\Controllers\DayController;
+use App\Http\Controllers\EducationLevelController;
+use App\Http\Controllers\ProgramController;
+use App\Http\Controllers\ShiftController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -34,3 +39,10 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::post('users/{userId}/toggle-role', [RoleController::class, 'toggleRole']);
 });
 
+Route::resource('days', DayController::class);
+Route::resource('educationLevel', EducationLevelController::class);
+Route::resource('programs', ProgramController::class);
+Route::resource('courses', CourseController::class);
+Route::put('courses/{courseId}/shifts', [CourseController::class, 'updateShifts']);
+Route::resource('shifts', ShiftController::class);
+Route::put('/shifts/{shiftId}/days', [ShiftController::class, 'assignDaysToShift']);

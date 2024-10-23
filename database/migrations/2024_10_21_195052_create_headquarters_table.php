@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('adress');
-            $table->string('opening_time');
-            $table->string('closing_time');
+            $table->time('opening_time');
+            $table->time('closing_time');
 
             
             //LLave Foranea Municipio

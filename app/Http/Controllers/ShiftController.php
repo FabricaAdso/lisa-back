@@ -110,7 +110,11 @@ class ShiftController extends Controller
             $shift->days()->attach($daysAdd);
         }
 
-        return response()->json(['message' => 'Días actualizados correctamente.']);
+        $shift->load('days');
+        return response()->json([
+            'message' => 'Días actualizados correctamente.',
+            'shift' => $shift,
+        ]);
     }
 
     /// asignar jornadas a cursos

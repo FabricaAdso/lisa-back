@@ -11,8 +11,8 @@ class CourseController extends Controller
 {
     public function index()
     {
-        //$courses = Course::included()->filter()->get();
-        $courses = Course::included()->get();
+        $courses = Course::included()->filter()->get();
+        //$courses = Course::included()->get();
 
         return response()->json($courses);
     }
@@ -91,7 +91,6 @@ class CourseController extends Controller
             } catch (ModelNotFoundException $e) {
                 return response()->json(['error' => 'jornada no encontrada.'], 404);
             }
-    
             // Validar si los días asignados a la jornada nueva se cruzan con las jornadas existentes del curso
             $conflictingShifts = $course->shifts()
                 ->whereHas('days', function($query) use ($shift) {
@@ -101,13 +100,11 @@ class CourseController extends Controller
                     $query->where('shifts.start_time', '<', $shift->end_time)
                           ->where('shifts.end_time', '>', $shift->start_time);
                 })->get();
-    
             if ($conflictingShifts->isNotEmpty()) {
                 return response()->json([
                     'error' => "La jornada '{$shift->name}' se cruza con una ya asignada al curso '{$course->code}'"
                 ], 400);
             }
-    
             // Validar que la jornada no esté ya asignada a otro curso
             if ($shift->courses()->where('courses.id', '!=', $courseId)->exists()) {
                 return response()->json([
@@ -115,19 +112,16 @@ class CourseController extends Controller
                 ], 400);
             }
         }
-    
         // Eliminar las jornadas que ya no están en la lista
         $shiftsToRemove = array_diff($currentShiftIds, $request->shift_ids);
         if (!empty($shiftsToRemove)) {
             $course->shifts()->detach($shiftsToRemove);
         }
-    
         // Agregar las nuevas jornadas
         $shiftsToAdd = array_diff($request->shift_ids, $currentShiftIds);
         if (!empty($shiftsToAdd)) {
             $course->shifts()->attach($shiftsToAdd);
         }
-    
         return response()->json(['message' => 'Jornadas actualizadas correctamente.']);
     }
     

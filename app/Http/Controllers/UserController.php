@@ -54,8 +54,12 @@ class UserController extends Controller
 
     public function show($id)
     {
-        $user = User::findOrFail($id);
-        return response()->json($user);
+        $user = User::with('roles')->findOrFail($id);
+
+        return response()->json([
+            'user' => $user,
+            'roles' => $user->getRoleNames(),
+        ]);
     }
 
     public function update(Request $request, $id)
@@ -63,10 +67,9 @@ class UserController extends Controller
         $user = User::findOrFail($id);
         $request->validate([
            'email' => 'email|unique:users,email,' . $user->id,
-
          ]);
 
-        $user->update($request->only('first_name', 'middle_name', 'last_name', 'second_last_name', 'email'));
+        $user->update($request->all());
 
         return response()->json($user);
     }

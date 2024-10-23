@@ -28,6 +28,8 @@ class TrainingCenterController extends Controller
 
         $request->validate([
       'name'=>'required|max:100',
+      'municipality_id'=>'required|max:100',
+
         ]);
 
         $trainingCenter = TrainingCenter::create($request->all());

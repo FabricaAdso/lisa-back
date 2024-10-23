@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class TrainingCenter extends Model
 {
     //
-    protected $fillable = ['name'];
+    protected $fillable = ['name','municipality_id'];
     protected $allowIncluded = ['municipality','headquarters'];
 
     public function headquarters(){

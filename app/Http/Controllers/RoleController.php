@@ -10,22 +10,30 @@ class RoleController extends Controller
 {
     public function toggleRole(Request $request, $userId)
     {
-        $request->validate([
-            'role' => 'required|string|exists:roles,name',
-            'action' => 'required|string|in:assign,revoke',
-        ]);
-
         $user = User::findOrFail($userId);
+        $roles = $request->input('roles'); // Esperamos un arreglo de roles
 
-        if ($request->action === 'assign') {
-            $user->assignRole($request->role);
-            return response()->json(['message' => 'Role assigned successfully.'], 200);
-            
-        } elseif ($request->action === 'revoke') {
-            $user->removeRole($request->role);
-            return response()->json(['message' => 'Role revoked successfully.'], 200);
+        $currentRoles = $user->getRoleNames()->toArray();
+
+        if (!is_array($roles)) {
+            return response()->json(['error' => 'El campo "roles" debe ser un arreglo.'], 400);
         }
 
-        return response()->json(['message' => 'Invalid action.'], 400);
+        foreach ($currentRoles as $roleName) {
+            if (!in_array($roleName, $roles)) {
+                $role = Role::findByName($roleName);
+                $user->removeRole($role);
+            }
+        }
+
+        foreach ($roles as $roleName) {
+            $role = Role::findByName($roleName);
+            if (!$user->hasRole($role)) {
+                $user->assignRole($role);
+            }
+        }
+        $user->load('roles');
+        return response()->json(['message' => 'Roles actualizados', 'roles' => $user->getRoleNames(),
+        'user' => $user], 200);
     }
 }

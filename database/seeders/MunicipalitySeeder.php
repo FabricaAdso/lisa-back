@@ -27,3 +27,4 @@ class MunicipalitySeeder extends Seeder
         $this->command->info('Municipios insertados desde el archivo SQL.');
     }
 }
+

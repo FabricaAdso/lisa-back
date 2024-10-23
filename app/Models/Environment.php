@@ -8,7 +8,7 @@ class Environment extends Model
 {
     //
   
-    protected $fillable = ['name','capacity','headquarter_id'];
+    protected $fillable = ['name','capacity','headquarters_id','environment_area_id'];
     protected $allowIncluded = ['headquarters','environmentArea'];
 
 

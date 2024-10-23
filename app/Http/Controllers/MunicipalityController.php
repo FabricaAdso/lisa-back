@@ -8,12 +8,17 @@ use Illuminate\Http\Request;
 class MunicipalityController extends Controller
 {
     //
-    public function index()
+    public function index($departament_id)
     {
-      
-      //  $municipalities = Municipality::all();
-        $municipalities = Municipality::included()->get();
-    
+        // Filtrar los municipios que pertenecen al departamento con el ID dado
+        $municipalities = Municipality::where('departament_id', $departament_id)->get();
+
+        // Verificar si hay municipios para el departamento
+        if ($municipalities->isEmpty()) {
+            return response()->json(['message' => 'No municipalities found for this department.'], 404);
+        }
+
+        // Devolver los municipios filtrados con sus departamentos
         return response()->json($municipalities);
     }
 

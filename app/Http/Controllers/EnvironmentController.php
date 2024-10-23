@@ -29,6 +29,8 @@ class EnvironmentController extends Controller
         $request->validate([
       'name'=>'required|max:100',
       'capacity'=>'required|max:100',
+      'headquarters_id'=>'required|max:100',
+      'environment_area_id'=>'required|max:100',
         ]);
 
         $environments = Environment::create($request->all());

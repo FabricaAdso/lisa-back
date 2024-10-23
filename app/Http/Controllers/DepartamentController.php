@@ -13,6 +13,7 @@ class DepartamentController extends Controller
       
       //  $departaments = Departament::all();
         $departaments = Departament::included()->get();
+       //  $departaments = Departament::included()->filter();
     
         return response()->json($departaments);
     }
@@ -43,12 +44,17 @@ class DepartamentController extends Controller
      * @param  \App\Models\departaments 
      * @return \Illuminate\Http\Response
      */
-    public function show($id) //si se pasa $id se utiliza la comentada
-    {  
-        $departaments = Departament::included()->findOrFail($id);
-        return response()->json($departaments);
-
-
+    public function show($id)
+    {
+        // Cargar el departamento junto con los municipios
+        $department = Departament::with('municipalities')->find($id);
+    
+        // Verificar si el departamento existe
+        if (!$department) {
+            return response()->json(['error' => 'Department not found'], 404);
+        }
+    
+        return response()->json($department);
     }
 
     /**

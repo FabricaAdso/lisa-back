@@ -10,10 +10,10 @@ class EnvironmentController extends Controller
     //
     public function index()
     {
-      
-       // $environments = Environment::all();
+
+        // $environments = Environment::all();
         $environments = Environment::included()->get();
-    
+        $environments = Environment::included()->filter()->get();
         return response()->json($environments);
     }
 
@@ -27,10 +27,10 @@ class EnvironmentController extends Controller
     {
 
         $request->validate([
-      'name'=>'required|max:100',
-      'capacity'=>'required|max:100',
-      'headquarters_id'=>'required|max:100',
-      'environment_area_id'=>'required|max:100',
+            'name' => 'required|max:100',
+            'capacity' => 'required|max:100',
+            'headquarters_id' => 'required|max:100',
+            'environment_area_id' => 'required|max:100',
         ]);
 
         $environments = Environment::create($request->all());
@@ -45,11 +45,9 @@ class EnvironmentController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function show($id) //si se pasa $id se utiliza la comentada
-    {  
+    {
         $environments = Environment::included()->findOrFail($id);
         return response()->json($environments);
-
-
     }
 
     /**
@@ -59,13 +57,13 @@ class EnvironmentController extends Controller
      * @param  \App\Models\Environment
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Environment $environments)
+    public function update(Request $request, $id)
     {
         $request->validate([
-     'name'=>'required|max:100',
-     'capacity'=>'required|max:100',
+            'name' => 'required|max:100',
+            'capacity' => 'required|max:100',
         ]);
-
+        $environments = Environment::find($id);
         $environments->update($request->all());
 
         return response()->json($environments);
@@ -77,8 +75,9 @@ class EnvironmentController extends Controller
      * @param  \App\Models\Environment
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Environment $environments)
+    public function destroy($id)
     {
+        $environments = Environment::find($id);
         $environments->delete();
         return response()->json($environments);
     }

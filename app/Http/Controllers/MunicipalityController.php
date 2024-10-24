@@ -32,9 +32,9 @@ class MunicipalityController extends Controller
     {
 
         $request->validate([
-      'name'=>'required|max:100',
-      
-      
+            'name' => 'required|max:100',
+
+
         ]);
 
         $municipalities = Municipality::create($request->all());
@@ -49,11 +49,9 @@ class MunicipalityController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function show($id) //si se pasa $id se utiliza la comentada
-    {  
+    {
         $municipalities = Municipality::included()->findOrFail($id);
         return response()->json($municipalities);
-
-
     }
 
     /**
@@ -66,8 +64,8 @@ class MunicipalityController extends Controller
     public function update(Request $request, Municipality $municipalities)
     {
         $request->validate([
-     'name'=>'required|max:100',
-     
+            'name' => 'required|max:100',
+
         ]);
 
         $municipalities->update($request->all());

@@ -1,23 +1,26 @@
 <?php
 
 namespace App\Models;
+
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class Environment extends Model
 {
     //
-  
-    protected $fillable = ['name','capacity','headquarters_id','environment_area_id'];
-    protected $allowIncluded = ['headquarters','environmentArea'];
+
+    protected $fillable = ['name', 'capacity', 'headquarters_id', 'environment_area_id'];
+    protected $allowIncluded = ['headquarters', 'environmentArea'];
+    protected $allowFilter = ['environment_area', 'headquarters_'];
 
 
-    public function headquarters(){
+    public function headquarters()
+    {
         return $this->belongsTo(Headquarters::class);
-        
     }
 
-    public function environmentArea(){
+    public function environmentArea()
+    {
         return $this->belongsTo(EnvironmentArea::class);
     }
 
@@ -25,28 +28,52 @@ class Environment extends Model
     public function scopeIncluded(Builder $query)
     {
 
-        if(empty($this->allowIncluded)||empty(request('included'))){
+        if (empty($this->allowIncluded) || empty(request('included'))) {
             return;
         }
 
-        
-        $relations = explode(',', request('included')); 
 
-       // return $relations;
+        $relations = explode(',', request('included'));
 
-        $allowIncluded = collect($this->allowIncluded); 
+        // return $relations;
 
-        foreach ($relations as $key => $relationship) { 
+        $allowIncluded = collect($this->allowIncluded);
+
+        foreach ($relations as $key => $relationship) {
 
             if (!$allowIncluded->contains($relationship)) {
                 unset($relations[$key]);
             }
         }
-        $query->with($relations); 
-
-      
-
-
+        $query->with($relations);
     }
-   
+
+    public function scopeFilter(Builder $query)
+    {
+        if (empty($this->allowFilter) || empty(request('filter'))) {
+            return;
+        }
+
+        $filters = request('filter');
+        $allowFilter = collect($this->allowFilter);
+
+        foreach ($filters as $filter => $value) {
+            // Filtrar por Area de Ambiente y Sede
+            if ($filter === 'environment_area') {
+                $query->whereHas('environmentArea', function ($q) use ($value) {
+                    $q->where('name', 'LIKE', '%' . $value . '%');
+                });
+            }
+            if ($filter === 'headquarters_') {
+                $query->whereHas('headquarters', function ($q) use ($value) {
+                    $q->where('name', 'LIKE', '%' . $value . '%');
+                });
+            }
+
+            //otros campos de Program si están en allowFilter
+            if ($allowFilter->contains($filter) && $filter !== 'environment_area' &&  $filter !== 'headquarters_') {
+                $query->where($filter, 'LIKE', '%' . $value . '%');
+            }
+        }
+    }
 }

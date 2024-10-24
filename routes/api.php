@@ -17,10 +17,9 @@ Route::get('/user', function (Request $request) {
 
     Route::apiresource('departaments',DepartamentController::class);
     Route::apiresource('municipalities',MunicipalityController::class);
-
     Route::get('municipalities/departament/{id}',[MunicipalityController::class, 'index']);
     
-    Route::apiResource('headquarters', HeadquartersController::class);
+    Route::apiResource('headquarters',HeadquartersController::class);
     Route::apiresource('environments',EnvironmentController::class);
-    Route::apiresource('environmentsArea',EnvironmentAreaController::class);
+    Route::apiResource('environmentsArea',EnvironmentAreaController::class);
     Route::apiresource('trainingCenters',TrainingCenterController::class);

@@ -10,10 +10,10 @@ class TrainingCenterController extends Controller
     //
     public function index()
     {
-      
-       // $trainingCenter = TrainingCenter::all();
+
+        // $trainingCenter = TrainingCenter::all();
         $trainingCenter = TrainingCenter::included()->get();
-    
+
         return response()->json($trainingCenter);
     }
 
@@ -27,8 +27,8 @@ class TrainingCenterController extends Controller
     {
 
         $request->validate([
-      'name'=>'required|max:100',
-      'municipality_id'=>'required|max:100',
+            'name' => 'required|max:100',
+            'municipality_id' => 'required|max:100',
 
         ]);
 
@@ -44,11 +44,9 @@ class TrainingCenterController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function show($id) //si se pasa $id se utiliza la comentada
-    {  
+    {
         $trainingCenter = TrainingCenter::included()->findOrFail($id);
         return response()->json($trainingCenter);
-
-
     }
 
     /**
@@ -61,7 +59,7 @@ class TrainingCenterController extends Controller
     public function update(Request $request, TrainingCenter $trainingCenter)
     {
         $request->validate([
-     'name'=>'required|max:100',
+            'name' => 'required|max:100',
         ]);
 
         $trainingCenter->update($request->all());
@@ -81,5 +79,3 @@ class TrainingCenterController extends Controller
         return response()->json($trainingCenter);
     }
 }
-
-

@@ -18,7 +18,7 @@ return new class extends Migration
             $table->time('opening_time');
             $table->time('closing_time');
 
-            
+
             //LLave Foranea Municipio
             $table->unsignedBigInteger('municipality_id');
             $table->foreign('municipality_id')->references('id')->on('municipalities')->onDelete('cascade');

@@ -10,9 +10,9 @@ class EnvironmentAreaController extends Controller
     //
     public function index()
     {
-      
+
         $environmentArea = EnvironmentArea::all();
-    
+
         return response()->json($environmentArea);
     }
 
@@ -26,8 +26,8 @@ class EnvironmentAreaController extends Controller
     {
 
         $request->validate([
-      'name'=>'required|max:100',
-      
+            'name' => 'required|max:100',
+
         ]);
 
         $environmentArea = EnvironmentArea::create($request->all());
@@ -42,11 +42,9 @@ class EnvironmentAreaController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function show($id) //si se pasa $id se utiliza la comentada
-    {  
+    {
         $environmentArea = EnvironmentArea::included()->findOrFail($id);
         return response()->json($environmentArea);
-
-
     }
 
     /**
@@ -56,13 +54,12 @@ class EnvironmentAreaController extends Controller
      * @param  \App\Models\EnvironmentArea
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, EnvironmentArea $environmentArea)
+    public function update(Request $request, $id)
     {
         $request->validate([
-     'name'=>'required|max:100',
-     
+            'name' => 'required|max:100',
         ]);
-
+        $environmentArea = EnvironmentArea::find($id);
         $environmentArea->update($request->all());
 
         return response()->json($environmentArea);
@@ -74,8 +71,9 @@ class EnvironmentAreaController extends Controller
      * @param  \App\Models\EnvironmentArea
      * @return \Illuminate\Http\Response
      */
-    public function destroy(EnvironmentArea $environmentArea)
+    public function destroy($id)
     {
+        $environmentArea = EnvironmentArea::find($id);
         $environmentArea->delete();
         return response()->json($environmentArea);
     }

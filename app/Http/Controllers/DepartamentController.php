@@ -10,11 +10,11 @@ class DepartamentController extends Controller
     //
     public function index()
     {
-      
-      //  $departaments = Departament::all();
+
+        //  $departaments = Departament::all();
         $departaments = Departament::included()->get();
-       //  $departaments = Departament::included()->filter();
-    
+        //  $departaments = Departament::included()->filter();
+
         return response()->json($departaments);
     }
 
@@ -28,9 +28,9 @@ class DepartamentController extends Controller
     {
 
         $request->validate([
-      'name'=>'required|max:100',
-      'municipality_id'=>'required|max:100',
-      
+            'name' => 'required|max:100',
+            'municipality_id' => 'required|max:100',
+
         ]);
 
         $departaments = Departament::create($request->all());
@@ -48,12 +48,12 @@ class DepartamentController extends Controller
     {
         // Cargar el departamento junto con los municipios
         $department = Departament::with('municipalities')->find($id);
-    
+
         // Verificar si el departamento existe
         if (!$department) {
             return response()->json(['error' => 'Department not found'], 404);
         }
-    
+
         return response()->json($department);
     }
 
@@ -67,8 +67,8 @@ class DepartamentController extends Controller
     public function update(Request $request, Departament $departaments)
     {
         $request->validate([
-     'name'=>'required|max:100',
-     
+            'name' => 'required|max:100',
+
         ]);
 
         $departaments->update($request->all());

@@ -68,7 +68,8 @@ class EnvironmentController extends Controller
         ]);
         $environments = Environment::find($id);
         $environments->update($request->all());
-        $environments->load($environments->included()->getEagerLoads());
+        //$environments->load($environments->included()->getEagerLoads());
+        $environments->load('headquarters', 'environmentArea');
         return response()->json($environments);
     }
 

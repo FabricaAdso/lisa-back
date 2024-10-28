@@ -19,12 +19,12 @@ Route::get('/user', function (Request $request) {
 Route::group([], function () {
     Route::post('register', [AuthController::class, 'register']);
     Route::post('login', [AuthController::class, 'login']);
+    Route::get('document-type', [AuthController::class, 'getDocument']);
 });
 
 Route::group(['middleware' => 'auth:api'], function () {
     Route::post('refresh', [AuthController::class, 'refresh']);
     Route::post('me', [AuthController::class, 'me']);
-    Route::get('document-type', [AuthController::class, 'getDocument']);
 
     // Rutas para usuarios
     Route::get('users', [UserController::class, 'index']);

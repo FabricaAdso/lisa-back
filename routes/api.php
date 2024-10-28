@@ -31,6 +31,8 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::post('users', [UserController::class, 'store']);
     Route::get('users/{id}', [UserController::class, 'show']);
     Route::put('usersUpdate/{id}', [UserController::class, 'update']);
+
+    //Activar y desactivar usuarios. ver usuarios activos e inactivoa
     Route::post('users/{id}/deactivate', [UserController::class, 'deactivate']);
     Route::get('deactivated',[UserController::class,'deactivated']);
     Route::get('active', [UserController::class, 'active']);

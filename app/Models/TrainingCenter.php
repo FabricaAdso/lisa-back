@@ -8,18 +8,18 @@ use Illuminate\Database\Eloquent\Model;
 class TrainingCenter extends Model
 {
     //
-    protected $fillable = ['name', 'municipality_id'];
-    protected $allowIncluded = ['municipality', 'headquarters'];
+    protected $fillable = ['name'];
+    protected $allowIncluded = ['headquarters'];
 
     public function headquarters()
     {
         return $this->hasMany(Headquarters::class);
     }
 
-    public function municipality()
-    {
-        return $this->belongsTo(Municipality::class);
-    }
+    // public function municipality()
+    // {
+    //     return $this->belongsTo(Municipality::class);
+    // }
 
 
     public function scopeIncluded(Builder $query)

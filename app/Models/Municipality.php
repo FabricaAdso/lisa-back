@@ -16,10 +16,10 @@ class Municipality extends Model
         return $this->belongsTo(Departament::class);
     }
 
-    public function trainingCenters()
-    {
-        return $this->hasMany(TrainingCenter::class);
-    }
+    // public function trainingCenters()
+    // {
+    //     return $this->hasMany(TrainingCenter::class);
+    // }
 
     public function headquarters()
     {

@@ -14,7 +14,7 @@ class HeadquartersController extends Controller
         //   $headquarter = Headquarters::all();
         $headquarter = Headquarters::included()->get();
         $headquarter = Headquarters::included()->filter()->get();
-        $headquarter->load('municipality.departament','trainingCenter');
+        $headquarter->load('municipality.departament', 'trainingCenter');
         return response()->json($headquarter);
     }
 
@@ -30,9 +30,8 @@ class HeadquartersController extends Controller
         $request->validate([
             'name' => 'required|max:100',
             'adress' => 'required|max:100',
-            'opening_time' => 'required|date_format:H:i', 
-            'closing_time' => 'required|date_format:H:i
-            |after: opening_time ', 
+            'opening_time' => 'required|date_format:H:i',
+            'closing_time' => 'required|date_format:H:i|after: opening_time ',
 
         ]);
         // Convertir el formato de 12 horas a 24 horas
@@ -45,7 +44,7 @@ class HeadquartersController extends Controller
         ]);
 
         $headquarter = Headquarters::create($request->all());
-        $headquarter->load('municipality.departament','trainingCenter');
+        $headquarter->load('municipality.departament', 'trainingCenter');
         return response()->json($headquarter);
     }
 
@@ -73,8 +72,8 @@ class HeadquartersController extends Controller
         $request->validate([
             'name' => 'required|max:100',
             'adress' => 'required|max:100',
-            'opening_time' => 'required|date_format:H:i ', 
-            'closing_time' => 'required|date_format:H:i|after: opening_time ', 
+            'opening_time' => 'required|date_format:H:i ',
+            'closing_time' => 'required|date_format:H:i|after: opening_time ',
 
         ]);
         $start_time_24 = \Carbon\Carbon::createFromFormat('H:i ', $request->opening_time)->format('H:i:s');
@@ -88,7 +87,7 @@ class HeadquartersController extends Controller
         $headquarter = Headquarters::find($id);
 
         $headquarter->update($request->all());
-        $headquarter->load('municipality.departament','trainingCenter');
+        $headquarter->load('municipality.departament', 'trainingCenter');
         return response()->json($headquarter);
     }
 

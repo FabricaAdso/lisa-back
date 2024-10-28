@@ -72,12 +72,12 @@ class HeadquartersController extends Controller
         $request->validate([
             'name' => 'required|max:100',
             'adress' => 'required|max:100',
-            'opening_time' => 'required|date_format:H:i ',
-            'closing_time' => 'required|date_format:H:i|after: opening_time ',
+            'opening_time' => 'required|date_format:H:i',
+            'closing_time' => 'required|date_format:H:i|after: opening_time',
 
         ]);
-        $start_time_24 = \Carbon\Carbon::createFromFormat('H:i ', $request->opening_time)->format('H:i:s');
-        $end_time_24 = \Carbon\Carbon::createFromFormat('H:i ', $request->closing_time)->format('H:i:s');
+        $start_time_24 = \Carbon\Carbon::createFromFormat('H:i', $request->opening_time)->format('H:i:s');
+        $end_time_24 = \Carbon\Carbon::createFromFormat('H:i', $request->closing_time)->format('H:i:s');
 
         $request->merge([
             'opening_time' => $start_time_24,

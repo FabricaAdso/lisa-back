@@ -14,6 +14,7 @@ class EnvironmentController extends Controller
         // $environments = Environment::all();
         $environments = Environment::included()->get();
         $environments = Environment::included()->filter()->get();
+        $environments->load('headquarters', 'environmentArea');
         return response()->json($environments);
     }
 

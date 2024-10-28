@@ -32,6 +32,8 @@ Route::apiResource('headquarters', HeadquartersController::class);
 Route::apiresource('environments', EnvironmentController::class);
 Route::apiresource('environmentsArea', EnvironmentAreaController::class);
 Route::apiresource('trainingCenters', TrainingCenterController::class);
+
+
 Route::group([], function () {
     Route::post('register', [AuthController::class, 'register']);
     Route::post('login', [AuthController::class, 'login']);

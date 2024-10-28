@@ -15,10 +15,10 @@ return new class extends Migration
             $table->id();
             $table->string('name');
 
-             //LLave Foranea Departamento
-             $table->unsignedBigInteger('departament_id');
-             $table->foreign('departament_id')->references('id')->on('departaments')->onDelete('cascade');
-      
+            //LLave Foranea Departamento
+            $table->unsignedBigInteger('departament_id');
+            $table->foreign('departament_id')->references('id')->on('departaments')->onDelete('cascade');
+
 
             $table->timestamps();
         });

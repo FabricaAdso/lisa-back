@@ -10,10 +10,11 @@ class HeadquartersController extends Controller
     //
     public function index()
     {
-      
-     //   $headquarter = Headquarters::all();
+
+        //   $headquarter = Headquarters::all();
         $headquarter = Headquarters::included()->get();
-    
+        $headquarter = Headquarters::included()->filter()->get();
+        $headquarter->load('municipality.departament', 'trainingCenter');
         return response()->json($headquarter);
     }
 
@@ -27,23 +28,23 @@ class HeadquartersController extends Controller
     {
 
         $request->validate([
-      'name'=>'required|max:100',
-      'adress'=>'required|max:100',
-      'opening_time'=> 'required|date_format:h:i A',//formato de 12hr AM/PM,
-      'closing_time'=> 'required|date_format:h:i A',//formato de 12hr AM/PM
-      
-        ]);
-                // Convertir el formato de 12 horas a 24 horas
-                $start_time_24 = \Carbon\Carbon::createFromFormat('h:i A', $request->opening_time)->format('H:i:s');
-                $end_time_24 = \Carbon\Carbon::createFromFormat('h:i A', $request->closing_time)->format('H:i:s');
+            'name' => 'required|max:100',
+            'adress' => 'required|max:100',
+            'opening_time' => 'required|date_format:H:i',
+            'closing_time' => 'required|date_format:H:i|after: opening_time ',
 
-                $request->merge([
-                    'opening_time' => $start_time_24,
-                    'closing_time' => $end_time_24,
-                ]);
+        ]);
+        // Convertir el formato de 12 horas a 24 horas
+        $start_time_24 = \Carbon\Carbon::createFromFormat('H:i', $request->opening_time)->format('H:i:s');
+        $end_time_24 = \Carbon\Carbon::createFromFormat('H:i', $request->closing_time)->format('H:i:s');
+
+        $request->merge([
+            'opening_time' => $start_time_24,
+            'closing_time' => $end_time_24,
+        ]);
 
         $headquarter = Headquarters::create($request->all());
-
+        $headquarter->load('municipality.departament', 'trainingCenter');
         return response()->json($headquarter);
     }
 
@@ -54,11 +55,9 @@ class HeadquartersController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function show($id) //si se pasa $id se utiliza la comentada
-    {  
+    {
         $headquarter = Headquarters::included()->findOrFail($id);
         return response()->json($headquarter);
-
-
     }
 
     /**
@@ -68,17 +67,27 @@ class HeadquartersController extends Controller
      * @param  \App\Models\TrainingCenter
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Headquarters $headquarter)
+    public function update(Request $request, $id)
     {
         $request->validate([
-     'name'=>'required|max:100',
-     'adress'=>'required|max:100',
-     'opening_time'=>'required|max:100',
-     'closing_time'=>'required|max:100',
+            'name' => 'required|max:100',
+            'adress' => 'required|max:100',
+            'opening_time' => 'required|date_format:H:i',
+            'closing_time' => 'required|date_format:H:i|after: opening_time',
+
+        ]);
+        $start_time_24 = \Carbon\Carbon::createFromFormat('H:i', $request->opening_time)->format('H:i:s');
+        $end_time_24 = \Carbon\Carbon::createFromFormat('H:i', $request->closing_time)->format('H:i:s');
+
+        $request->merge([
+            'opening_time' => $start_time_24,
+            'closing_time' => $end_time_24,
         ]);
 
-        $headquarter->update($request->all());
+        $headquarter = Headquarters::find($id);
 
+        $headquarter->update($request->all());
+        $headquarter->load('municipality.departament', 'trainingCenter');
         return response()->json($headquarter);
     }
 
@@ -88,8 +97,9 @@ class HeadquartersController extends Controller
      * @param  \App\Models\Headquarters
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Headquarters $headquarter)
+    public function destroy($id)
     {
+        $headquarter = Headquarters::find($id);
         $headquarter->delete();
         return response()->json($headquarter);
     }

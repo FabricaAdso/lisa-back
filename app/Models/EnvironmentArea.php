@@ -8,9 +8,10 @@ class EnvironmentArea extends Model
 {
     //
     protected $fillable = ['name'];
-   
 
-    public function environments(){
+
+    public function environments()
+    {
         return $this->hasMany(Environment::class);
     }
 }

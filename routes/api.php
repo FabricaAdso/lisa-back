@@ -22,9 +22,9 @@ Route::group([], function () {
 });
 
 Route::group(['middleware' => 'auth:api'], function () {
-    Route::post('logout', [AuthController::class, 'logout']);
     Route::post('refresh', [AuthController::class, 'refresh']);
     Route::post('me', [AuthController::class, 'me']);
+    Route::get('document-type', [AuthController::class, 'getDocument']);
 
     // Rutas para usuarios
     Route::get('users', [UserController::class, 'index']);
@@ -35,14 +35,18 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::get('deactivated',[UserController::class,'deactivated']);
     Route::get('active', [UserController::class, 'active']);
 
+
     // Ruta para gestionar roles
     Route::post('users/{userId}/toggle-role', [RoleController::class, 'toggleRole']);
+
+    //  Rutas para cursos y demas
+    Route::resource('days', DayController::class);
+    Route::resource('educationLevel', EducationLevelController::class);
+    Route::resource('programs', ProgramController::class);
+    Route::resource('courses', CourseController::class);
+    Route::put('courses/{courseId}/shifts', [CourseController::class, 'updateShifts']);
+    Route::resource('shifts', ShiftController::class);
+    Route::put('/shifts/{shiftId}/days', [ShiftController::class, 'assignDaysToShift']);
 });
 
-Route::resource('days', DayController::class);
-Route::resource('educationLevel', EducationLevelController::class);
-Route::resource('programs', ProgramController::class);
-Route::resource('courses', CourseController::class);
-Route::put('courses/{courseId}/shifts', [CourseController::class, 'updateShifts']);
-Route::resource('shifts', ShiftController::class);
-Route::put('/shifts/{shiftId}/days', [ShiftController::class, 'assignDaysToShift']);
+Route::post('logout', [AuthController::class, 'logout']);

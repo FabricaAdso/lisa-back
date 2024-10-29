@@ -20,7 +20,7 @@ class ShiftController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|String|max:20',
+            'name' => 'required|String|max:50',
             'start_time' => 'required|date_format:h:i A',//formato de 12hr AM/PM
             'end_time' => 'required|date_format:h:i A|after:start_time',//formato de 12
         ]);
@@ -50,7 +50,7 @@ class ShiftController extends Controller
     public  function update(Request $request, $id)
     {
         $request->validate([
-            'name' => 'required|String|max:20',
+            'name' => 'required|String|max:50',
             'start_time' => 'required|date_format:h:i A',//formato de 12hr AM/PM
             'end_time' => 'required|date_format:h:i A',//formato de 12
         ]);

@@ -20,7 +20,8 @@ class Course extends Model
     ];
 
     protected $allowFilter = [
-        'program_q'
+        'program_q',
+        'name'//para filtrar por code de course
     ];
     ////
     public function program()

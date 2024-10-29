@@ -9,15 +9,19 @@ class Program extends Model
 {
     protected $fillable = [
         'name',
-        'education_level_id'
+        'education_level_id',
+        'training_center_id'
     ];
 
     protected $allowIncluded = [
-        'educationLevel'
+        'educationLevel',
+        'trainingCenter'
     ];
 
     protected $allowFilter = [
-        'education_level'
+        'education_level',//de nivel de educacion
+        'trainingCenter',
+        'name'//del programa
     ];
     //{{api}}/programs?included=educationLevel&filter[education_level]=logo
     public function educationLevel()
@@ -28,6 +32,11 @@ class Program extends Model
     public function courses()
     {
         return $this->hasMany(Course::class);
+    }
+
+    public function trainingCenter()
+    {
+        return $this->belongsTo(TrainingCenter::class);
     }
 
 
@@ -73,13 +82,14 @@ class Program extends Model
     
         foreach ($filters as $filter => $value) {
             // Filtrar por nivel de educación (relación)
-            if ($filter === 'education_level') {
-                $query->whereHas('educationLevel', function ($q) use ($value) {
+            if ($filter === 'training_center') {
+                $query->whereHas('trainingCenter', function ($q) use ($value) {
                     $q->where('name', 'LIKE', '%' . $value . '%');
                 });
+                continue; 
             }
-    
-            //otros campos de Program si están en allowFilter
+
+            //otros campos
             if ($allowFilter->contains($filter) && $filter !== 'education_level') {
                 $query->where($filter, 'LIKE', '%' . $value . '%');
             }

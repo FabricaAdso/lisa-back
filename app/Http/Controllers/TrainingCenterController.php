@@ -11,9 +11,7 @@ class TrainingCenterController extends Controller
     public function index()
     {
 
-        // $trainingCenter = TrainingCenter::all();
-        $trainingCenter = TrainingCenter::included()->get();
-
+        $trainingCenter = TrainingCenter::all();
         return response()->json($trainingCenter);
     }
 
@@ -45,7 +43,7 @@ class TrainingCenterController extends Controller
      */
     public function show($id) //si se pasa $id se utiliza la comentada
     {
-        $trainingCenter = TrainingCenter::included()->findOrFail($id);
+        $trainingCenter = TrainingCenter::findOrFail($id);
         return response()->json($trainingCenter);
     }
 

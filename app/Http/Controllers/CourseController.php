@@ -11,8 +11,8 @@ class CourseController extends Controller
 {
     public function index()
     {
-        //$courses = Course::included()->filter()->get();
-        $courses = Course::included()->get();
+        $courses = Course::included()->filter()->get();
+        //$courses = Course::included()->get();
 
         return response()->json($courses);
     }

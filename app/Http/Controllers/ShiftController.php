@@ -21,17 +21,8 @@ class ShiftController extends Controller
     {
         $request->validate([
             'name' => 'required|String|max:20',
-            'start_time' => 'required|date_format:h:i A',//formato de 12hr AM/PM
-            'end_time' => 'required|date_format:h:i A|after:start_time',//formato de 12
-        ]);
-
-        // Convertir el formato de 12 horas a 24 horas
-        $start_time_24 = \Carbon\Carbon::createFromFormat('h:i A', $request->start_time)->format('H:i:s');
-        $end_time_24 = \Carbon\Carbon::createFromFormat('h:i A', $request->end_time)->format('H:i:s');
-
-        $request->merge([
-            'start_time' => $start_time_24,
-            'end_time' => $end_time_24,
+            'start_time' => 'required|date_format:H:i',
+            'end_time' => 'required|date_format:H:i|after:start_time',
         ]);
 
         $shift = Shift::create($request->all());
@@ -51,20 +42,12 @@ class ShiftController extends Controller
     {
         $request->validate([
             'name' => 'required|String|max:20',
-            'start_time' => 'required|date_format:h:i A',//formato de 12hr AM/PM
-            'end_time' => 'required|date_format:h:i A',//formato de 12
+            'start_time' => 'required|date_format:H:i',//formato de 12hr AM/PM
+            'end_time' => 'required|date_format:H:i',//formato de 12
         ]);
 
-        // Convertir el formato de 12 horas a 24 horas
-        $start_time_24 = \Carbon\Carbon::createFromFormat('h:i A', $request->start_time)->format('H:i:s');
-        $end_time_24 = \Carbon\Carbon::createFromFormat('h:i A', $request->end_time)->format('H:i:s');
 
-        $request->merge([
-            'start_time' => $start_time_24,
-            'end_time' => $end_time_24,
-        ]);
-
-        $shift = Shift::find($id);
+        $shift = Shift::findOrFail($id);
         $shift->update($request->all());
         return response()->json($shift);
     }
@@ -110,7 +93,11 @@ class ShiftController extends Controller
             $shift->days()->attach($daysAdd);
         }
 
-        return response()->json(['message' => 'Días actualizados correctamente.']);
+        $shift->load('days');
+        return response()->json([
+            'message' => 'Días actualizados correctamente.',
+            'shift' => $shift,
+        ]);
     }
 
     /// asignar jornadas a cursos

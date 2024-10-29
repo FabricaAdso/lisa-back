@@ -37,9 +37,10 @@ Route::group([], function () {
     Route::post('register', [AuthController::class, 'register']);
     Route::post('login', [AuthController::class, 'login']);
     Route::get('document-type', [AuthController::class, 'getDocument']);
-    
+
     Route::post('password/email', [AuthController::class, 'sendResetLink'])->name('password.email');
-    Route::post('password/reset', [AuthController::class, 'resetPassword'])->name('password.update');
+
+    // Route::post('password/reset', [AuthController::class, 'resetPassword'])->name('password.update');
 
 });
 

@@ -92,9 +92,20 @@ class AuthController extends Controller
         ]);
     }
 
+    public function showResetForm(Request $request)
+    {
+        return view('auth.reset')->with(['token' => $request->token]);
+    }
+
     public function sendResetLink(Request $request)
     {
         $request->validate(['email' => 'required|email']);
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            return response()->json(['error' => 'No se encontró un usuario con este correo electrónico.'], 404);
+        }
 
         $token = Str::random(60);
         PasswordReset::create([
@@ -103,12 +114,12 @@ class AuthController extends Controller
             'created_at' => now(),
         ]);
 
-        Mail::send('emails.reset', ['token' => $token], function ($message) use ($request) {
+        Mail::send('emails.reset', ['user' => $user, 'token' => $token], function ($message) use ($request) {
             $message->to($request->email);
-            $message->subject('Restablecer contraseña');
+            $message->subject('Restablecer Contraseña');
         });
 
-        return response()->json(['message' => 'Se ha enviado el enlace de restablecimiento de contraseña.', 'token' => $token]);
+        return response()->json(['message' => 'Se ha enviado el enlace de restablecimiento de contraseña.']);
     }
 
     public function resetPassword(Request $request)

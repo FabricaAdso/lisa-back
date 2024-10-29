@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\DocumentType;
 use App\Models\User;
 use App\Models\PasswordReset;
 use Illuminate\Support\Facades\Mail;
@@ -43,8 +44,18 @@ class AuthController extends Controller
         return response()->json(['user' => $user, 'token' => $token], 201);
     }
 
+    public function getDocument(){
+        $document = DocumentType::all();
+        return response()->json($document);
+    }
+
     public function login(Request $request)
     {
+        $request->validate([
+            'identity_document' => '',
+            'password' => '',
+        ]);
+
         $credentials = $request->only('identity_document', 'password');
 
         if (!$token = JWTAuth::attempt($credentials)) {

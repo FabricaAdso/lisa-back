@@ -77,10 +77,18 @@ class UserController extends Controller
     public function deactivate($id)
     {
         $user = User::findOrFail($id);
-        $user->deactivation_date = now();
+
+        if ($user->deactivation_date) {
+            $user->deactivation_date = null;
+            $message = 'Usuario reactivado';
+        } else {
+            $user->deactivation_date = now();
+            $message = 'Usuario desactivado';
+        }
+
         $user->save();
 
-        return response()->json(['message' => 'Usuario desactivado']);
+        return response()->json(['message' => $message]);
     }
 
     public function deactivated()

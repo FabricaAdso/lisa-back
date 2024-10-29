@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\PasswordReset;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -76,6 +79,52 @@ class AuthController extends Controller
             'token_type' => 'bearer',
             'expires_in' => JWTAuth::factory()->getTTL() * 60,
         ]);
+    }
+
+    public function sendResetLink(Request $request)
+    {
+        $request->validate(['email' => 'required|email']);
+
+        $token = Str::random(60);
+        PasswordReset::create([
+            'email' => $request->email,
+            'token' => $token,
+            'created_at' => now(),
+        ]);
+
+        // Enviar el correo de restablecimiento de contraseña
+        Mail::send('emails.reset', ['token' => $token], function ($message) use ($request) {
+            $message->to($request->email);
+            $message->subject('Restablecer contraseña');
+        });
+
+        return response()->json(['message' => 'Se ha enviado el enlace de restablecimiento de contraseña.']);
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'token' => 'required',
+            'password' => 'required|confirmed|min:6',
+        ]);
+
+        $passwordReset = PasswordReset::where('token', $request->token)
+            ->where('created_at', '>=', now()->subMinutes(30))
+            ->first();
+
+        if (!$passwordReset) {
+            return response()->json(['error' => 'Este token es inválido o ha expirado.'], 400);
+        }
+
+        // Cambiar la contraseña del usuario
+        $user = User::where('email', $passwordReset->email)->first();
+        $user->password = bcrypt($request->password);
+        $user->save();
+
+        // Eliminar el token usado
+        $passwordReset->delete();
+
+        return response()->json(['message' => 'Contraseña restablecida correctamente.']);
     }
 
 }

@@ -103,13 +103,12 @@ class AuthController extends Controller
             'created_at' => now(),
         ]);
 
-        // Enviar el correo de restablecimiento de contraseña
         Mail::send('emails.reset', ['token' => $token], function ($message) use ($request) {
             $message->to($request->email);
             $message->subject('Restablecer contraseña');
         });
 
-        return response()->json(['message' => 'Se ha enviado el enlace de restablecimiento de contraseña.']);
+        return response()->json(['message' => 'Se ha enviado el enlace de restablecimiento de contraseña.', 'token' => $token]);
     }
 
     public function resetPassword(Request $request)
@@ -127,12 +126,10 @@ class AuthController extends Controller
             return response()->json(['error' => 'Este token es inválido o ha expirado.'], 400);
         }
 
-        // Cambiar la contraseña del usuario
         $user = User::where('email', $passwordReset->email)->first();
         $user->password = bcrypt($request->password);
         $user->save();
 
-        // Eliminar el token usado
         $passwordReset->delete();
 
         return response()->json(['message' => 'Contraseña restablecida correctamente.']);

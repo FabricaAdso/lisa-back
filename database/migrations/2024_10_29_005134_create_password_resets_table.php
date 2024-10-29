@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('email')->index();
             $table->string('token')->unique();
             $table->timestamp('created_at')->nullable();
+            $table->timestamp('updated_at')->nullable();
         });
     }
 
@@ -25,5 +26,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('password_resets');
+
+        Schema::table('password_resets', function (Blueprint $table) {
+            $table->dropColumn('updated_at');
+        });
     }
 };

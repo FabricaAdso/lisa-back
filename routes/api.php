@@ -32,10 +32,15 @@ Route::apiResource('headquarters', HeadquartersController::class);
 Route::apiresource('environments', EnvironmentController::class);
 Route::apiresource('environmentsArea', EnvironmentAreaController::class);
 Route::apiresource('trainingCenters', TrainingCenterController::class);
+
 Route::group([], function () {
     Route::post('register', [AuthController::class, 'register']);
     Route::post('login', [AuthController::class, 'login']);
     Route::get('document-type', [AuthController::class, 'getDocument']);
+    
+    Route::post('password/email', [AuthController::class, 'sendResetLink'])->name('password.email');
+    Route::post('password/reset', [AuthController::class, 'resetPassword'])->name('password.update');
+
 });
 
 Route::group(['middleware' => 'auth:api'], function () {
@@ -48,11 +53,10 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::get('users/{id}', [UserController::class, 'show']);
     Route::put('usersUpdate/{id}', [UserController::class, 'update']);
 
-    //Activar y desactivar usuarios. ver usuarios activos e inactivoa
+    //Activar y desactivar usuarios. ver usuarios activos e inactivos
     Route::post('users/{id}/deactivate', [UserController::class, 'deactivate']);
     Route::get('deactivated', [UserController::class, 'deactivated']);
     Route::get('active', [UserController::class, 'active']);
-
 
     // Ruta para gestionar roles
     Route::post('users/{userId}/toggle-role', [RoleController::class, 'toggleRole']);

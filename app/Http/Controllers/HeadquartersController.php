@@ -14,7 +14,7 @@ class HeadquartersController extends Controller
         //   $headquarter = Headquarters::all();
         $headquarter = Headquarters::included()->get();
         $headquarter = Headquarters::included()->filter()->get();
-        $headquarter->load('municipality.departament', 'trainingCenter');
+
         return response()->json($headquarter);
     }
 

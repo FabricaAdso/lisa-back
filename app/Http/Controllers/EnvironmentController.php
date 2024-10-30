@@ -12,9 +12,7 @@ class EnvironmentController extends Controller
     {
 
         // $environments = Environment::all();
-        $environments = Environment::included()->get();
         $environments = Environment::included()->filter()->get();
-        $environments->load('headquarters', 'environmentArea');
         return response()->json($environments);
     }
 
@@ -35,6 +33,7 @@ class EnvironmentController extends Controller
         ]);
 
         $environments = Environment::create($request->all());
+        $environments->load($environments->included()->getEagerLoads());
 
         return response()->json($environments);
     }
@@ -68,8 +67,8 @@ class EnvironmentController extends Controller
         ]);
         $environments = Environment::find($id);
         $environments->update($request->all());
-        //$environments->load($environments->included()->getEagerLoads());
-        $environments->load('headquarters', 'environmentArea');
+        $environments->load($environments->included()->getEagerLoads());
+   
         return response()->json($environments);
     }
 

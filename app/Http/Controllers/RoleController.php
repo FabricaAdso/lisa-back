@@ -8,6 +8,12 @@ use Spatie\Permission\Models\Role;
 
 class RoleController extends Controller
 {
+    public function getRoles()
+    {
+        $roles = Role::all();
+        return response()->json($roles, 200);
+    }
+
     public function toggleRole(Request $request, $userId)
     {
         $user = User::findOrFail($userId);

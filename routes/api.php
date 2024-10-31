@@ -39,7 +39,7 @@ Route::group([], function () {
     Route::get('document-type', [AuthController::class, 'getDocument']);
 
     Route::post('password/email', [AuthController::class, 'sendResetLink'])->name('password.email');
-
+    // Route::get('password/reset/{token}', [AuthController::class, 'showResetForm'])->name('password.reset');
     // Route::post('password/reset', [AuthController::class, 'resetPassword'])->name('password.update');
 
 });
@@ -61,6 +61,7 @@ Route::group(['middleware' => 'auth:api'], function () {
 
     // Ruta para gestionar roles
     Route::post('users/{userId}/toggle-role', [RoleController::class, 'toggleRole']);
+    Route::get('/roles', [RoleController::class, 'getRoles']);
 
     //  Rutas para cursos y demas
     Route::resource('days', DayController::class);
@@ -70,6 +71,8 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::put('courses/{courseId}/shifts', [CourseController::class, 'updateShifts']);
     Route::resource('shifts', ShiftController::class);
     Route::put('/shifts/{shiftId}/days', [ShiftController::class, 'assignDaysToShift']);
+
+
+    Route::post('logout', [AuthController::class, 'logout']);
 });
 
-Route::post('logout', [AuthController::class, 'logout']);

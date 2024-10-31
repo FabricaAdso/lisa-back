@@ -30,7 +30,7 @@ class ProgramController extends Controller
 
     public function show($id)
     {
-        $Program = Program::find($id);
+        $Program = Program::find($id)->included()->filter()->get();
         return response()->json($Program);
     }
 
@@ -44,6 +44,7 @@ class ProgramController extends Controller
         
         $Program = Program::find($id);
         $Program->update($request->all());
+        $Program->load(['educationLevel','trainingCenter']);
         return response()->json($Program);
     }
 

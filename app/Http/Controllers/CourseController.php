@@ -35,7 +35,7 @@ class CourseController extends Controller
 
     public function show($id)
     {
-        $course = Course::with('program')->findOrFail($id);
+        $course = Course::findOrFail($id)->included()->filter()->get();
         return response()->json($course);
     }
 
@@ -52,7 +52,7 @@ class CourseController extends Controller
         // Buscar el curso y actualizar con asignación masiva
         $course = Course::findOrFail($id);
         $course->update($request->all());
-
+        $course->load(['program','shifts']);
         return response()->json($course);
     }
 
@@ -127,8 +127,12 @@ class CourseController extends Controller
         if (!empty($shiftsToAdd)) {
             $course->shifts()->attach($shiftsToAdd);
         }
-    
-        return response()->json(['message' => 'Jornadas actualizadas correctamente.']);
+        
+        $course->load('shifts');
+        return response()->json([
+            'message' => 'Jornadas actualizadas correctamente.',
+            'course' => $course
+        ]);
     }
     
     

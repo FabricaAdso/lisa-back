@@ -41,7 +41,7 @@ class DepartamentController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\departaments 
+     * @param  \App\Models\departaments
      * @return \Illuminate\Http\Response
      */
     public function show($id)

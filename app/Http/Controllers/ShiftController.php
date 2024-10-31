@@ -56,7 +56,7 @@ class ShiftController extends Controller
     {
         $shift = Shift::find($id);
         $shift->delete();
-        return response()->json($shift);  
+        return response()->json($shift);
     }
 
     //requerimiento
@@ -77,7 +77,7 @@ class ShiftController extends Controller
 
         //lista de relaciones
         $currentDayIds = $shift->days()->select('days.id')->pluck('id')->toArray();
-        
+
         //validar cruce de dias si es necesario
         foreach ($currentDayIds as $currentDayId) {
             if (!in_array($currentDayId, $request->day_ids)) {
@@ -85,7 +85,7 @@ class ShiftController extends Controller
                 $shift->days()->detach($currentDayId);
             }
         }
-        
+
         //ver la vigencia de las relaciones anteriores con los nuevos parametros
         //array_diff compara el primer con el segundo y devuelve los valores primer que no este en el segundo
         $daysAdd = array_diff($request->day_ids, $currentDayIds);
@@ -101,5 +101,5 @@ class ShiftController extends Controller
     }
 
     /// asignar jornadas a cursos
-    
+
 }

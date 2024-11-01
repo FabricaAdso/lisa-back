@@ -31,6 +31,11 @@ class User extends Authenticatable implements JWTSubject
         'document_type_id',
     ];
 
+    public function participants ()
+    {
+        return $this->hasMany(Participant::class);
+    }
+
     public function document_type()
     {
         return $this->belongsTo(DocumentType::class);

@@ -9,28 +9,24 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
-    {
+
+    public function up(): void {
         Schema::create('assistances', function (Blueprint $table) {
             $table->id();
-            $table->set('assitance',['ASISTIO','FALTO','FALTA JUSTIFICADA']);
+            $table->enum('assistance', ['ASISTIO', 'FALTA', 'FALTA_JUSTIFICADA']); 
 
             $table->unsignedBigInteger('participant_id');
-            $table->foreign('participant_id')->references('id')->on('participants')->onDelete('cascade');
+            $table->foreign('participant_id')->references('id')->on('participants'); 
 
             $table->unsignedBigInteger('session_id');
-            $table->foreign('session_id')->references('id')->on('sessions')->onDelete('cascade');
-
+            $table->foreign('session_id')->references('id')->on('sessions'); 
 
             $table->timestamps();
         });
     }
-
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
-    {
+    
+    public function down(): void {
         Schema::dropIfExists('assistances');
     }
+    
 };

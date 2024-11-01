@@ -13,7 +13,9 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\DayController;
 use App\Http\Controllers\EducationLevelController;
+use App\Http\Controllers\ParticipantController;
 use App\Http\Controllers\ProgramController;
+use App\Http\Controllers\SessionController;
 use App\Http\Controllers\ShiftController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -64,3 +66,13 @@ Route::resource('courses', CourseController::class);
 Route::put('courses/{courseId}/shifts', [CourseController::class, 'updateShifts']);
 Route::resource('shifts', ShiftController::class);
 Route::put('/shifts/{shiftId}/days', [ShiftController::class, 'assignDaysToShift']);
+
+// Rutas Participantes
+
+Route::post('participants', [ParticipantController::class, 'assignParticipants']);
+Route::get('participants', [ParticipantController::class, 'getParticipants']);
+Route::post('participants/assign-instructor', [ParticipantController::class, 'assignInstructor']);
+
+Route::post('sessions', [SessionController::class, 'createSession']);
+Route::get('participants', [ParticipantController::class, 'getParticipantsByRole']);
+Route::put('assistance/{assistanceId}', [SessionController::class, 'updateAssistance']);

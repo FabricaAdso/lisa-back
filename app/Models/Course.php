@@ -23,6 +23,11 @@ class Course extends Model
         'program_q'
     ];
     ////
+    public function participants()
+    {
+        return $this->hasMany(Participant::class);
+    }
+    
     public function program()
     {
         return $this->belongsTo(Program::class);

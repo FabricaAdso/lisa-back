@@ -15,13 +15,13 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('adress');
-            $table->time('opening_time');
-            $table->time('closing_time');
+            $table->time('opening_time')->nullable(); 
+            $table->time('closing_time')->nullable();
 
 
             //LLave Foranea Municipio
-            $table->unsignedBigInteger('municipality_id');
-            $table->foreign('municipality_id')->references('id')->on('municipalities')->onDelete('cascade');
+            $table->unsignedBigInteger('municipality_id')->nullable();
+            $table->foreign('municipality_id')->references('id')->on('municipalities')->onDelete('cascade')->nullable();
 
             //LLave Foranea Centro Formacion
             $table->unsignedBigInteger('training_center_id');

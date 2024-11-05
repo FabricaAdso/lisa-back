@@ -13,6 +13,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\DayController;
 use App\Http\Controllers\EducationLevelController;
+use App\Http\Controllers\ExcelController;
 use App\Http\Controllers\ProgramController;
 use App\Http\Controllers\ShiftController;
 use Illuminate\Http\Request;
@@ -64,3 +65,5 @@ Route::resource('courses', CourseController::class);
 Route::put('courses/{courseId}/shifts', [CourseController::class, 'updateShifts']);
 Route::resource('shifts', ShiftController::class);
 Route::put('/shifts/{shiftId}/days', [ShiftController::class, 'assignDaysToShift']);
+
+Route::post('import-excel', [ExcelController::class, 'importExcel']);

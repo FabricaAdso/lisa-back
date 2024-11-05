@@ -26,8 +26,7 @@ class TrainingCenterController extends Controller
 
         $request->validate([
             'name' => 'required|max:100',
-            
-
+            'code' => 'required|integer'
         ]);
 
         $trainingCenter = TrainingCenter::create($request->all());
@@ -58,6 +57,7 @@ class TrainingCenterController extends Controller
     {
         $request->validate([
             'name' => 'required|max:100',
+            'code' => 'required|integer'
         ]);
 
         $trainingCenter->update($request->all());

@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('training_centers', function (Blueprint $table) {
             $table->id();
+            $table->integer('code')->unique();
             $table->string('name');
 
             // //Llave Foranea Municipio

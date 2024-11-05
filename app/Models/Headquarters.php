@@ -13,6 +13,39 @@ class Headquarters extends Model
     protected $allowIncluded = ['trainingCenter', 'municipality'];
     protected $allowFilter = ['training_Center', 'municipality_'];
 
+    //MUTADOR PARA DEFINIR DIRECCION A UNA SEDE
+    public function setNameAttribute($value)
+    {
+        $this->attributes['name'] = $value;
+
+        $adressMap = [
+            'INEM' => 'Calle 1 #123',
+            'CDU' => 'Avenida 2 #456',
+            'CTPI' => 'Carrera 3 #789',
+            'AGRO' => 'Calle 12 #12-22',
+        ];
+
+        //asignar la direccion
+        $this->attributes['adress'] = $adressMap[strtolower($value)] ?? 'direccion no disponible';
+    }
+
+     // Mutador para asignar el ID del Training Center basado en el nombre
+    public function setTrainingCenterNameAttribute($value)
+    {
+        // Busca el Training Center por nombre
+        $trainingCenter = TrainingCenter::where('name', $value)->first();
+
+        if ($trainingCenter) {
+            // Asigna el ID si se encontró
+            $this->attributes['training_center_id'] = $trainingCenter->id;
+        } else {
+            $this->attributes['training_center_id'] = null; // O puedes lanzar una excepción
+            
+        }
+    }
+
+    ////////////
+
     public function trainingCenter()
     {
         return $this->belongsTo(TrainingCenter::class);

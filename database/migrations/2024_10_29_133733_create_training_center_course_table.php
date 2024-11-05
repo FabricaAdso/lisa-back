@@ -23,7 +23,7 @@ return new class extends Migration
     {
         Schema::table('programs', function (Blueprint $table) {
             $table->dropForeign(['training_center_id']);
-            $table->dropColumn('training_center_id'); // Si deseas eliminar la columna también
+            $table->dropColumn('training_center_id');
         });
     } 
 };

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AssistanceController;
 use App\Http\Controllers\DepartamentController;
 use App\Http\Controllers\EnvironmentAreaController;
 use App\Http\Controllers\EnvironmentController;
@@ -75,4 +76,5 @@ Route::post('participants/assign-instructor', [ParticipantController::class, 'as
 
 Route::post('sessions', [SessionController::class, 'createSession']);
 Route::get('participants', [ParticipantController::class, 'getParticipantsByRole']);
-Route::put('assistance/{assistanceId}', [SessionController::class, 'updateAssistance']);
+Route::post('/assistances/session/{sessionId}', [AssistanceController::class, 'createForSession']);
+

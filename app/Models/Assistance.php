@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 class Assistance extends Model
 {
     //
+    protected $fillable = ['assistance', 'participant_id', 'session_id'];
+    
     public function participant()
     {
         return $this->belongsTo(Participant::class);

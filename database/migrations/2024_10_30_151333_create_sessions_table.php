@@ -38,8 +38,8 @@ return new class extends Migration
             $table->time('start_time'); 
             $table->time('end_time');
 
-            $table->unsignedBigInteger('user_id'); 
-            $table->foreign('user_id')->references('id')->on('users'); 
+            $table->unsignedBigInteger('participant_id'); 
+            $table->foreign('participant_id')->references('id')->on('participants'); 
 
             $table->timestamps();
         });

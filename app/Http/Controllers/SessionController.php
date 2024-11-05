@@ -26,7 +26,7 @@ class SessionController extends Controller
             'date' => 'required|date_format:Y-m-d',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
-            'user_id' => 'required|exists:users,id',
+            'participant_id' => 'required|exists:users,id',
         ]);
 
         $session = Session::create($request->all());
@@ -45,7 +45,7 @@ class SessionController extends Controller
             'date' => 'required|date_format:Y-m-d',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
-            'user_id' => 'required|exists:users,id',
+            'participant_id' => 'required|exists:users,id',
         ]);
 
         $session =Session::find($id);
@@ -63,53 +63,40 @@ class SessionController extends Controller
     // Crear sesión
     public function createSession(Request $request)
     {
+        // Validación de los datos de la sesión
         $request->validate([
             'date' => 'required|date',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
-            'user_id' => 'required|exists:users,id', // El instructor de la sesión
+            'participant_id' => 'required|exists:participants,id', // El instructor de la sesión
         ]);
-
-        // Verificar si ya existe una sesión para la misma fecha
+    
+        // Verificar que no exista otra sesión en la misma fecha y para el mismo instructor
         $existingSession = Session::where('date', $request->date)
-            ->where('user_id', $request->user_id) // Se relaciona con el instructor
+            ->where('participant_id', $request->participant_id)
             ->first();
-
+    
         if ($existingSession) {
-            return response()->json(['message' => 'Ya existe una sesión para esta fecha.'], 409);
+            return response()->json(['message' => 'Ya existe una sesión para esta fecha y usuario.'], 409);
         }
-
-        $session = Session::create($request->all());
-        
-        // Crear asistencias automáticamente para los participantes activos
-        $participants = Participant::where('course_id', $request->course_id) // Ajustar para buscar por curso si es necesario
-            ->whereNull('end_date')
-            ->get();
-
-        foreach ($participants as $participant) {
-            $session->attendances()->create(['participant_id' => $participant->id]);
+        $participante = Participant::with('user')->find($request->participant_id);
+        if($participante && $participante->user->hasRole('Instructor')){
+            //$participante->load(['user','course']);
+            return response()->json(['message' => 'Sesión y asistencias creadas exitosamente.','profesor'=>$participante]);
+        }else{
+            return response()->json('no es instructor');
         }
-
-        return response()->json($session, 201);
-    }
-
-    public function updateAssistance(Request $request, $assistanceId)
-    {
-        $request->validate([
-            'assistance' => 'required|in:ASISTIO,FALTA,FALTA_JUSTIFICADA',
+        // Crear la sesión
+        $session = Session::create([
+            'date' => $request->date,
+            'start_time' => $request->start_time,
+            'end_time' => $request->end_time,
+            'participant_id' => $request->participant_id, // Instructor asignado a la sesión
         ]);
+        
+        //app(AssistanceController::class)->createForSession($session->id);
 
-        $assistance = Assistance::findOrFail($assistanceId);
-
-        // Verificar que el usuario autenticado es el instructor de la sesión
-        if (Auth::user()->id !== $assistance->session->user_id) {
-            return response()->json(['message' => 'No tienes permisos para modificar esta asistencia.'], 403);
-        }
-
-        $assistance->update($request->all());
-        return response()->json($assistance);
+    
     }
-
-
 }
 

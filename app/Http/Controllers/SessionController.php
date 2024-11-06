@@ -48,7 +48,7 @@ class SessionController extends Controller
             'participant_id' => 'required|exists:users,id',
         ]);
 
-        $session =Session::find($id);
+        $session = Session::find($id);
         $session->update($request->all());
         return response()->json($session);
     }
@@ -63,7 +63,7 @@ class SessionController extends Controller
     // Crear sesión
     public function createSession(Request $request)
     {
-        // Validación de los datos de la sesión
+        
         $request->validate([
             'date' => 'required|date',
             'start_time' => 'required|date_format:H:i',
@@ -71,7 +71,7 @@ class SessionController extends Controller
             'participant_id' => 'required|exists:participants,id', // El instructor de la sesión
         ]);
     
-        // Verificar que no exista otra sesión en la misma fecha y para el mismo instructor
+       
         $existingSession = Session::where('date', $request->date)
             ->where('participant_id', $request->participant_id)
             ->first();
@@ -79,24 +79,52 @@ class SessionController extends Controller
         if ($existingSession) {
             return response()->json(['message' => 'Ya existe una sesión para esta fecha y usuario.'], 409);
         }
-        $participante = Participant::with('user')->find($request->participant_id);
-        if($participante && $participante->user->hasRole('Instructor')){
-            //$participante->load(['user','course']);
-            return response()->json(['message' => 'Sesión y asistencias creadas exitosamente.','profesor'=>$participante]);
-        }else{
-            return response()->json('no es instructor');
-        }
-        // Crear la sesión
-        $session = Session::create([
-            'date' => $request->date,
-            'start_time' => $request->start_time,
-            'end_time' => $request->end_time,
-            'participant_id' => $request->participant_id, // Instructor asignado a la sesión
-        ]);
-        
-        //app(AssistanceController::class)->createForSession($session->id);
-
     
+      
+        $instructor = Participant::with('user', 'course')->find($request->participant_id);
+    
+        if ($instructor && $instructor->user->hasRole('Instructor')) {
+    
+            // Crear la sesión
+            $session = Session::create([
+                'date' => $request->date,
+                'start_time' => $request->start_time,
+                'end_time' => $request->end_time,
+                'participant_id' => $request->participant_id,
+                'course_id' => $request->course_id,
+            ]);
+    
+            // Obtener los aprendices activos en el curso del instructor
+            $aprendices = Participant::with('user', 'role')
+                ->where('course_id', $instructor->course_id)
+                ->whereHas('user.roles', function ($query) {
+                    $query->where('name', 'Aprendiz'); 
+                })
+                ->whereNull('end_date') 
+                ->get();
+    
+            // Verificar si se encontraron aprendices
+            if ($aprendices->isEmpty()) {
+                return response()->json(['message' => 'No se encontraron aprendices activos para esta ficha.'], 400);
+            }
+    
+            // Crear asistencias para cada aprendiz
+            foreach ($aprendices as $aprendiz) {
+                Assistance::create([
+                    'participant_id' => $aprendiz->id,
+                    'session_id' => $session->id,
+                    'assistance' => null, 
+                ]);
+            }
+    
+            return response()->json([
+                'message' => 'Sesión y asistencias creadas exitosamente.',
+                'profesor' => $instructor,
+                'aprendices' => $aprendices,
+            ]);
+        } else {
+            return response()->json(['message' => 'El participante no tiene rol de instructor.'], 403);
+        }
     }
+    
 }
-

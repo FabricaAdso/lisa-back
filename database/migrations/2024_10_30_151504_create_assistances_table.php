@@ -13,7 +13,7 @@ return new class extends Migration
     public function up(): void {
         Schema::create('assistances', function (Blueprint $table) {
             $table->id();
-            $table->enum('assistance', ['ASISTIO', 'FALTA', 'FALTA_JUSTIFICADA']); 
+            $table->enum('assistance', ['ASISTIO', 'FALTA', 'FALTA_JUSTIFICADA'])->nullable(); 
 
             $table->unsignedBigInteger('participant_id');
             $table->foreign('participant_id')->references('id')->on('participants'); 

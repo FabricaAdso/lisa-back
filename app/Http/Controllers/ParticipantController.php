@@ -19,15 +19,33 @@ class ParticipantController extends Controller
             'role_id' => 'required|exists:roles,id', // Rol a asignar (aprendiz o instructor)
         ]);
 
-        // Obtener el usuario por ID
-        $user = User::findOrFail($request->user_id);
-        
-        // Crear el participante en la base de datos
         $participant = Participant::create($request->all());
 
         return response()->json($participant, 201);
     }
 
+    // asignar Rol a participante
+    public function assignRoleToParticipant(Request $request, $participantId)
+    {
+        $request->validate([
+            'role' => 'required|string|exists:roles,name', 
+        ]);
+    
+        $participant = Participant::findOrFail($participantId);
+    
+        if (!$participant->user) {
+            return response()->json(['message' => 'El participante no tiene un usuario asociado.'], 404);
+        }
+    
+        // Asignar el rol al usuario del participante
+        $participant->user->assignRole($request->role);
+    
+        return response()->json([
+            'message' => "Rol '{$request->role}' asignado al usuario asociado al participante.",
+            'participant' => $participant
+        ]);
+    }
+    
     // Obtener participantes por rol y ficha
     public function getParticipants(Request $request)
     {
@@ -47,26 +65,48 @@ class ParticipantController extends Controller
     // Asignar instructor a una ficha
 
 
-
     public function assignInstructor(Request $request)
-{
-    $request->validate([
-        'user_id' => 'required|exists:users,id', // ID del instructor
-        'course_id' => 'required|exists:courses,id', // ID de la ficha
-    ]);
-
-    // Verificar que el usuario tiene el rol de instructor
-    $user = User::find($request->user_id);
-
-    // Comprobar si el usuario tiene el rol de 'Instructor'
-    if (!$user->hasRole('Instructor')) {
-        return response()->json(['message' => 'El usuario no tiene rol de instructor.'], 403);
+    {
+        $request->validate([
+            'participant_id' => 'required|exists:participants,id', // ID del instructor como participante
+            'course_id' => 'required|exists:courses,id',           // ID de la ficha o curso
+        ]);
+    
+        // Encontrar el participante
+        $participant = Participant::with('user')->findOrFail($request->participant_id);
+    
+        // Comprobar si el usuario asociado al participante tiene el rol de 'Instructor'
+        if (!$participant->user->hasRole('Instructor')) {
+            return response()->json(['message' => 'El participante no tiene el rol de instructor.'], 403);
+        }
+    
+        // Si es un instructor, se asigna al curso o ficha (dependiendo de tu lógica)
+        $participant->course_id = $request->course_id;
+        $participant->save();
+    
+        return response()->json(['message' => 'Instructor asignado correctamente a la ficha.'], 200);
     }
+    
 
+    public function assignAprendiz(Request $request)
+    {
+        $request->validate([
+            'participant_id' => 'required|exists:participants,id', // ID del instructor como participante
+            'course_id' => 'required|exists:courses,id',           // ID de la ficha o curso
+        ]);
 
-    return response()->json(['message' => 'Instructor asignado correctamente a la ficha.'], 200);
-}
-
+        $participant = Participant::with('user')->findOrFail($request->participant_id);
+    
+        // Comprobar si el usuario asociado al participante tiene el rol de 'Instructor'
+        if (!$participant->user->hasRole('Aprendiz')) {
+            return response()->json(['message' => 'El participante no tiene el rol de Aprendiz.'], 403);
+        }
+    
+        $participant->course_id = $request->course_id;
+        $participant->save();
+    
+        return response()->json(['message' => 'Aprendiz asignado correctamente a la ficha.'], 200);
+    }
     // Método para obtener participantes por rol
     public function getParticipantsByRole(Request $request)
     {
@@ -94,8 +134,4 @@ class ParticipantController extends Controller
         // Obtener los participantes
         return response()->json($participants->with('user.roles')->get());
     }
-
-
 }
-
-

@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
+use Spatie\Permission\Models\Role;
+
 class Participant extends Model
 {
     //
@@ -47,5 +49,8 @@ class Participant extends Model
         $query->with($relations);
     }
 
+    public function role(){
+        return $this->belongsTo(Role::class,'role_id','id');
+    }
 
 }

@@ -73,8 +73,9 @@ Route::put('/shifts/{shiftId}/days', [ShiftController::class, 'assignDaysToShift
 Route::post('participants', [ParticipantController::class, 'assignParticipants']);
 Route::get('participants', [ParticipantController::class, 'getParticipants']);
 Route::post('participants/assign-instructor', [ParticipantController::class, 'assignInstructor']);
-
+Route::post('participants/assign-aprendiz', [ParticipantController::class, 'assignAprendiz']);
+Route::post('/participants/{id}/assign-role', [ParticipantController::class, 'assignRoleToParticipant']);
 Route::post('sessions', [SessionController::class, 'createSession']);
 Route::get('participants', [ParticipantController::class, 'getParticipantsByRole']);
-Route::post('/assistances/session/{sessionId}', [AssistanceController::class, 'createForSession']);
+Route::post('/sessions/{sessionId}/assistances', [AssistanceController::class, 'createForSession']);
 

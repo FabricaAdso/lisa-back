@@ -20,8 +20,8 @@ return new class extends Migration
 
 
             //LLave Foranea Municipio
-            $table->unsignedBigInteger('municipality_id')->nullable();
-            $table->foreign('municipality_id')->references('id')->on('municipalities')->onDelete('cascade')->nullable();
+            $table->unsignedBigInteger('municipality_id');
+            $table->foreign('municipality_id')->references('id')->on('municipalities')->onDelete('cascade');
 
             //LLave Foranea Centro Formacion
             $table->unsignedBigInteger('training_center_id');

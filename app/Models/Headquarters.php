@@ -26,7 +26,7 @@ class Headquarters extends Model
         ];
 
         //asignar la direccion
-        $this->attributes['adress'] = $adressMap[strtolower($value)] ?? 'direccion no disponible';
+        $this->attributes['adress'] = $adressMap[$value] ?? 'direccion no disponible';
     }
 
      // Mutador para asignar el ID del Training Center basado en el nombre

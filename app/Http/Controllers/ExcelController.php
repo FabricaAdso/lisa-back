@@ -53,12 +53,22 @@ class ExcelController extends Controller
             ]);
     }
 
+    public function getTrainingCenterId($code)
+    {
+        $trainingCenter = TrainingCenter::where('code', $code)->first();
+        return $trainingCenter->id;
+    }
+
     private function saveRowData($data)
     {
-        TrainingCenter::updateOrCreate(['name' => $data['CentroFormacion'] ?? null]);
+        TrainingCenter::updateOrCreate([
+            'code' => $data['Codigo'] ?? null,
+            'name' => $data['CentroFormacion'] ?? null,
+        ]);
         Headquarters::updateOrCreate([
             'name' => $data['Sedes'] ?? null,
-            'training_center_id' => $data['CentroFormacion'] ?? null
+            'training_center_id' => $this->getTrainingCenterId($data['Codigo'])
         ]);
+
     }
 }

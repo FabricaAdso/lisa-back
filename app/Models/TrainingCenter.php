@@ -8,7 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 class TrainingCenter extends Model
 {
     //
-    protected $fillable = ['name'];
+    protected $fillable = [
+        'name','code'
+    ];
 
     public function headquarters()
     {

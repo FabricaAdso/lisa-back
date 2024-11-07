@@ -44,7 +44,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::post('logout', [AuthController::class, 'logout']);
     Route::post('refresh', [AuthController::class, 'refresh']);
     Route::post('me', [AuthController::class, 'me']);
-
+    
     // Rutas para usuarios
     Route::get('users', [UserController::class, 'index']);
     Route::post('users', [UserController::class, 'store']);
@@ -53,7 +53,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::post('users/{id}/deactivate', [UserController::class, 'deactivate']);
     Route::get('deactivated', [UserController::class, 'deactivated']);
     Route::get('active', [UserController::class, 'active']);
-
+    
     // Ruta para gestionar roles
     Route::post('users/{userId}/toggle-role', [RoleController::class, 'toggleRole']);
 });
@@ -65,5 +65,6 @@ Route::resource('courses', CourseController::class);
 Route::put('courses/{courseId}/shifts', [CourseController::class, 'updateShifts']);
 Route::resource('shifts', ShiftController::class);
 Route::put('/shifts/{shiftId}/days', [ShiftController::class, 'assignDaysToShift']);
+Route::put('environments/{environmentId}/courses', [EnvironmentController::class, 'assignEnvironment']);
 
 Route::post('import-excel', [ExcelController::class, 'importExcel']);

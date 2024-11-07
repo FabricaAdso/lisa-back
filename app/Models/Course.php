@@ -33,6 +33,12 @@ class Course extends Model
     {
         return $this->belongsToMany(Shift::class);
     }
+
+    public function environments()
+    {
+        return $this->belongsToMany(Environment::class);
+    }
+
     ////
     public function scopeIncluded(Builder $query)
     {

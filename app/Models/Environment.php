@@ -24,7 +24,12 @@ class Environment extends Model
         return $this->belongsTo(EnvironmentArea::class);
     }
 
+    public function courses()
+    {
+        return $this->belongsToMany(Course::class);
+    }
 
+    ////////////////////
     public function scopeIncluded(Builder $query)
     {
 

@@ -9,8 +9,8 @@ use Spatie\Permission\Models\Role;
 class Participant extends Model
 {
     //
-    protected $fillable = ['start_date', 'end_date','user_id','course_id','role_id'];
-    protected $allowIncluded = ['course','user'];
+    protected $fillable = ['start_date', 'end_date', 'user_id', 'course_id', 'role_id'];
+    protected $allowIncluded = ['course', 'user'];
 
     public function assistances()
     {
@@ -21,9 +21,20 @@ class Participant extends Model
     {
         return $this->belongsTo(Course::class);
     }
- 
-    public function user(){
+
+    public function user()
+    {
         return $this->belongsTo(User::class);
+    }
+
+    public function sessions()
+    {
+        return $this->hasMany(Session::class);
+    }
+
+    public function role()
+    {
+        return $this->belongsTo(Role::class, 'role_id', 'id');
     }
 
     public function scopeIncluded(Builder $query)
@@ -48,9 +59,4 @@ class Participant extends Model
         }
         $query->with($relations);
     }
-
-    public function role(){
-        return $this->belongsTo(Role::class,'role_id','id');
-    }
-
 }

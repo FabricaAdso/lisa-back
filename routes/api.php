@@ -78,4 +78,7 @@ Route::post('/participants/{id}/assign-role', [ParticipantController::class, 'as
 Route::post('sessions', [SessionController::class, 'createSession']);
 Route::get('participants', [ParticipantController::class, 'getParticipantsByRole']);
 Route::post('/sessions/{sessionId}/assistances', [AssistanceController::class, 'createForSession']);
+Route::put('/assistance/{assistanceId}', [AssistanceController::class, 'editAssistance']);
+
+
 

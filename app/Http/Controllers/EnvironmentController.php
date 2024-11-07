@@ -4,10 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Models\Course;
 use App\Models\Environment;
+use App\Services\EnvironmentService;
 use Illuminate\Http\Request;
 
 class EnvironmentController extends Controller
 {
+    protected $environmentService;
+
+    public function __construct(EnvironmentService $environmentService)
+    {
+        $this->environmentService = $environmentService;    
+    }
     //
     public function index()
     {
@@ -93,36 +100,6 @@ class EnvironmentController extends Controller
             'course_ids' => 'required|array',
             'course_ids.*' => 'integer|exists:courses,id'
         ]);
-
-        $environment = Environment::findOrFail($environmentId);
-
-        //obtener los ids de los ambientes que ya tiene asignados aun curso
-        $environmentCourses = $environment->courses()->with('shifts')->get();
-
-        foreach($request->course_ids as $courseId){
-            $course = Course::findOrFail($courseId);
-            $courseConflic = false;
-            foreach ($environmentCourses as $existingCourse) {
-                foreach ($existingCourse->shifts as $existingCourse) {
-                    //comporobar si el curso actual tiene turnos que entran en conflicto en el mismo ambiente
-                    $conflict = $course->shifts()
-                        ->where('start_time', '<', $existingCourse->end_time)
-                        ->where('end_time', '>', $existingCourse->start_time)->exists();
-                    
-                    if($conflict){
-                        return response()->json([
-                            'message' => "Conflicto de horario: El curso $courseId tiene un conflicto con el curso {$existingCourse->id} en el ambiente $environmentId",
-                        ], 409);
-                    }
-                }
-            }
-            //si no hay conflicto asigna el curso
-            $environment->courses()->attach($courseId);
-        }
-        $environment->load('courses');
-        return response()->json([
-            'message' => 'ambiente asignado correctamente',
-            'ambiente' => $environment
-        ]);
+        return $this->environmentService->assignCoursesToEnvironment($request->course_ids, $environmentId);
     }
 }

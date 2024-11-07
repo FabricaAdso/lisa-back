@@ -4,7 +4,8 @@ namespace App\Services;
 use Carbon\Carbon;
 
 class DataService
-{
+{   
+    //convertir de fecha formato excel a fecha formato SQL para poder guardar
     public function excelDateToDate($dateValue): ? string
     {
         // Verificar si el valor es un número serial (solo números).

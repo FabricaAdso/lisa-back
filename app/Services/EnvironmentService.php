@@ -4,9 +4,11 @@ namespace App\Services;
 
 use App\Models\Course;
 use App\Models\Environment;
+use Illuminate\Support\Facades\DB;
 
 class EnvironmentService
-{
+{   
+    //controlador
     public function assignCoursesToEnvironment(array $courseIds, int $environmentId)
     {
         // Obtener el ambiente
@@ -48,5 +50,26 @@ class EnvironmentService
         ]);
     }
 
+    //por ahora esta en espera de asignar la jornada a una ficha
+    public function checkEnvironmentAvailability($environmentId, $dateStart, $dateEnd)
+    {
+        $courses = Course::whereHas('environments', function ($query) use ($environmentId) {
+            // Verifica si el ambiente está asociado a algún curso
+            $query->where('environment_id', $environmentId);
+        })
+        ->where(function ($query) use ($dateStart, $dateEnd) {
+            $query->whereBetween('date_start', [$dateStart, $dateEnd])
+                  ->orWhereBetween('date_end', [$dateStart, $dateEnd])
+                  ->orWhere(function ($query) use ($dateStart, $dateEnd) {
+                      $query->where('date_start', '<=', $dateStart)
+                            ->where('date_end', '>=', $dateEnd);
+                  });
+        })
+        ->exists(); // Devuelve true si existe un curso con el ambiente en el rango de fechas, false si no
+
+        return !$courses; // Si no hay cursos con ese ambiente en el rango de fechas, devuelve true (disponible)
+    }
+
     
+
 }

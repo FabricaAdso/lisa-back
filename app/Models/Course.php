@@ -36,7 +36,7 @@ class Course extends Model
 
     public function environments()
     {
-        return $this->belongsToMany(Environment::class);
+        return $this->belongsToMany(Environment::class, 'course_environment');
     }
 
     ////

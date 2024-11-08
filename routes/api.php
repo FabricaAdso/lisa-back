@@ -31,6 +31,7 @@ Route::get('municipalities/departament/{id}', [MunicipalityController::class, 'i
 
 Route::apiResource('headquarters', HeadquartersController::class);
 Route::apiresource('environments', EnvironmentController::class);
+Route::put('environments/{environmentId}/courses', [EnvironmentController::class, 'assignEnvironment']);
 Route::apiresource('environmentsArea', EnvironmentAreaController::class);
 Route::apiresource('trainingCenters', TrainingCenterController::class);
 
@@ -65,6 +66,5 @@ Route::resource('courses', CourseController::class);
 Route::put('courses/{courseId}/shifts', [CourseController::class, 'updateShifts']);
 Route::resource('shifts', ShiftController::class);
 Route::put('/shifts/{shiftId}/days', [ShiftController::class, 'assignDaysToShift']);
-Route::put('environments/{environmentId}/courses', [EnvironmentController::class, 'assignEnvironment']);
 
 Route::post('import-excel', [ExcelController::class, 'importExcel']);

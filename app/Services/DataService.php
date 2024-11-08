@@ -20,4 +20,14 @@ class DataService
             return $date ? $date->format('Y-m-d') : null;
         }
     }
+
+    //convertir la hora de formato exela formato SQL para poder guardar
+    public function excelDecimalToTime($decimal)
+    {
+        $hours = floor($decimal * 24); 
+        $minutes = round(($decimal * 24 - $hours) * 60);
+
+        return sprintf('%02d:%02d', $hours, $minutes);
+    }
+
 }

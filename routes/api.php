@@ -68,7 +68,7 @@ Route::put('courses/{courseId}/shifts', [CourseController::class, 'updateShifts'
 Route::resource('shifts', ShiftController::class);
 Route::put('/shifts/{shiftId}/days', [ShiftController::class, 'assignDaysToShift']);
 
-// Rutas Participantes
+// Rutas Asistencias
 
 Route::post('participants', [ParticipantController::class, 'assignParticipants']);
 Route::get('participants', [ParticipantController::class, 'getParticipants']);
@@ -77,7 +77,6 @@ Route::post('participants/assign-aprendiz', [ParticipantController::class, 'assi
 Route::post('/participants/{id}/assign-role', [ParticipantController::class, 'assignRoleToParticipant']);
 Route::post('sessions', [SessionController::class, 'createSession']);
 Route::get('participants', [ParticipantController::class, 'getParticipantsByRole']);
-Route::post('/sessions/{sessionId}/assistances', [AssistanceController::class, 'createForSession']);
 Route::put('/assistance/{assistanceId}', [AssistanceController::class, 'editAssistance']);
 
 

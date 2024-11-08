@@ -20,19 +20,6 @@ class SessionController extends Controller
         return response()->json($sessions);
     }
 
-    public function store(Request $request)
-    {
-        $request->validate([
-            'date' => 'required|date_format:Y-m-d',
-            'start_time' => 'required|date_format:H:i',
-            'end_time' => 'required|date_format:H:i|after:start_time',
-            'participant_id' => 'required|exists:users,id',
-        ]);
-
-        $session = Session::create($request->all());
-        return response()->json($session);
-    }
-
     public function show($id)
     {
         $session = Session::find($id);

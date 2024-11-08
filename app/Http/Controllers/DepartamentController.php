@@ -49,7 +49,7 @@ class DepartamentController extends Controller
         // Cargar el departamento junto con los municipios
         $department = Departament::with('municipalities')->find($id);
 
-        // Verificar si el departamento existe
+        
         if (!$department) {
             return response()->json(['error' => 'Department not found'], 404);
         }

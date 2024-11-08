@@ -1,5 +1,12 @@
 <?php
 
+use App\Http\Controllers\DepartamentController;
+use App\Http\Controllers\EnvironmentAreaController;
+use App\Http\Controllers\EnvironmentController;
+use App\Http\Controllers\HeadquartersController;
+use App\Http\Controllers\MunicipalityController;
+use App\Http\Controllers\TrainingCenterController;
+use App\Models\EnvironmentArea;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
@@ -14,6 +21,17 @@ use Illuminate\Support\Facades\Route;
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
+
+
+Route::apiresource('departaments', DepartamentController::class);
+Route::apiresource('municipalities', MunicipalityController::class);
+
+Route::get('municipalities/departament/{id}', [MunicipalityController::class, 'index']);
+
+Route::apiResource('headquarters', HeadquartersController::class);
+Route::apiresource('environments', EnvironmentController::class);
+Route::apiresource('environmentsArea', EnvironmentAreaController::class);
+Route::apiresource('trainingCenters', TrainingCenterController::class);
 
 
 Route::group([], function () {
@@ -34,7 +52,7 @@ Route::group(['middleware' => 'auth:api'], function () {
 
     //Activar y desactivar usuarios. ver usuarios activos e inactivoa
     Route::post('users/{id}/deactivate', [UserController::class, 'deactivate']);
-    Route::get('deactivated',[UserController::class,'deactivated']);
+    Route::get('deactivated', [UserController::class, 'deactivated']);
     Route::get('active', [UserController::class, 'active']);
 
 

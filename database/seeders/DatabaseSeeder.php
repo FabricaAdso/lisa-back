@@ -21,5 +21,7 @@ class DatabaseSeeder extends Seeder
             DocumentTypeSeeder::class,
             DaySeeder::class,
         ]);
+        $this->call(DepartamentSeeder::class);
+        $this->call(MunicipalitySeeder::class);
     }
 }

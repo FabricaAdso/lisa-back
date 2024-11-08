@@ -11,6 +11,7 @@ use App\Models\Program;
 use App\Models\Shift;
 use App\Models\TrainingCenter;
 
+
 class ExcelImportService
 {
     protected $dataService;
@@ -43,14 +44,18 @@ class ExcelImportService
         $dateEnd = $this->dataService->excelDateToDate($data['Fecha de fin']);
         $start_time = $this->dataService->excelDecimalToTime($data['Hora inicio']);
         $end_time = $this->dataService->excelDecimalToTime($data['Hora fin']);
+        $opening_time = $this->dataService->excelDecimalToTime($data['Fecha de apertura']);
+        $closing_time = $this->dataService->excelDecimalToTime($data['Fecha de cierre']);
 
-
+        
         $trainingCenterId = TrainingCenter::updateOrCreate([
-            'code' => $data['Codigo'] ?? null,
+            'code' => $data['Codigo'],
             'name' => $data['CentroFormacion'] ?? null,
         ]);
         $headquartersId = Headquarters::updateOrCreate([
             'name' => $data['Sedes'] ?? null,
+            'opening_time' => $opening_time,
+            'closing_time' => $closing_time,
             'municipality_id' => $this->getTrainingCenterId($data['Municipio']) ?? null,
             'training_center_id' =>  $trainingCenterId ? $trainingCenterId->id :  null,
         ]);
@@ -74,35 +79,12 @@ class ExcelImportService
             'start_time' =>$start_time,
             'end_time' =>$end_time
         ]);
-    // // Verificar disponibilidad de ambientes
-    // if ($environment && !$this->environmentService->checkEnvironmentAvailability($environment->id, $dateStart, $dateEnd)) {
-    //     // Si el ambiente está ocupado, omitir el guardado y retornar error
-    //     return response()->json([
-    //         'error' => "El ambiente {$data['Ambientes']} está ocupado en el intervalo especificado."
-    //     ], 409);
-    // }
         $course = Course::updateOrCreate([
             'code' => $data['Fichas'] ?? null,
             'date_start' => $dateStart,
             'date_end' => $dateEnd,
             'program_id' => $programId ? $programId->id : null,
         ]);
-        // // Asociar el ambiente con el curso
-        // if ($environment) {
-        //     $course->environments()->attach($environment->id);
-        // }
-
-        try {
-            $this->courseService->validateAndAttachShift([
-                'course_id' => $course->id,
-                'shift_id' => $shift->id,
-            ]);
-        } catch (\Exception $e) {
-            // Si hay un error (conflicto de turnos), capturamos la excepción y respondemos con un mensaje adecuado
-            return response()->json([
-                'error' => $e->getMessage()
-            ], 409);
-        }
-    
     }
+    
 }

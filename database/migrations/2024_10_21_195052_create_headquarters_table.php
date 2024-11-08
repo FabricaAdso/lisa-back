@@ -14,9 +14,9 @@ return new class extends Migration
         Schema::create('headquarters', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('adress');
-            $table->time('opening_time')->nullable(); 
-            $table->time('closing_time')->nullable();
+            $table->string('adress')->nullable();
+            $table->time('opening_time'); 
+            $table->time('closing_time');
 
 
             //LLave Foranea Municipio

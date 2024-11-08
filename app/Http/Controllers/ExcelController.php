@@ -46,6 +46,8 @@ class ExcelController extends Controller
             }
         }
 
+        $allData = [];
+
         // Iterar sobre las filas, comenzando desde la fila 2
         foreach ($worksheet->getRowIterator(2) as $row) {
             $data = [];
@@ -55,16 +57,23 @@ class ExcelController extends Controller
             $index = 0;
             foreach ($cellIterator as $cell) {
                 $data[$headers[$index]] = $cell->getValue();
+                if(empty($data[$headers[$index]] = $cell->getValue())){
+                    return response()->json([
+                        'message' => 'vrifique que no tenga campos vacios',
+                    ]);
+                }
                 $index++;
             }
 
             // Usar el servicio para guardar los datos de la fila
             $this->excelImportService->saveRowData($data);
+            $allData[] = $data;
+            // return response()->json($data);
         }
-
         return response()->json([
             'message' => 'Datos cargados exitosamente',
-            'data' => $data
+            'todos los datos' => $allData
         ]);
     }
+
 }

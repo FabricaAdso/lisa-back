@@ -30,4 +30,15 @@ class DataService
         return sprintf('%02d:%02d', $hours, $minutes);
     }
 
+    //validacion de fecha y hora
+    public function validateDateAndTime($start, $end)
+    {
+        if($start > $end){
+            return [
+                'error' =>"La fecha y/o hora de inicio {{$start}} no puede ser mayor o igual a la fecha y/o hora de fin {{$end}}",
+            ];
+        }
+        return null;
+    }
+
 }

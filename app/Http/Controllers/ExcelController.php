@@ -46,6 +46,15 @@ class ExcelController extends Controller
             }
         }
 
+        $optionalColumns = [
+            'Hora inicio mañana',
+            'Hora fin mañana',
+            'Hora inicio tarde',
+            'Hora fin tarde',
+            'Hora inicio noche',
+            'Hora fin noche',
+        ];
+
         $allData = [];
 
         // Iterar sobre las filas, comenzando desde la fila 2
@@ -56,23 +65,33 @@ class ExcelController extends Controller
 
             $index = 0;
             foreach ($cellIterator as $cell) {
-                $data[$headers[$index]] = $cell->getValue();
-                if(empty($data[$headers[$index]] = $cell->getValue())){
-                    return response()->json([
-                        'message' => 'vrifique que no tenga campos vacios',
-                    ]);
-                }
+            $header = $headers[$index] ?? 'Columna desconocida';
+            $data[$header] = $cell->getValue();
+            
+            if (empty($data[$header]) && !in_array($header, $optionalColumns)) {
+                return response()->json([
+                    'message' => 'Verifique que no tenga campos vacíos',
+                    'fila' => "fila {$row->getRowIndex()}",
+                    'columna' => $header,
+                    'datos' => $data,
+                ]);
+            }
                 $index++;
             }
 
             // Usar el servicio para guardar los datos de la fila
-            $this->excelImportService->saveRowData($data);
+            $envioDeDatos = $this->excelImportService->saveRowData($data);
             $allData[] = $data;
-            // return response()->json($data);
+            if(is_array($envioDeDatos) && isset($envioDeDatos['error'])){
+                $mensajeError = "Error en la fila {$row->getRowIndex()}: " .$envioDeDatos['error'];
+                return response()->json([
+                    'message' => $mensajeError,
+                ]);
+            }
         }
         return response()->json([
-            'message' => 'Datos cargados exitosamente',
-            'todos los datos' => $allData
+            'message' => 'Datos asignados correctamente',
+            'datos' => $allData,
         ]);
     }
 

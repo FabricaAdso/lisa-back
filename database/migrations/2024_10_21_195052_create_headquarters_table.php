@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('headquarters', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('adress')->nullable();
+            $table->string('adress');
             $table->time('opening_time'); 
             $table->time('closing_time');
 

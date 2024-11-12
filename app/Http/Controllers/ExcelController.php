@@ -82,7 +82,7 @@ class ExcelController extends Controller
             // Usar el servicio para guardar los datos de la fila
             $envioDeDatos = $this->excelImportService->saveRowData($data);
             $allData[] = $data;
-            if(is_array($envioDeDatos) && isset($envioDeDatos['error'])){
+            if(isset($envioDeDatos['error'])){
                 $mensajeError = "Error en la fila {$row->getRowIndex()}: " .$envioDeDatos['error'];
                 return response()->json([
                     'message' => $mensajeError,

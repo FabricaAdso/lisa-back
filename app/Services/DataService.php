@@ -21,13 +21,16 @@ class DataService
         }
     }
 
-    //convertir la hora de formato exela formato SQL para poder guardar
+    //convertir la hora de formato exel a formato SQL para poder guardar
     public function excelDecimalToTime($decimal)
     {
-        $hours = floor($decimal * 24); 
-        $minutes = round(($decimal * 24 - $hours) * 60);
+        $totalHoras = $decimal * 24;
 
-        return sprintf('%02d:%02d', $hours, $minutes);
+        $hours = floor($totalHoras);
+        $minutes = ($totalHoras - $hours) * 60;
+
+        return Carbon::createFromTime($hours, $minutes)->format('H:i:s');
+        
     }
 
     //validacion de fecha y hora

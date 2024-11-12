@@ -14,63 +14,68 @@
         }
         .email-container {
             width: 100%;
-            max-width: 600px;
+            max-width: 650px;
             margin: 0 auto;
             background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             overflow: hidden;
         }
         .header {
-            background-color: #4CAF50;
+            background-color: #7CB305;
             color: #fff;
-            padding: 20px;
+            padding: 30px 20px;
             text-align: center;
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
         }
         .header h1 {
             margin: 0;
-            font-size: 24px;
+            font-size: 26px;
         }
         .content {
-            padding: 20px;
+            padding: 30px 20px;
         }
         .content p {
             font-size: 16px;
             line-height: 1.6;
-            margin-bottom: 16px;
-        }
-        .ii a[href] {
-            color: rgb(255, 255, 255);
+            margin-bottom: 20px;
         }
         .button-container {
             text-align: center;
         }
         .button {
-            background-color: #4CAF50;
-            color: #fff;
+            background-color: #fff;
+            color: #7CB305;
             font-size: 18px;
             padding: 12px 24px;
             text-decoration: none;
+            border: 2px solid #7CB305;
             border-radius: 5px;
             display: inline-block;
             margin-top: 20px;
-            transition: background-color 0.3s ease;
+            transition: all 0.3s ease;
         }
         .button:hover {
-            background-color: #45a049;
+            background-color: #7CB305;
+            color: #fff;
+            border-color: #7CB305;
         }
         .footer {
             text-align: center;
             font-size: 14px;
             color: #777;
             margin-top: 20px;
-            padding: 10px;
+            padding: 20px 10px;
+            background-color: #f9f9f9;
+            border-bottom-left-radius: 12px;
+            border-bottom-right-radius: 12px;
         }
         .footer p {
             margin: 0;
         }
         .footer a {
-            color: #4CAF50;
+            color: #7CB305;
             text-decoration: none;
         }
         .footer a:hover {

@@ -6,46 +6,53 @@ use App\Models\Shift;
 
 class CourseShiftService
 {
-    public function assignCourseShifts($shiftIds, $courseIds)
+    public function assignCourseShifts(array $shiftIds, array $courses)
     {
-        $errores = [];  // Para acumular los errores
+        $errores = [];  // Para acumular errores
 
-        foreach ($courseIds as $courseId) {
-            $course = Course::findOrFail($courseId);
+        foreach ($courses as $course) {
+            // Asegurarse de que cada elemento en $courses es un objeto Course
+            if (!$course instanceof Course) {
+                return ['error' => "El curso no es válido."];
+            }
+            
+
+            // Obtener los IDs de jornadas actualmente asignadas al curso
             $currentShiftIds = $course->shifts()->pluck('shifts.id')->toArray();
-            $arrayShift = is_array($shiftIds) ? $shiftIds : [];
 
-            foreach ($shiftIds as $shiftId) {
+            // 1. Filtrar los IDs de jornadas nuevas que aún no están asignadas al curso
+            $newShiftIds = array_diff($shiftIds, $currentShiftIds);
+
+            // 2. Revisión de conflictos de horario para cada nueva jornada
+            foreach ($newShiftIds as $shiftId) {
                 $shift = Shift::findOrFail($shiftId);
-                // Verificar si ya está asignada la jornada
-                if (in_array($shiftId, $currentShiftIds)) {
-                    continue;  // Si la jornada ya está asignada, no hacer nada
-                }
-                $conflic = $course->shifts()
+
+                $conflicto = $course->shifts()
                     ->where(function ($query) use ($shift) {
                         $query->where('shifts.start_time', '<', $shift->end_time)
-                            ->where('shifts.end_time', '>', $shift->start_time);
-                    })->exists();
+                              ->where('shifts.end_time', '>', $shift->start_time);
+                    })
+                    ->exists();
 
-                if ($conflic) {
-                    $errores[] = "La jornada '{$shift->name}' se cruza con una ya asignada al curso '{$course->code}'.";
+                if ($conflicto) {
+                    $errores[] = "La jornada '{$shift->name}' se cruza con otra ya asignada al curso '{$course->code}'.";
+                    continue;
                 }
+
+                // 3. Si no hay conflicto, agregar la jornada al curso
+                $course->shifts()->attach($shiftId);
             }
 
-            // Eliminar las jornadas que ya no están en la lista
-            $shiftToRemove = array_diff($currentShiftIds, $arrayShift);
-            if (!empty($shiftToRemove)) {
-                $course->shifts()->detach($shiftToRemove);
+            // 4. Eliminar jornadas que ya no están en la lista de shiftIds
+            $shiftsToRemove = array_diff($currentShiftIds, $shiftIds);
+            if (!empty($shiftsToRemove)) {
+                $course->shifts()->detach($shiftsToRemove);
             }
-            // Usar sync para sincronizar las jornadas
-            $course->shifts()->sync(array_unique($arrayShift));  // Sincroniza las jornadas, evitando duplicados
-
         }
 
-        if (!empty($errores)) {
-            return ['error' => implode(', ', $errores)]; // Retornar los errores acumulados
-        }
-
-        return ['message' => 'Jornadas actualizadas correctamente.']; // Si todo va bien
+        // Retornar errores acumulados o mensaje de éxito
+        return !empty($errores)
+            ? ['error' => implode(', ', $errores)]
+            : ['message' => 'Jornadas asignadas correctamente sin conflictos.'];
     }
 }

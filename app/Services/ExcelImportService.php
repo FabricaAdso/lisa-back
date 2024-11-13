@@ -2,6 +2,7 @@
 namespace App\Services;
 
 use App\Models\Course;
+use App\Models\Day;
 use App\Models\EducationLevel;
 use App\Models\Environment;
 use App\Models\EnvironmentArea;
@@ -11,15 +12,16 @@ use App\Models\Program;
 use App\Models\Shift;
 use App\Models\TrainingCenter;
 
-
 class ExcelImportService
 {
     protected $dataService;
     protected $courseShiftService;
-    public function __construct(DataService $dataService, CourseShiftService $courseShiftService)
+    protected $courseEnvironmentService;
+    public function __construct(DataService $dataService, CourseShiftService $courseShiftService, CourseEnvironmentService $courseEnvironmentService)
     {
         $this->dataService = $dataService;
         $this->courseShiftService = $courseShiftService;
+        $this->courseEnvironmentService = $courseEnvironmentService;
     }
 
 
@@ -29,118 +31,158 @@ class ExcelImportService
         return $municiId ? $municiId->id : null;
     }
 
+    public function getDaysId($days)
+    {
+        $days = explode(', ', $days);
+        foreach ($days as $day) {
+            $day = trim($day);
+            $dayId = Day::where('name', $day)->first();
+
+            if($dayId){
+                $daysId[] = $dayId->id;
+            }else{
+                return ['error' => "{$day} no es un dia valido"];
+            }
+        }
+        return $daysId;
+    }
+
 
     public function saveRowData($data)
     {
-        // Convierte los valores seriales de fecha a formato Y-m-d
+        // Convert date values and opening/closing times
         $dateStart = $this->dataService->excelDateToDate($data['Fecha de inicio']);
         $dateEnd = $this->dataService->excelDateToDate($data['Fecha de fin']);
         $opening_time = $this->dataService->excelDecimalToTime($data['Hora de apertura']);
         $closing_time = $this->dataService->excelDecimalToTime($data['Hora de cierre']);
-        //validar fechas y horas de inicio < fechas y horas de fin
-        if($validateStartEndDate = $this->dataService->validateDateAndTime($dateStart, $dateEnd)){
+        
+        // Validate date and time ranges
+        if ($validateStartEndDate = $this->dataService->validateDateAndTime($dateStart, $dateEnd)) {
             return $validateStartEndDate;
         }
-
-        if( $validateOpeningClosingTime = $this->dataService->validateDateAndTime($opening_time, $closing_time)){
+        if ($validateOpeningClosingTime = $this->dataService->validateDateAndTime($opening_time, $closing_time)) {
             return $validateOpeningClosingTime;
         }
 
-        $trainingCenterId = TrainingCenter::updateOrCreate([
-            'code' => $data['Codigo']
-        ], [
-            'name' => $data['CentroFormacion'] ?? null,
-        ]);
+        // Update or create related records
+        $trainingCenterId = TrainingCenter::updateOrCreate(
+            ['code' => $data['Codigo']],
+            ['name' => $data['CentroFormacion'] ?? null]
+        );
 
-        $headquartersId = Headquarters::updateOrCreate([
-            'name' => $data['Sedes'] ?? null,
-            'municipality_id' => $this->getMunicipalityId($data['Municipio']) ?? null,
-            'training_center_id' => $trainingCenterId ? $trainingCenterId->id : null,
-        ], [
-            'adress' => $data['Direccion'] ?? null,
-            'opening_time' => $opening_time,
-            'closing_time' => $closing_time,
-        ]);
+        $headquartersId = Headquarters::updateOrCreate(
+            [
+                'name' => $data['Sedes'] ?? null,
+                'municipality_id' => $this->getMunicipalityId($data['Municipio']) ?? null,
+                'training_center_id' => $trainingCenterId->id ?? null,
+            ],
+            [
+                'adress' => $data['Direccion'] ?? null,
+                'opening_time' => $opening_time,
+                'closing_time' => $closing_time,
+            ]
+        );
 
-        $envirimentAreaId = EnvironmentArea::updateOrCreate([
-            'name' => $data['Tipo de Ambiente'] ?? null,
-        ]);
+        $envirimentAreaId = EnvironmentArea::updateOrCreate(
+            ['name' => $data['Tipo de Ambiente'] ?? null]
+        );
 
-        $environment = Environment::updateOrCreate([
-            'name' => $data['Ambientes'] ?? null,
-            'headquarters_id' => $headquartersId ? $headquartersId->id : null,
-        ],
-        [
-            'capacity' => $data['Capacidad'] ?? null,
-            'environment_area_id' => $envirimentAreaId ? $envirimentAreaId->id : null,
-        ]);   
+        $environment = Environment::updateOrCreate(
+            [
+                'name' => $data['Ambientes'] ?? null,
+                'headquarters_id' => $headquartersId->id ?? null,
+            ],
+            [
+                'capacity' => $data['Capacidad'] ?? null,
+                'environment_area_id' => $envirimentAreaId->id ?? null,
+            ]
+        );
 
-        $educationLevelId = EducationLevel::updateOrCreate([
-            'name' => $data['Nivel'] ?? null,
-        ]);
-        $programId = Program::updateOrCreate([
-            'name' =>  $data['Programas'] ?? null,
-            'education_level_id' => $educationLevelId ? $educationLevelId->id : null,
-            'training_center_id' =>  $trainingCenterId ? $trainingCenterId->id :  null,
-        ]);
+        $educationLevelId = EducationLevel::updateOrCreate(
+            ['name' => $data['Nivel'] ?? null]
+        );
 
-        //dividir las jornadas 
+        $programId = Program::updateOrCreate(
+            [
+                'name' => $data['Programas'] ?? null,
+                'education_level_id' => $educationLevelId->id ?? null,
+                'training_center_id' => $trainingCenterId->id ?? null,
+            ]
+        );
+
+        // Process shift data
         $shiftIds = [];
         $jornadas = explode(',', $data['Jornadas']);
         foreach ($jornadas as $jornada) {
             $jornada = trim($jornada);
-            //definir horarios de inicio y fin segun la jornada
-            if($jornada == 'Mañana'){
-                if(empty($data['Hora inicio mañana']) || empty($data['Hora inicio mañana'])){
-                    return ['error' => "Los horarios de la jornada Mañana están incompletos."];
-                }
-                $start_time = $this->dataService->excelDecimalToTime($data['Hora inicio mañana']);
-                $end_time = $this->dataService->excelDecimalToTime($data['Hora fin mañana']);
-
-            }else if($jornada == 'Tarde'){
-                if (empty($data['Hora inicio tarde']) || empty($data['Hora fin tarde'])) {
-                    return ['error' => "Los horarios de la jornada Tarde están incompletos."];
-                }
-                $start_time = $this->dataService->excelDecimalToTime($data['Hora inicio tarde']);
-                $end_time = $this->dataService->excelDecimalToTime($data['Hora fin tarde']);
-            }else if($jornada == 'Noche'){
-                if (empty($data['Hora inicio noche']) || empty($data['Hora fin noche'])) {
-                    return ['error' => "Los horarios de la jornada de Noche están incompletos."];
-                }
-                $start_time = $this->dataService->excelDecimalToTime($data['Hora inicio noche']);
-                $end_time = $this->dataService->excelDecimalToTime($data['Hora fin noche']);
+            
+            switch ($jornada) {
+                case 'Mañana':
+                    if (empty($data['Hora inicio mañana']) || empty($data['Hora fin mañana'])) {
+                        return ['error' => "Los horarios de la jornada Mañana están incompletos."];
+                    }
+                    $start_time = $this->dataService->excelDecimalToTime($data['Hora inicio mañana']);
+                    $end_time = $this->dataService->excelDecimalToTime($data['Hora fin mañana']);
+                    break;
+                case 'Tarde':
+                    if (empty($data['Hora inicio tarde']) || empty($data['Hora fin tarde'])) {
+                        return ['error' => "Los horarios de la jornada Tarde están incompletos."];
+                    }
+                    $start_time = $this->dataService->excelDecimalToTime($data['Hora inicio tarde']);
+                    $end_time = $this->dataService->excelDecimalToTime($data['Hora fin tarde']);
+                    break;
+                case 'Noche':
+                    if (empty($data['Hora inicio noche']) || empty($data['Hora fin noche'])) {
+                        return ['error' => "Los horarios de la jornada Noche están incompletos."];
+                    }
+                    $start_time = $this->dataService->excelDecimalToTime($data['Hora inicio noche']);
+                    $end_time = $this->dataService->excelDecimalToTime($data['Hora fin noche']);
+                    break;
+                default:
+                    return ['error' => "La jornada '{$jornada}' no es válida."];
             }
-
+        
+            // Validate start and end times
             if ($validateStartEndTime = $this->dataService->validateDateAndTime($start_time, $end_time)) {
                 return $validateStartEndTime;
             }
-            
-            $shift = Shift::updateOrCreate([
-                'name' => $jornada
-            ], [
-                'start_time' =>$start_time,
-                'end_time' =>$end_time
-            ]);
-
+        
+            // Update or create the shift
+            $shift = Shift::updateOrCreate(
+                ['name' => $jornada],
+                ['start_time' => $start_time, 'end_time' => $end_time]
+            );
+        
             $shiftIds[] = $shift->id;
         }
 
-        $courseIds = [];
-        $course = Course::updateOrCreate([
-            'code' => $data['Fichas'] ?? null,
-        ],[
-            'date_start' => $dateStart,
-            'date_end' => $dateEnd,
-            'program_id' => $programId ? $programId->id : null,
-        ]);
-        $shiftIds[] = $course->id;
-        //redireccion para asignar cursos a jornadas
-        $response = $this->courseShiftService->assignCourseShifts($shiftIds, [$course->id]);
+        // Update or create the course
+        $course = Course::updateOrCreate(
+            ['code' => $data['Fichas'] ?? null],
+            [
+                'date_start' => $dateStart,
+                'date_end' => $dateEnd,
+                'program_id' => $programId->id ?? null,
+            ]
+        );
 
-        if (isset($response['error'])) {
-            return $response; // Si hay error, retornar el error
+        $traerDias = $this->getDaysId($data['Dias']);
+        if (isset($traerDias['error'])) {
+            return $traerDias;
         }
-        return true;
-    }
+
+        // Assign course to shifts
+        $response = $this->courseShiftService->assignCourseShifts($shiftIds, [$course]);
+        if (isset($response['error'])) {
+            return $response;
+        }
+        // // Assign environment to course
+        // $responseCE = $this->courseEnvironmentService->assingCourseEnvitonment([$environment->id], [$course]);
+        // if (isset($responseCE['error'])) {
+        //     return $responseCE;
+        // }
+
+        return ['success' => 'Data saved successfully'];
+    }  
     
-}
+}  

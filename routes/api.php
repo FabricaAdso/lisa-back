@@ -6,7 +6,6 @@ use App\Http\Controllers\EnvironmentController;
 use App\Http\Controllers\HeadquartersController;
 use App\Http\Controllers\MunicipalityController;
 use App\Http\Controllers\TrainingCenterController;
-use App\Models\EnvironmentArea;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;

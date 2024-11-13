@@ -10,7 +10,7 @@ class ParticipantController extends Controller
 {
     public function index()
     {
-        //$sessions = Session::all();
+        //$participant = Participant::all();
         $participant = Participant::included()->get();
 
 
@@ -42,7 +42,7 @@ class ParticipantController extends Controller
     {
         $participant =  Participant::find($id);
         $participant->delete();
-        return response()->json(['message' => 'Session deleted successfully']);
+        return response()->json(['message' => 'participant deleted successfully']);
     }
     // Asignar participantes a una ficha
     public function assignParticipants(Request $request)

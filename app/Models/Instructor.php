@@ -1,26 +1,34 @@
 <?php
 
 namespace App\Models;
-
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
-class Session extends Model
+class Instructor extends Model
 {
     //
-    protected $fillable = ['date', 'start_time', 'end_time', 'instructor_id'];
-    protected $allowIncluded = ['instructor'];
+    protected $fillable = ['start_date', 'end_date', 'user_id', 'course_id','training_center_id'];
+    protected $allowIncluded = ['courses','user','trainingCenter'];
 
-    public function assistances()
+    public function sessions ()
     {
-        return $this->hasMany(Assistance::class);
+        return $this->hasMany(Session::class);
     }
 
-    public function instructor()
+    public function user ()
     {
-        return $this->belongsTo(Instructor::class);
+        return $this->belongsTo(User::class);
     }
 
+    public function courses ()
+    {
+        return $this->belongsToMany(Course::class,'course_instructor', 'instructor_id', 'course_id');
+    }
+
+    public function trainingCenter ()
+    {
+        return $this->belongsTo(TrainingCenter::class);
+    }
 
     public function scopeIncluded(Builder $query)
     {
@@ -44,4 +52,5 @@ class Session extends Model
         }
         $query->with($relations);
     }
+
 }

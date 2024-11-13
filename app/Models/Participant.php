@@ -12,11 +12,6 @@ class Participant extends Model
     protected $fillable = ['start_date', 'end_date', 'user_id', 'course_id', 'role_id'];
     protected $allowIncluded = ['course', 'user'];
 
-    public function assistances()
-    {
-        return $this->hasMany(Assistance::class);
-    }
-
     public function course()
     {
         return $this->belongsTo(Course::class);
@@ -27,10 +22,6 @@ class Participant extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function sessions()
-    {
-        return $this->hasMany(Session::class);
-    }
 
     public function role()
     {

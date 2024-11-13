@@ -16,6 +16,11 @@ class TrainingCenter extends Model
         return $this->hasMany(Headquarters::class);
     }
 
+    public function instructors ()
+    {
+        return $this->hasMany(Instructor::class);
+    }
+
     // public function municipality()
     // {
     //     return $this->belongsTo(Municipality::class);

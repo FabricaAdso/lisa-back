@@ -16,7 +16,8 @@ class Course extends Model
 
     protected $allowIncluded = [
         'program',
-        'shifts'
+        'shifts',
+        'instructors'
     ];
 
     protected $allowFilter = [
@@ -28,6 +29,17 @@ class Course extends Model
         return $this->hasMany(Participant::class);
     }
     
+    public function instructors ()
+    {
+        return $this->belongsToMany(Instructor::class);
+    }
+
+    public function apprentices ()
+    {
+        return $this->hasMany(Apprentice::class);
+    }
+
+
     public function program()
     {
         return $this->belongsTo(Program::class);

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ApprenticeController;
 use App\Http\Controllers\AssistanceController;
 use App\Http\Controllers\DepartamentController;
 use App\Http\Controllers\EnvironmentAreaController;
@@ -14,10 +15,12 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\DayController;
 use App\Http\Controllers\EducationLevelController;
+use App\Http\Controllers\InstructorController;
 use App\Http\Controllers\ParticipantController;
 use App\Http\Controllers\ProgramController;
 use App\Http\Controllers\SessionController;
 use App\Http\Controllers\ShiftController;
+use App\Models\Apprentice;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -25,12 +28,12 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-
+// Ruta Departaments & Municpality
 Route::apiresource('departaments', DepartamentController::class);
 Route::apiresource('municipalities', MunicipalityController::class);
-
 Route::get('municipalities/departament/{id}', [MunicipalityController::class, 'index']);
 
+// Ruta (Centro de formacion, sedes, areas, ambientes)
 Route::apiResource('headquarters', HeadquartersController::class);
 Route::apiresource('environments', EnvironmentController::class);
 Route::apiresource('environmentsArea', EnvironmentAreaController::class);
@@ -68,16 +71,24 @@ Route::put('courses/{courseId}/shifts', [CourseController::class, 'updateShifts'
 Route::resource('shifts', ShiftController::class);
 Route::put('/shifts/{shiftId}/days', [ShiftController::class, 'assignDaysToShift']);
 
-// Rutas Asistencias
+// Rutas Participantes
 
 Route::post('participants', [ParticipantController::class, 'assignParticipants']);
 Route::get('participants', [ParticipantController::class, 'getParticipants']);
 Route::post('participants/assign-instructor', [ParticipantController::class, 'assignInstructor']);
 Route::post('participants/assign-aprendiz', [ParticipantController::class, 'assignAprendiz']);
 Route::post('/participants/{id}/assign-role', [ParticipantController::class, 'assignRoleToParticipant']);
-Route::post('sessions', [SessionController::class, 'createSession']);
 Route::get('participants', [ParticipantController::class, 'getParticipantsByRole']);
+
+
+// Ruta instructor & Apprentice
+Route::resource('instructor',InstructorController::class);
+Route::resource('apprentice',ApprenticeController::class);
+
+//session
+Route::resource('sessions',SessionController::class);
+Route::post('sessions', [SessionController::class, 'createSession']);
+
+// Assistance
+Route::resource('assistance',AssistanceController::class);
 Route::put('/assistance/{assistanceId}', [AssistanceController::class, 'editAssistance']);
-
-
-

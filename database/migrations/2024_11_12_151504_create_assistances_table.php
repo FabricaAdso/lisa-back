@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->enum('assistance', ['ASISTIO', 'FALTA', 'FALTA_JUSTIFICADA'])->nullable(); 
 
-            $table->unsignedBigInteger('participant_id');
-            $table->foreign('participant_id')->references('id')->on('participants'); 
+            $table->unsignedBigInteger('apprentice_id');
+            $table->foreign('apprentice_id')->references('id')->on('apprentices'); 
 
             $table->unsignedBigInteger('session_id');
             $table->foreign('session_id')->references('id')->on('sessions'); 

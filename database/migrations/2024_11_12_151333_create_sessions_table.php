@@ -16,8 +16,8 @@ return new class extends Migration
             $table->time('start_time'); 
             $table->time('end_time');
 
-            $table->unsignedBigInteger('participant_id'); 
-            $table->foreign('participant_id')->references('id')->on('participants'); 
+            $table->unsignedBigInteger('instructor_id'); 
+            $table->foreign('instructor_id')->references('id')->on('instructors'); 
 
             $table->timestamps();
         });

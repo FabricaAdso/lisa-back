@@ -8,18 +8,19 @@ use Illuminate\Database\Eloquent\Builder;
 class Assistance extends Model
 {
     //
-    protected $fillable = ['assistance', 'participant_id', 'session_id'];
-    protected $allowIncluded = ['participant', 'session'];
-
-    public function participant()
-    {
-        return $this->belongsTo(Participant::class);
-    }
+    protected $fillable = ['assistance', 'apprentice_id', 'session_id'];
+    protected $allowIncluded = ['apprentice', 'session'];
 
     public function session()
     {
         return $this->belongsTo(Session::class);
     }
+
+    public function apprentice()
+    {
+        return $this->belongsTo(Apprentice::class);
+    }
+
 
     public function scopeIncluded(Builder $query)
     {

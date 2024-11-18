@@ -17,16 +17,7 @@ return new class extends Migration
             $table->string('adress');
             $table->time('opening_time');
             $table->time('closing_time');
-
-
-            //LLave Foranea Municipio
-            $table->unsignedBigInteger('municipality_id');
-            $table->foreign('municipality_id')->references('id')->on('municipalities')->onDelete('cascade');
-
-            //LLave Foranea Centro Formacion
-            $table->unsignedBigInteger('training_center_id');
-            $table->foreign('training_center_id')->references('id')->on('training_centers')->onDelete('cascade');
-
+            $table->string('municipality');
             $table->timestamps();
         });
     }

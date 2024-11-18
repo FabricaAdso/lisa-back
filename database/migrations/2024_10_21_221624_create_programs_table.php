@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('name');
             //FK
             $table->foreignId('education_level_id')->nullable()->constrained()->onDelete('set null');
+            $table->foreignId('training_center_id')->nullable()->constrained()->onDelete('set null');
             $table->timestamps();
         });
     }

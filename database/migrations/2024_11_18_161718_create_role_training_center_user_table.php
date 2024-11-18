@@ -11,11 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('training_centers', function (Blueprint $table) {
+        Schema::create('role_training_center_user', function (Blueprint $table) {
             $table->id();
-            $table->string('code')->unique();
-            $table->string('name');
-            $table->foreignId('regional_id')->nullable()->constrained()->onDelete('set null');
+            $table->foreignId('role_id')->constrained()->onDelete('set null');
+            $table->foreignId('user_id')->constrained()->onDelete('set null');
+            $table->foreignId('training_center_id')->constrained()->onDelete('set null');
             $table->timestamps();
         });
     }
@@ -25,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('training_centers');
+        Schema::dropIfExists('role_training_center_user');
     }
 };

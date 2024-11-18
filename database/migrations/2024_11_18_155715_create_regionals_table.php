@@ -11,11 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('day_shift', function (Blueprint $table) {
+        Schema::create('regionals', function (Blueprint $table) {
             $table->id();
-            //FK
-            $table->foreignId('day_id')->nullable()->constrained()->onDelete('set null');
-            $table->foreignId('shift_id')->nullable()->constrained()->onDelete('set null');
+            $table->string('name');
             $table->timestamps();
         });
     }
@@ -25,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('day_shift');
+        Schema::dropIfExists('regionals');
     }
 };

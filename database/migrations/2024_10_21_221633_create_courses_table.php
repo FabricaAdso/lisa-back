@@ -16,7 +16,11 @@ return new class extends Migration
             $table->string('code')->unique();
             $table->date('date_start');
             $table->date('date_end');
+            $table->string('shift');
+            $table->enum('state', []);//hacerlo un enum
+            //FK
             $table->foreignId('program_id')->nullable()->constrained()->onDelete('set null');
+            $table->foreignId('environment_id')->nullable()->constrained()->onDelete('set null');
             $table->timestamps();
         });
     }

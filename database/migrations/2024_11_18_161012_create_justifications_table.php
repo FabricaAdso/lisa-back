@@ -11,10 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('days', function (Blueprint $table) {
+        Schema::create('justifications', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->integer('number');
+            $table->string('file');
+            $table->foreignId('assistance_id')->nullable()->constrained()->onDelete('set null');
             $table->timestamps();
         });
     }
@@ -24,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('days');
+        Schema::dropIfExists('justifications');
     }
 };

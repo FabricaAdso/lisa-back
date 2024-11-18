@@ -11,9 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('environment_areas', function (Blueprint $table) {
+        Schema::create('aprobations', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->string('state');
+            $table->string('motive');
+            //FK
+            $table->foreignId('justification_id')->nullable()->constrained()->onDelete('set null');
+            $table->foreignId('instructor_id')->nullable()->constrained()->onDelete('set null');
             $table->timestamps();
         });
     }
@@ -23,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('environment_areas');
+        Schema::dropIfExists('aprobations');
     }
 };

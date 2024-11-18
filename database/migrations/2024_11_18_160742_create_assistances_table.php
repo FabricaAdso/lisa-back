@@ -11,15 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('municipalities', function (Blueprint $table) {
+        Schema::create('assistances', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-
-            //LLave Foranea Departamento
-            $table->unsignedBigInteger('departament_id');
-            $table->foreign('departament_id')->references('id')->on('departaments')->onDelete('cascade');
-
-
+            $table->enum('assistance', ['ASISTIO', 'FALTA', 'FALTA_JUSTIFICADA'])->nullable();
+            //FK
+            $table->foreignId('session_id')->nullable()->constrained()->onDelete('set null');
+            $table->foreignId('apprentice_id')->nullable()->constrained()->onDelete('set null');
             $table->timestamps();
         });
     }
@@ -29,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('municipalities');
+        Schema::dropIfExists('assistances');
     }
 };

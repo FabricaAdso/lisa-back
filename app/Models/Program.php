@@ -19,7 +19,6 @@ class Program extends Model
     ];
 
     protected $allowFilter = [
-        'education_level',//de nivel de educacion
         'trainingCenter',
         'name'//del programa
     ];
@@ -45,24 +44,24 @@ class Program extends Model
     public function scopeIncluded(Builder $query)
     {
        
-        if(empty($this->allowIncluded)||empty(request('included'))){// validamos que la lista blanca y la variable included enviada a travez de HTTP no este en vacia.
+        if(empty($this->allowIncluded)||empty(request('included'))){
             return;
         }
 
         
-        $relations = explode(',', request('included')); //['posts','relation2']//recuperamos el valor de la variable included y separa sus valores por una coma
+        $relations = explode(',', request('included')); 
 
         //return $relations;
 
-        $allowIncluded = collect($this->allowIncluded); //colocamos en una colecion lo que tiene $allowIncluded en este caso = ['posts','posts.user']
+        $allowIncluded = collect($this->allowIncluded); 
 
-        foreach ($relations as $key => $relationship) { //recorremos el array de relaciones
+        foreach ($relations as $key => $relationship) { 
 
             if (!$allowIncluded->contains($relationship)) {
                 unset($relations[$key]);
             }
         }
-        $query->with($relations); //se ejecuta el query con lo que tiene $relations en ultimas es el valor en la url de included
+        $query->with($relations); 
 
         //http://api.codersfree1.test/v1/categories?included=posts
 

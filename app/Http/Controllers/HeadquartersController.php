@@ -11,10 +11,10 @@ class HeadquartersController extends Controller
     public function index()
     {
 
-        //   $headquarter = Headquarters::all();
-        $headquarter = Headquarters::included()->get();
+        //$headquarter = Headquarters::all();
+        // $headquarter = Headquarters::included()->get();
         $headquarter = Headquarters::included()->filter()->get();
-        $headquarter->load('municipality.departament', 'trainingCenter');
+
         return response()->json($headquarter);
     }
 
@@ -30,8 +30,10 @@ class HeadquartersController extends Controller
         $request->validate([
             'name' => 'required|max:100',
             'adress' => 'required|max:100',
+            'municipality' => 'required|max:100',
             'opening_time' => 'required|date_format:H:i',
             'closing_time' => 'required|date_format:H:i|after: opening_time ',
+            'training_center_id' => 'required|exists:training_centers,id',
         ]);
 
         $headquarter = Headquarters::create($request->all());
@@ -63,9 +65,10 @@ class HeadquartersController extends Controller
         $request->validate([
             'name' => 'required|max:100',
             'adress' => 'required|max:100',
+            'municipality' => 'required|max:100',
             'opening_time' => 'required|date_format:H:i',
             'closing_time' => 'required|date_format:H:i|after: opening_time',
-
+            'training_center_id' => 'required|exists:training_centers,id',
         ]);
 
         $headquarter = Headquarters::find($id);

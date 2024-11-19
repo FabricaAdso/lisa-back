@@ -11,11 +11,15 @@ class Course extends Model
         'code',
         'date_start',
         'date_end',
+        'shift',
+        'state',
+        'environment_id',
         'program_id'
     ];
 
     protected $allowIncluded = [
         'program',
+        'program.trainingCenter',
         'shifts'
     ];
 
@@ -29,14 +33,9 @@ class Course extends Model
         return $this->belongsTo(Program::class);
     }
 
-    public function shifts()
+    public function environment()
     {
-        return $this->belongsToMany(Shift::class);
-    }
-
-    public function environments()
-    {
-        return $this->belongsToMany(Environment::class, 'course_environment');
+        return $this->belongsTo(Environment::class);
     }
 
     ////

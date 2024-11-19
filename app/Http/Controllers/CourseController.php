@@ -21,9 +21,12 @@ class CourseController extends Controller
     {
         // Validar los datos
         $request->validate([
-            'code' => 'required|string|max:10',
+            'code' => 'sometimes|string|max:10',
             'date_start' => 'required|date',
             'date_end' => 'required|date|after:date_start',
+            'shift_id' => 'required|string',
+            'state' => 'required|in:Lectiva,Productiva',
+            'environment_id' => 'required|exists:environments,id',
             'program_id' => 'required|exists:programs,id',
         ]);
 
@@ -43,9 +46,12 @@ class CourseController extends Controller
     {
         // Validar los datos
         $request->validate([
-            'code' => 'required|string|max:10',
+            'code' => 'sometimes|string|max:10',
             'date_start' => 'required|date',
             'date_end' => 'required|date|after:date_start',
+            'shift_id' => 'required|string',
+            'state' => 'required|in:Lectiva,Productiva',
+            'environment_id' => 'required|exists:environments,id',
             'program_id' => 'required|exists:programs,id',
         ]);
 
@@ -62,57 +68,7 @@ class CourseController extends Controller
         $course = Course::findOrFail($id);
         $course->delete();
 
-        return response()->json(['message' => 'Course deleted successfully']);
+        return response()->json(['message' => 'Course deleted successfully']);    
     }
-
-    //asignar curso a una jornada
-    public function updateShifts(Request $request, $courseId)
-    {
-        $request->validate([
-            'shift_ids' => 'required|array',
-            'shift_ids.*' => 'integer|exists:shifts,id'
-        ]);
-    
-        // Buscar el curso
-        $course = Course::findOrFail($courseId);
-    
-        // Obtener las IDs de las jornadas actuales asignadas al curso
-        $currentShiftIds = $course->shifts()->pluck('shifts.id')->toArray();
-    
-        // Verificar si hay cruces de jornadas
-        foreach ($request->shift_ids as $shiftId) {
-            $shift = Shift::findOrFail($shiftId);
-        
-            // Validar que el tiempo de la nueva jornada no se cruce con las jornadas existentes del curso
-            $conflictingShifts = $course->shifts()
-                ->where(function ($query) use ($shift) {
-                    $query->where('shifts.start_time', '<', $shift->end_time)
-                          ->where('shifts.end_time', '>', $shift->start_time);
-                })
-                ->exists();
-            
-            if ($conflictingShifts) {
-                return response()->json([
-                    'error' => "La jornada '{$shift->name}' se cruza con una ya asignada al curso '{$course->code}'"
-                ], 400);
-            }
-        
-        }
-    
-        // Eliminar las jornadas que ya no están en la lista
-        $shiftsToRemove = array_diff($currentShiftIds, $request->shift_ids);
-        if (!empty($shiftsToRemove)) {
-            $course->shifts()->detach($shiftsToRemove);
-        }
-    
-        // Agregar las nuevas jornadas
-        $shiftsToAdd = array_diff($request->shift_ids, $currentShiftIds);
-        if (!empty($shiftsToAdd)) {
-            $course->shifts()->attach($shiftsToAdd);
-        }
-    
-        return response()->json(['message' => 'Jornadas actualizadas correctamente.']);
-    }
-    
     
 }

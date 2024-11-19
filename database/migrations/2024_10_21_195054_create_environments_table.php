@@ -15,15 +15,9 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->integer('capacity');
-
+            $table->string('knowledge_network');
             //Llave Foranea Sede
-            $table->unsignedBigInteger('headquarters_id');
-            $table->foreign('headquarters_id')->references('id')->on('headquarters')->onDelete('cascade');
-
-            //Llave Foranea Area
-            $table->unsignedBigInteger('environment_area_id');
-            $table->foreign('environment_area_id')->references('id')->on('environment_areas')->onDelete('cascade');
-
+            $table->foreignId('headquarters_id')->nullable()->constrained()->onDelete('set null');
             $table->timestamps();
         });
     }

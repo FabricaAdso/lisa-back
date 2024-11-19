@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Course;
+
 use App\Models\Environment;
 use App\Services\EnvironmentService;
 use Illuminate\Http\Request;
@@ -20,9 +20,7 @@ class EnvironmentController extends Controller
     {
 
         // $environments = Environment::all();
-        $environments = Environment::included()->get();
         $environments = Environment::included()->filter()->get();
-        $environments->load('headquarters', 'environmentArea');
         return response()->json($environments);
     }
 
@@ -38,11 +36,12 @@ class EnvironmentController extends Controller
         $request->validate([
             'name' => 'required|max:100',
             'capacity' => 'required|max:100',
+            'knowledge_network' => 'required',
             'headquarters_id' => 'required|max:100',
-            'environment_area_id' => 'required|max:100',
         ]);
 
         $environments = Environment::create($request->all());
+        $environments->load($environments->included()->getEagerLoads());
 
         return response()->json($environments);
     }
@@ -71,19 +70,18 @@ class EnvironmentController extends Controller
         $request->validate([
             'name' => 'required|max:100',
             'capacity' => 'required|max:100',
+            'knowledge_network' => 'required',
             'headquarters_id' => 'required|max:100',
-            'environment_area_id' => 'required|max:100',
         ]);
         $environments = Environment::find($id);
         $environments->update($request->all());
-        //$environments->load($environments->included()->getEagerLoads());
-        $environments->load('headquarters', 'environmentArea');
+        $environments->load($environments->included()->getEagerLoads());
+   
         return response()->json($environments);
     }
 
     /**
      * Remove the specified resource from storage.
-     *
      * @param  \App\Models\Environment
      * @return \Illuminate\Http\Response
      */
@@ -94,12 +92,4 @@ class EnvironmentController extends Controller
         return response()->json($environments);
     }
 
-    //asignar un ambiente a una ficha
-    public function assignEnvironment(Request $request, $environmentId){
-        $request->validate([
-            'course_ids' => 'required|array',
-            'course_ids.*' => 'integer|exists:courses,id'
-        ]);
-        return $this->environmentService->assignCoursesToEnvironment($request->course_ids, $environmentId);
-    }
 }

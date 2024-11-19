@@ -11,11 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('day_shift', function (Blueprint $table) {
+        Schema::create('instructors', function (Blueprint $table) {
             $table->id();
+            $table->enum('state',['Activo','Inactivo']);
             //FK
-            $table->foreignId('day_id')->nullable()->constrained()->onDelete('set null');
-            $table->foreignId('shift_id')->nullable()->constrained()->onDelete('set null');
+            $table->foreignId('user_id')->nullable()->constrained()->onDelete('set null');
+            $table->foreignId('training_center_id')->nullable()->constrained()->onDelete('set null');
             $table->timestamps();
         });
     }
@@ -25,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('day_shift');
+        Schema::dropIfExists('instructors');
     }
 };

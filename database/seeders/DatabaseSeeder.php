@@ -20,9 +20,9 @@ class DatabaseSeeder extends Seeder
         $this->call([
             RolesSeeder::class,
             DocumentTypeSeeder::class,
-            DaySeeder::class,
-            DepartamentSeeder::class,
-            MunicipalitySeeder::class,
+            // DaySeeder::class,
         ]);
+        // $this->call(DepartamentSeeder::class);
+        // $this->call(MunicipalitySeeder::class);
     }
 }

@@ -11,10 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('course_shift', function (Blueprint $table) {
+        Schema::create('assistances', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('course_id')->nullable()->constrained()->onDelete('set null');
-            $table->foreignId('shift_id')->nullable()->constrained()->onDelete('set null');
+            $table->enum('assistance', ['ASISTIO', 'FALTA', 'FALTA_JUSTIFICADA'])->nullable();
+            //FK
+            $table->foreignId('session_id')->nullable()->constrained()->onDelete('set null');
+            $table->foreignId('apprentice_id')->nullable()->constrained()->onDelete('set null');
             $table->timestamps();
         });
     }
@@ -24,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('course_shift');
+        Schema::dropIfExists('assistances');
     }
 };

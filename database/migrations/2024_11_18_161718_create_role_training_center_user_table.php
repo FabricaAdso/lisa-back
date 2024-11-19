@@ -11,19 +11,20 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('programs', function(Blueprint $table){
+        Schema::create('role_training_center_user', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->nullable()->constrained()->onDelete('set null');
+            $table->foreignId('role_id')->nullable()->constrained()->onDelete('set null');
             $table->foreignId('training_center_id')->nullable()->constrained()->onDelete('set null');
+            $table->timestamps();
         });
     }
 
     /**
      * Reverse the migrations.
      */
-    public function down()
+    public function down(): void
     {
-        Schema::table('programs', function (Blueprint $table) {
-            $table->dropForeign(['training_center_id']);
-            $table->dropColumn('training_center_id');
-        });
-    } 
+        Schema::dropIfExists('role_training_center_user');
+    }
 };

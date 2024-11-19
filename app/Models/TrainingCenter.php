@@ -17,15 +17,26 @@ class TrainingCenter extends Model
         return $this->hasMany(Headquarters::class);
     }
 
-    public function programs()
+    public function scopeIncluded(Builder $query)
     {
-        return $this->hasMany(Program::class);
+
+        if (empty($this->allowIncluded) || empty(request('included'))) {
+            return;
+        }
+
+
+        $relations = explode(',', request('included'));
+
+        // return $relations;
+
+        $allowIncluded = collect($this->allowIncluded);
+
+        foreach ($relations as $key => $relationship) {
+
+            if (!$allowIncluded->contains($relationship)) {
+                unset($relations[$key]);
+            }
+        }
+        $query->with($relations);
     }
-
-    // public function municipality()
-    // {
-    //     return $this->belongsTo(Municipality::class);
-    // }
-
-
 }

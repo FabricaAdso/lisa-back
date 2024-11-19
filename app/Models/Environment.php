@@ -9,9 +9,9 @@ class Environment extends Model
 {
     //
 
-    protected $fillable = ['name', 'capacity', 'headquarters_id', 'environment_area_id'];
-    protected $allowIncluded = ['headquarters', 'environmentArea'];
-    protected $allowFilter = ['environment_area', 'headquarters_'];
+    protected $fillable = ['name', 'capacity', 'knowledge_network', 'headquarters_id'];
+    protected $allowIncluded = ['headquarters'];
+    protected $allowFilter = ['headquarters_'];
 
 
     public function headquarters()
@@ -19,14 +19,10 @@ class Environment extends Model
         return $this->belongsTo(Headquarters::class);
     }
 
-    public function environmentArea()
-    {
-        return $this->belongsTo(EnvironmentArea::class);
-    }
 
     public function courses()
     {
-        return $this->belongsToMany(Course::class, 'course_environment');
+        return $this->hasMany(Course::class);
     }
 
     ////////////////////

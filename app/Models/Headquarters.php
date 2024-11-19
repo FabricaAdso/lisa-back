@@ -24,8 +24,7 @@ class Headquarters extends Model
             // Asigna el ID si se encontró
             $this->attributes['training_center_id'] = $trainingCenter->id;
         } else {
-            $this->attributes['training_center_id'] = null; // O puedes lanzar una excepción
-            
+            $this->attributes['training_center_id'] = null; 
         }
     }
 
@@ -35,12 +34,6 @@ class Headquarters extends Model
     {
         return $this->belongsTo(TrainingCenter::class);
     }
-
-    public function municipality()
-    {
-        return $this->belongsTo(Municipality::class);
-    }
-
 
     public function environments()
     {

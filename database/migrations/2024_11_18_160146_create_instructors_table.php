@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('instructors', function (Blueprint $table) {
             $table->id();
-            $table->string('state');//hacerlo un enum
+            $table->enum('state',['Activo','Inactivo']);
             //FK
             $table->foreignId('user_id')->nullable()->constrained()->onDelete('set null');
             $table->foreignId('training_center_id')->nullable()->constrained()->onDelete('set null');

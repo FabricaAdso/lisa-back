@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('role_training_center_user', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('role_id')->constrained()->onDelete('set null');
-            $table->foreignId('user_id')->constrained()->onDelete('set null');
-            $table->foreignId('training_center_id')->constrained()->onDelete('set null');
+            $table->foreignId('user_id')->nullable()->constrained()->onDelete('set null');
+            $table->foreignId('role_id')->nullable()->constrained()->onDelete('set null');
+            $table->foreignId('training_center_id')->nullable()->constrained()->onDelete('set null');
             $table->timestamps();
         });
     }

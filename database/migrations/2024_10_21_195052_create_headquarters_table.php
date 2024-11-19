@@ -18,6 +18,8 @@ return new class extends Migration
             $table->time('opening_time');
             $table->time('closing_time');
             $table->string('municipality');
+            //FK
+            $table->foreignId('training_center_id')->nullable()->constrained()->onDelete('set null');
             $table->timestamps();
         });
     }

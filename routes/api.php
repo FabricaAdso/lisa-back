@@ -23,14 +23,8 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 
-Route::apiresource('departaments', DepartamentController::class);
-Route::apiresource('municipalities', MunicipalityController::class);
-
-Route::get('municipalities/departament/{id}', [MunicipalityController::class, 'index']);
-
 Route::apiResource('headquarters', HeadquartersController::class);
 Route::apiresource('environments', EnvironmentController::class);
-Route::apiresource('environmentsArea', EnvironmentAreaController::class);
 Route::apiresource('trainingCenters', TrainingCenterController::class);
 
 
@@ -60,13 +54,10 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::post('users/{userId}/toggle-role', [RoleController::class, 'toggleRole']);
 
     //  Rutas para cursos y demas
-    Route::resource('days', DayController::class);
     Route::resource('educationLevel', EducationLevelController::class);
     Route::resource('programs', ProgramController::class);
     Route::resource('courses', CourseController::class);
     Route::put('courses/{courseId}/shifts', [CourseController::class, 'updateShifts']);
-    Route::resource('shifts', ShiftController::class);
-    Route::put('/shifts/{shiftId}/days', [ShiftController::class, 'assignDaysToShift']);
 });
 
 Route::post('logout', [AuthController::class, 'logout']);

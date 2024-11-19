@@ -18,13 +18,7 @@ class Environment extends Model
     {
         return $this->belongsTo(Headquarters::class);
     }
-
-    public function environmentArea()
-    {
-        return $this->belongsTo(EnvironmentArea::class);
-    }
-
-
+    
     public function scopeIncluded(Builder $query)
     {
 

@@ -19,9 +19,9 @@ class DatabaseSeeder extends Seeder
         $this->call([
             RolesSeeder::class,
             DocumentTypeSeeder::class,
-            DaySeeder::class,
+            // DaySeeder::class,
         ]);
-        $this->call(DepartamentSeeder::class);
-        $this->call(MunicipalitySeeder::class);
+        // $this->call(DepartamentSeeder::class);
+        // $this->call(MunicipalitySeeder::class);
     }
 }

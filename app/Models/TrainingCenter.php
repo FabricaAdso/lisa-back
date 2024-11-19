@@ -16,12 +16,6 @@ class TrainingCenter extends Model
         return $this->hasMany(Headquarters::class);
     }
 
-    // public function municipality()
-    // {
-    //     return $this->belongsTo(Municipality::class);
-    // }
-
-
     public function scopeIncluded(Builder $query)
     {
 

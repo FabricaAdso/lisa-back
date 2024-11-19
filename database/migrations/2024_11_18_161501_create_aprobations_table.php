@@ -11,12 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('programs', function (Blueprint $table) {
+        Schema::create('aprobations', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->enum('state',['Aprobado','No_aprobado']);
+            $table->string('motive');
             //FK
-            $table->foreignId('education_level_id')->nullable()->constrained()->onDelete('set null');
-            $table->foreignId('training_center_id')->nullable()->constrained()->onDelete('set null');
+            $table->foreignId('justification_id')->nullable()->constrained()->onDelete('set null');
+            $table->foreignId('instructor_id')->nullable()->constrained()->onDelete('set null');
             $table->timestamps();
         });
     }
@@ -26,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('programs');
+        Schema::dropIfExists('aprobations');
     }
 };

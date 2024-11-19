@@ -13,11 +13,9 @@ return new class extends Migration
     {
         Schema::create('training_centers', function (Blueprint $table) {
             $table->id();
+            $table->string('code')->unique()->nullable();
             $table->string('name');
-
-            // //Llave Foranea Municipio
-            // $table->unsignedBigInteger('municipality_id');
-            // $table->foreign('municipality_id')->references('id')->on('municipalities')->onDelete('cascade');
+            $table->foreignId('regional_id')->nullable()->constrained()->onDelete('set null');
             $table->timestamps();
         });
     }

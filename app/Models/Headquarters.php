@@ -18,12 +18,6 @@ class Headquarters extends Model
         return $this->belongsTo(TrainingCenter::class);
     }
 
-    public function municipality()
-    {
-        return $this->belongsTo(Municipality::class);
-    }
-
-
     public function environments()
     {
         return $this->hasMany(Environment::class);

@@ -11,8 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('environment_areas', function (Blueprint $table) {
+        Schema::create('regionals', function (Blueprint $table) {
             $table->id();
+            $table->string('code')->unique()->nullable();
             $table->string('name');
             $table->timestamps();
         });
@@ -23,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('environment_areas');
+        Schema::dropIfExists('regionals');
     }
 };

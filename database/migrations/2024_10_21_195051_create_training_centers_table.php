@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('training_centers', function (Blueprint $table) {
             $table->id();
-            $table->string('code')->unique();
+            $table->string('code')->unique()->nullable();
             $table->string('name');
             $table->foreignId('regional_id')->nullable()->constrained()->onDelete('set null');
             $table->timestamps();

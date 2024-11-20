@@ -12,7 +12,7 @@ class TrainingCenterController extends Controller
     {
 
         // $trainingCenter = TrainingCenter::all();
-        $trainingCenter = TrainingCenter::included()->get();
+        $trainingCenter = TrainingCenter::included()->filter()->get();
 
         return response()->json($trainingCenter);
     }

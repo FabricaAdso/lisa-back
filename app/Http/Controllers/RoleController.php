@@ -11,7 +11,7 @@ class RoleController extends Controller
     public function toggleRole(Request $request, $userId)
     {
         $user = User::findOrFail($userId);
-        $roles = $request->input('roles'); // Esperamos un arreglo de roles
+        $roles = $request->input('roles');
 
         $currentRoles = $user->getRoleNames()->toArray();
 

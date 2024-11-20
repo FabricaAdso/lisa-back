@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-class TokenService
+interface TokenService
 {
-    
+    public function getTrainingCenterIdFromToken();
 }

@@ -4,15 +4,24 @@ namespace App\Http\Controllers;
 
 use App\Models\DocumentType;
 use App\Models\User;
+use App\Services\TokenService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends Controller
 {
+
+    protected $tokenService;
+
+    public function __construct(TokenService $tokenService)
+    {
+        $this->tokenService = $tokenService;
+    }
 
     public function register(Request $request)
     {
@@ -46,46 +55,10 @@ class AuthController extends Controller
         return response()->json(['user' => $user, 'token' => $token], 201);
     }
 
-
     public function getDocument(){
         $document = DocumentType::all();
         return response()->json($document);
     }
-
-    // public function login(Request $request)
-    // {
-    //     $request->validate([
-    //         'identity_document' => 'required|string',
-    //         'password' => 'required|string',
-    //         'training_center_id' => 'required|integer',
-    //     ]);
-
-    //     $credentials = $request->only('identity_document', 'password');
-
-    //     if (!$user = User::where('identity_document', $credentials['identity_document'])->first()) {
-    //         return response()->json(['error' => 'Unauthorized'], 401);
-    //     }
-
-    //     $roleCenter = $user->trainingCenters()->where('training_center_id', $request->training_center_id)->first();
-
-    //     if (!$roleCenter) {
-    //         return response()->json(['error' => 'Unauthorized'], 401);
-    //     }
-
-    //     if (!Hash::check($credentials['password'], $user->password)) {
-    //         return response()->json(['error' => 'Unauthorized'], 401);
-    //     }
-
-    //     $token = JWTAuth::fromUser($user);
-
-    //     return $this->respondWithToken($token);
-    // }
-
-
-    // public function me()
-    // {
-    //     return response()->json(Auth::user());
-    // }
 
     public function login(Request $request)
     {
@@ -113,42 +86,16 @@ class AuthController extends Controller
 
         $encryptedTrainingCenterId = Crypt::encrypt($request->training_center_id);
 
-        $token = JWTAuth::fromUser($user, [
+        $token = JWTAuth::claims([
             'training_center_id' => $encryptedTrainingCenterId
-        ]);
+        ])->fromUser($user);
 
         return $this->respondWithToken($token);
     }
 
     public function me()
     {
-        $user = Auth::user();
-
-        $trainingCenters = $user->trainingCenters()->get()->map(function ($trainingCenter) {
-            return [
-                'training_center_id' => $trainingCenter->id,
-                'role_id' => $trainingCenter->pivot->role_id,
-                'role_name' => $this->getRoleName($trainingCenter->pivot->role_id),
-            ];
-        });
-
-        return response()->json([
-            'user' => $user,
-            'training_centers' => $trainingCenters,
-        ]);
-    }
-
-    private function getRoleName($roleId)
-    {
-        $roles = [
-            1 => 'Usuario',
-            2 => 'Coordinador academico',
-            3 => 'Instructor',
-            4 => 'Aprendiz',
-            5 => 'Administrador',
-        ];
-
-        return $roles[$roleId] ?? 'Unknown';
+        return response()->json(Auth::user());
     }
 
     public function logout()
@@ -170,19 +117,15 @@ class AuthController extends Controller
             'access_token' => $token,
             'token_type' => 'bearer',
             'expires_in' => JWTAuth::factory()->getTTL() * 60,
+
         ]);
     }
 
     public function getTrainingCenterIdFromToken()
     {
-        $token = JWTAuth::getToken();
+        $trainingCenterId = $this->tokenService->getTrainingCenterIdFromToken();
 
-        $payload = JWTAuth::getPayload($token);
-
-        $encryptedTrainingCenterId = $payload['training_center_id'];
-        $trainingCenterId = Crypt::decrypt($encryptedTrainingCenterId);
-
-        return $trainingCenterId;
+        return response()->json(['training_center_id' => $trainingCenterId]);
     }
 
 }

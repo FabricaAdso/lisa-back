@@ -2,38 +2,94 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
+use App\Services\RoleService;
 use Illuminate\Http\Request;
-use Spatie\Permission\Models\Role;
 
 class RoleController extends Controller
 {
-    public function toggleRole(Request $request, $userId)
+    protected $roleService;
+
+    public function __construct(RoleService $roleService)
     {
-        $user = User::findOrFail($userId);
+        $this->roleService = $roleService;
+    }
+
+    public function getRoles()
+    {
+        $roles = $this->roleService->getRoles();
+        return $roles;
+    }
+
+    public function toggleRole(Request $request, $userId, $trainingCenterId)
+    {
         $roles = $request->input('roles');
-
-        $currentRoles = $user->getRoleNames()->toArray();
-
         if (!is_array($roles)) {
             return response()->json(['error' => 'El campo "roles" debe ser un arreglo.'], 400);
         }
 
-        foreach ($currentRoles as $roleName) {
-            if (!in_array($roleName, $roles)) {
-                $role = Role::findByName($roleName);
-                $user->removeRole($role);
-            }
-        }
+        $result = $this->roleService->toggleRoles($userId, $trainingCenterId, $roles);
 
-        foreach ($roles as $roleName) {
-            $role = Role::findByName($roleName);
-            if (!$user->hasRole($role)) {
-                $user->assignRole($role);
-            }
-        }
-        $user->load('roles');
-        return response()->json(['message' => 'Roles actualizados', 'roles' => $user->getRoleNames(),
-        'user' => $user], 200);
+        return response()->json([
+            'message' => 'Roles actualizados correctamente.',
+            'user' => $result['user'],
+            'roles' => $result['roles'],
+        ], 200);
     }
+
+    // public function toggleRole(Request $request, $userId, $trainingCenterId)
+    // {
+    //     $user = User::findOrFail($userId);
+    //     $trainingCenter = TrainingCenter::findOrFail($trainingCenterId);
+
+    //     $roles = $request->input('roles');
+    //     if (!is_array($roles)) {
+    //         return response()->json(['error' => 'El campo "roles" debe ser un arreglo.'], 400);
+    //     }
+
+    //     // Obtén los roles actuales del usuario en el centro de formación
+    //     $currentRoles = $user->trainingCenters()
+    //                         ->wherePivot('training_center_id', $trainingCenterId)
+    //                         ->withPivot('role_id')
+    //                         ->get()
+    //                         ->pluck('pivot.role_id')
+    //                         ->toArray();
+
+    //     // Eliminar roles que no estén en el nuevo arreglo (detaching)
+    //     foreach ($currentRoles as $roleId) {
+    //         if (!in_array($roleId, $roles)) {
+    //             $user->trainingCenters()->wherePivot('role_id', $roleId)
+    //                                 ->wherePivot('training_center_id', $trainingCenterId)
+    //                                 ->detach();
+    //         }
+    //     }
+
+    //     // Agregar roles nuevos o mantener los existentes si ya están
+    //     foreach ($roles as $roleId) {
+    //         if (!in_array($roleId, $currentRoles)) {
+    //             $user->trainingCenters()->attach($trainingCenterId, ['role_id' => $roleId]);
+    //         }
+    //     }
+
+    //     // Recargar los centros de formación con los roles asociados
+    //     $user->load(['trainingCenters' => function ($query) use ($trainingCenterId) {
+    //         $query->wherePivot('training_center_id', $trainingCenterId);
+    //     }]);
+
+    //     // Obtener los roles con sus nombres usando Spatie Role
+    //     $rolesWithNames = $user->trainingCenters->map(function ($trainingCenter) {
+    //         $role = Role::where('id', $trainingCenter->pivot->role_id)->where('guard_name', 'api')->first();
+    //         return [
+    //             'role_id' => $trainingCenter->pivot->role_id,
+    //             'role_name' => $role ? $role->name : null,
+    //         ];
+    //     });
+
+    //     return response()->json([
+    //         'message' => 'Roles actualizados correctamente.',
+    //         'roles' => $rolesWithNames,
+    //         'user' => $user
+    //     ], 200);
+    // }
+
+
 }

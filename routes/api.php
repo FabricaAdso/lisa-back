@@ -1,20 +1,14 @@
 <?php
 
-use App\Http\Controllers\DepartamentController;
-use App\Http\Controllers\EnvironmentAreaController;
 use App\Http\Controllers\EnvironmentController;
 use App\Http\Controllers\HeadquartersController;
-use App\Http\Controllers\MunicipalityController;
 use App\Http\Controllers\TrainingCenterController;
-use App\Models\EnvironmentArea;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\CourseController;
-use App\Http\Controllers\DayController;
 use App\Http\Controllers\EducationLevelController;
 use App\Http\Controllers\ProgramController;
-use App\Http\Controllers\ShiftController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -44,7 +38,9 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::get('active', [UserController::class, 'active']);
 
     // Ruta para gestionar roles
-    Route::post('users/{userId}/toggle-role', [RoleController::class, 'toggleRole']);
+    Route::get('/roles', [RoleController::class, 'getRoles']);
+    // Route::post('users/{userId}/toggle-role', [RoleController::class, 'toggleRole']);
+    Route::post('users/{userId}/training-centers/{trainingCenterId}/toggle-role', [RoleController::class, 'toggleRole']);
 
     //  Rutas para cursos y demas
     Route::resource('educationLevel', EducationLevelController::class);

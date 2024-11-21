@@ -15,12 +15,14 @@ use App\Http\Controllers\DayController;
 use App\Http\Controllers\EducationLevelController;
 use App\Http\Controllers\ProgramController;
 use App\Http\Controllers\ShiftController;
+use Illuminate\Broadcasting\BroadcastController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
+
 
 
 Route::apiresource('departaments', DepartamentController::class);
@@ -38,12 +40,16 @@ Route::group([], function () {
     Route::post('register', [AuthController::class, 'register']);
     Route::post('login', [AuthController::class, 'login']);
 });
-
+Route::post('send', [AuthController::class, 'sendMessage']);
 Route::group(['middleware' => 'auth:api'], function () {
     Route::post('logout', [AuthController::class, 'logout']);
     Route::post('refresh', [AuthController::class, 'refresh']);
     Route::post('me', [AuthController::class, 'me']);
 
+    Route::post('/broadcasting/auth', [BroadcastController::class, 'authenticate']);
+    Route::get('message', [AuthController::class, 'indexM']);
+    Route::post('message', [AuthController::class, 'storeM']);
+    
     // Rutas para usuarios
     Route::get('users', [UserController::class, 'index']);
     Route::post('users', [UserController::class, 'store']);

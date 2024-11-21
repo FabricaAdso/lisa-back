@@ -2,11 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\SendMessage;
+use App\Models\DocumentType;
+use App\Models\Notification;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Tymon\JWTAuth\Facades\JWTAuth;
+
 
 class AuthController extends Controller
 {
@@ -77,5 +82,31 @@ class AuthController extends Controller
             'expires_in' => JWTAuth::factory()->getTTL() * 60,
         ]);
     }
+
+    public function indexM()
+{
+    $message = Notification::latest()->get();
+    log::debug('mensaje' . $message);
+    return response()->json([
+        'mensaje' => $message
+    ]);
+    
+}
+
+public function storeM(Request $request)
+{
+    $request->validate([
+        'message' => 'required|string|max:255',
+    ]);
+    
+
+    // Llamar al método estático createAndSendMessage del modelo Notification
+    $message = Notification::createAndSendMessage($request->all());
+
+
+    // Retornar una respuesta con el mensaje creado
+    return response()->json($message);
+}
+
 
 }

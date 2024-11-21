@@ -53,7 +53,6 @@ class AuthController extends Controller
         return response()->json(['user' => $user, 'token' => $token], 201);
     }
 
-    // Obtener Tipos de Documentos
     public function getDocument(){
         $document = DocumentType::all();
         return response()->json($document);
@@ -96,7 +95,6 @@ class AuthController extends Controller
     {
         $user = User::find(Auth::id());
 
-        // Cargar los centros de formación y los roles asociados al usuario
         $userWithTrainingCenters = $user->load(['trainingCenters' => function($query) {
             $query->withPivot('role_id');
         }]);

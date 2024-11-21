@@ -9,9 +9,9 @@ class Environment extends Model
 {
     //
 
-    protected $fillable = ['name', 'capacity', 'headquarters_id', 'environment_area_id'];
-    protected $allowIncluded = ['headquarters', 'environmentArea'];
-    protected $allowFilter = ['environment_area', 'headquarters_'];
+    protected $fillable = ['name', 'capacity'];
+    protected $allowIncluded = ['headquarters'];
+    protected $allowFilter = ['headquarters_'];
 
 
     public function headquarters()
@@ -19,6 +19,11 @@ class Environment extends Model
         return $this->belongsTo(Headquarters::class);
     }
     
+    public function courses ()
+    {
+        return $this->hasMany(Course::class);
+    }
+
     public function scopeIncluded(Builder $query)
     {
 

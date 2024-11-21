@@ -16,6 +16,21 @@ class TrainingCenter extends Model
         return $this->hasMany(Headquarters::class);
     }
 
+    public function programs ()
+    {
+        return $this->hasMany(Program::class);
+    }
+
+    public function instructors ()
+    {
+        return $this->hasMany(Instructor::class);
+    }
+
+    public function regional ()
+    {
+        return $this->belongsTo(Regional::class);
+    }
+
     public function scopeIncluded(Builder $query)
     {
 

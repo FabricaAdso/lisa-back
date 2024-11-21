@@ -39,7 +39,6 @@ Route::group(['middleware' => 'auth:api'], function () {
 
     // Ruta para gestionar roles
     Route::get('/roles', [RoleController::class, 'getRoles']);
-    // Route::post('users/{userId}/toggle-role', [RoleController::class, 'toggleRole']);
     Route::post('users/{userId}/training-centers/{trainingCenterId}/toggle-role', [RoleController::class, 'toggleRole']);
 
     //  Rutas para cursos y demas
@@ -52,6 +51,11 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::apiResource('headquarters', HeadquartersController::class);
     Route::apiresource('environments', EnvironmentController::class);
     Route::apiresource('trainingCenters', TrainingCenterController::class);
+
+    // Centros de formacion del USUARIO
+    Route::post('/user/{userId}/add-training-center', [AuthController::class, 'addTrainingCenter']);
+    Route::get('/user/{userId}/training-centers', [AuthController::class, 'getUserTrainingCenters']);
+    Route::delete('/user/{userId}/remove-training-center', [AuthController::class, 'removeTrainingCenter']);
 
     // Ruta desencriptar training_center_id del token
     Route::get('/training-center', [AuthController::class, 'getTrainingCenterIdFromToken']);

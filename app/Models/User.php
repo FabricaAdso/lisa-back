@@ -41,9 +41,20 @@ class User extends Authenticatable implements JWTSubject
     public function trainingCenters()
     {
         return $this->belongsToMany(TrainingCenter::class, 'role_training_center_user')
-                    ->withPivot('role_id');
+                    ->withPivot('role_id')
+                    ->withTimestamps();
     }
 
+    public function apprentices ()
+    {
+        return $this->hasMany(Apprentice::class);
+    }
+
+    public function instructors ()
+    {
+        return $this->hasMany(Instructor::class);
+    }
+    
     /**
      * The attributes that should be hidden for serialization.
      *

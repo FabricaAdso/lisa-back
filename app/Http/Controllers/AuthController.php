@@ -8,9 +8,7 @@ use App\Services\TokenService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends Controller
@@ -55,6 +53,7 @@ class AuthController extends Controller
         return response()->json(['user' => $user, 'token' => $token], 201);
     }
 
+    // Obtener Tipos de Documentos
     public function getDocument(){
         $document = DocumentType::all();
         return response()->json($document);
@@ -121,11 +120,53 @@ class AuthController extends Controller
         ]);
     }
 
+    //Desencriptar Trainig_center_id
     public function getTrainingCenterIdFromToken()
     {
         $trainingCenterId = $this->tokenService->getTrainingCenterIdFromToken();
 
         return response()->json(['training_center_id' => $trainingCenterId]);
+    }
+
+    // Centros de Formacion para Usuarios.
+    public function addTrainingCenter(Request $request, $userId)
+    {
+        $request->validate([
+            'training_center_id' => 'required|integer|exists:training_centers,id',
+            'role_id' => 'required|integer|exists:roles,id',
+        ]);
+
+        $user = User::findOrFail($userId);
+
+        if ($user->trainingCenters()->where('training_center_id', $request->training_center_id)->exists()) {
+            return response()->json(['error' => 'El usuario ya está asociado a este centro de formación.'], 400);
+        }
+
+        $user->trainingCenters()->attach($request->training_center_id, ['role_id' => $request->role_id]);
+
+        return response()->json(['message' => 'Centro de formación agregado exitosamente.']);
+    }
+
+    public function getUserTrainingCenters($userId)
+    {
+        $user = User::findOrFail($userId);
+
+        $trainingCenters = $user->trainingCenters()->withPivot('role_id')->get();
+
+        return response()->json($trainingCenters);
+    }
+
+    public function removeTrainingCenter(Request $request, $userId)
+    {
+        $request->validate([
+            'training_center_id' => 'required|integer|exists:training_centers,id',
+        ]);
+
+        $user = User::findOrFail($userId);
+
+        $user->trainingCenters()->detach($request->training_center_id);
+
+        return response()->json(['message' => 'Centro de formación eliminado exitosamente.']);
     }
 
 }

@@ -9,6 +9,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use Tymon\JWTAuth\Contracts\JWTSubject;
+use App\Models\TrainingCenter;
 
 class User extends Authenticatable implements JWTSubject
 {
@@ -29,11 +30,19 @@ class User extends Authenticatable implements JWTSubject
         'email',
         'password',
         'document_type_id',
+        'training_center_id',
     ];
 
     public function document_type()
     {
         return $this->belongsTo(DocumentType::class);
+    }
+
+    public function trainingCenters()
+    {
+        return $this->belongsToMany(TrainingCenter::class, 'role_training_center_user')
+                    ->withPivot('role_id')
+                    ->withTimestamps();
     }
 
     public function apprentices ()
@@ -46,7 +55,6 @@ class User extends Authenticatable implements JWTSubject
         return $this->hasMany(Instructor::class);
     }
     
-
     /**
      * The attributes that should be hidden for serialization.
      *

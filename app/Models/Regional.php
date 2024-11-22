@@ -52,14 +52,13 @@ class Regional extends Model
         $allowFilter = collect($this->allowFilter);
 
         foreach ($filters as $filter => $value) {
-            
+            // Filtrar por centro de formacion
             if ($filter === 'training') {
                 $query->whereHas('trainingCenters', function ($q) use ($value) {
                     $q->where('name', 'LIKE', '%' . $value . '%');
                 });
             }
 
-          
             if ($allowFilter->contains($filter) && $filter !== 'training') {
                 $query->where($filter, 'LIKE', '%' . $value . '%');
             }

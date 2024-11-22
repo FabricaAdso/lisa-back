@@ -81,3 +81,4 @@ Route::post('sessions', [SessionController::class, 'createSession']);
 // Assistance
 Route::resource('assistance',AssistanceController::class);
 Route::put('/assistance/{assistanceId}', [AssistanceController::class, 'editAssistance']);
+

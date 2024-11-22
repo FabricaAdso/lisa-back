@@ -17,6 +17,7 @@ return new class extends Migration
             //FK
             $table->foreignId('user_id')->nullable()->constrained()->onDelete('set null');
             $table->foreignId('training_center_id')->nullable()->constrained()->onDelete('set null');
+            $table->unique(['user_id','training_center_id']);
             $table->timestamps();
         });
     }

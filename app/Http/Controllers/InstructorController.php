@@ -10,8 +10,8 @@ class InstructorController extends Controller
     //
     public function index()
     {
-        //$instructor = Instructor::all();
-       $instructor = Instructor::included()->get();
+       // $instructor = Instructor::all();
+      $instructor = Instructor::included()->get();
 
 
         return response()->json($instructor);
@@ -28,7 +28,7 @@ class InstructorController extends Controller
         ]);
 
         $instructor = Instructor::create($request->all());
-        $instructor->courses()->attach($request->course_id,['start_date' => now()]);
+   
         return response()->json($instructor);
     }
 

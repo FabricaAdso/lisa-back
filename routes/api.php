@@ -86,3 +86,5 @@ Route::get('regionals',[RegionalController::class, 'index']);
 //Route::resource('assistance',AssistanceController::class);
 Route::put('/assistance/{assistanceId}', [AssistanceController::class, 'editAssistance']);
 
+Route::get('/apprentices/{apprenticeId}/unjustified-absences', [AssistanceController::class, 'UnjustifiedAbsences']);
+

@@ -3,10 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Models\Instructor;
+use App\Services\TokenService;
 use Illuminate\Http\Request;
 
 class InstructorController extends Controller
 {
+
+    protected  $token_service;
+
+    function __construct(TokenService $token_service)
+    {   
+        $this->token_service = $token_service;
+    }
     //
     public function index()
     {
@@ -22,12 +30,14 @@ class InstructorController extends Controller
 
         $request->validate([
             'user_id' => 'required|exists:users,id',
-            'training_center_id'=>'required|exists:training_centers,id',
             'state' => 'required|in:Activo,Inactivo',
-
         ]);
-
-        $instructor = Instructor::create($request->all());
+        $training_center_id = $this->token_service->getTrainingCenterIdFromToken();
+        //echo($training_center_id);
+        $instructor = Instructor::create([
+            'user_id' => $request->user_id,
+            'training_center_id'=>$training_center_id
+        ]);
    
         return response()->json($instructor);
     }

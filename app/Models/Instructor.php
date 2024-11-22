@@ -6,10 +6,31 @@ use Illuminate\Database\Eloquent\Model;
 
 class Instructor extends Model
 {
-    
-    //relaciones
-    public function courses()
+    //
+    public function aprobations ()
+    {
+        return $this->hasMany(Aprobation::class);
+    }
+
+    public function sessions ()
+    {
+        return $this->hasMany(Session::class);
+    }
+
+    public function user ()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function trainingCenter ()
+    {
+        return $this->belongsTo(TrainingCenter::class);
+    }
+
+    public function course()
     {
         return $this->hasOne(Course::class);
     }
+
+    
 }

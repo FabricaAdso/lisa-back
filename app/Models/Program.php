@@ -25,6 +25,11 @@ class Program extends Model
         return $this->belongsTo(EducationLevel::class);
     }
 
+    public function trainingCenter ()
+    {
+        return $this->belongsTo(TrainingCenter::class);
+    }
+    
     public function courses()
     {
         return $this->hasMany(Course::class);

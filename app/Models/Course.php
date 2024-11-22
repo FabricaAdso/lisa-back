@@ -11,6 +11,7 @@ class Course extends Model
         'code',
         'date_start',
         'date_end',
+        'shift',
         'program_id'
     ];
 

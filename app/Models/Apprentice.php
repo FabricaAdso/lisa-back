@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 class Apprentice extends Model
 {
     //
+    protected $fillable = ['state','user_id','course_id'];
+
     public function user ()
     {
         return $this->belongsTo(User::class);

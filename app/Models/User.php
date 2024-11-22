@@ -36,6 +36,17 @@ class User extends Authenticatable implements JWTSubject
         return $this->belongsTo(DocumentType::class);
     }
 
+    public function apprentices ()
+    {
+        return $this->hasMany(Apprentice::class);
+    }
+
+    public function instructors ()
+    {
+        return $this->hasMany(Instructor::class);
+    }
+    
+
     /**
      * The attributes that should be hidden for serialization.
      *

@@ -23,24 +23,35 @@ class Course extends Model
         'program_q'
     ];
     ////
+
+    public function apprentices()
+    {
+        return $this->hasMany(Apprentice::class);
+    }
+
+    public function sessions()
+    {
+        return $this->hasMany(Session::class);
+    }
+
     public function program()
     {
         return $this->belongsTo(Program::class);
     }
 
-    public function shifts()
+    public function environment()
     {
-        return $this->belongsToMany(Shift::class);
+        return $this->belongsTo(Environment::class);
     }
     ////
     public function scopeIncluded(Builder $query)
     {
-       
-        if(empty($this->allowIncluded)||empty(request('included'))){// validamos que la lista blanca y la variable included enviada a travez de HTTP no este en vacia.
+
+        if (empty($this->allowIncluded) || empty(request('included'))) { // validamos que la lista blanca y la variable included enviada a travez de HTTP no este en vacia.
             return;
         }
 
-        
+
         $relations = explode(',', request('included')); //['posts','relation2']//recuperamos el valor de la variable included y separa sus valores por una coma
 
         //return $relations;
@@ -65,23 +76,22 @@ class Course extends Model
         if (empty($this->allowFilter) || empty(request('filter'))) {
             return;
         }
-    
+
         $filters = request('filter');
         $allowFilter = collect($this->allowFilter);
-    
+
         foreach ($filters as $filter => $value) {
             // Filtrar por el nombre del programa relacionado
             if ($filter === 'program_q') {
-                $query->whereHas('program', function($q) use ($value) {
+                $query->whereHas('program', function ($q) use ($value) {
                     $q->where('name', 'LIKE', '%' . $value . '%');
                 });
             }
-    
+
             //filtros para la tabla de cursos
             if ($allowFilter->contains($filter) && $filter !== 'program_q') {
                 $query->where($filter, 'LIKE', '%' . $value . '%');
             }
         }
     }
-    
 }

@@ -83,6 +83,6 @@ Route::post('sessions', [SessionController::class, 'createSession']);
 Route::get('regionals',[RegionalController::class, 'index']);
 
 // Assistance
-Route::resource('assistance',AssistanceController::class);
+//Route::resource('assistance',AssistanceController::class);
 Route::put('/assistance/{assistanceId}', [AssistanceController::class, 'editAssistance']);
 

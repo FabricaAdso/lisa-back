@@ -11,7 +11,12 @@ class Course extends Model
         'code',
         'date_start',
         'date_end',
-        'program_id'
+        'shift',
+        'state',
+        'program_id',
+        'course_leader_id',
+        'representative_id',
+        'co_representative_id',
     ];
 
     protected $allowIncluded = [
@@ -28,10 +33,12 @@ class Course extends Model
         return $this->belongsTo(Program::class);
     }
 
-    public function shifts()
+    public function instructor()
     {
-        return $this->belongsToMany(Shift::class);
+        return $this->belongsTo(Instructor::class);
     }
+
+    
     ////
     public function scopeIncluded(Builder $query)
     {

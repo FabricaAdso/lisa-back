@@ -58,47 +58,43 @@ class SessionController extends Controller
             'date' => 'required|date',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
-            'course_id' => 'required|exists:courses,id',
+            'course_id' => 'required|exists:courses,id', // ID del curso
             'instructor_id' => 'required|exists:instructors,id', // ID del instructor de la sesión
         ]);
     
         // Comprobar si ya existe una sesión en la misma fecha y con el mismo instructor
         $existingSession = Session::where('date', $request->date)
             ->where('instructor_id', $request->instructor_id)
+            ->where('course_id', $request->course_id)
             ->first();
     
         if ($existingSession) {
-            return response()->json(['message' => 'Ya existe una sesión para esta fecha y usuario.'], 409);
+            return response()->json(['message' => 'Ya existe una sesión para esta fecha, instructor y curso.'], 409);
         }
     
         // Obtener el instructor
-        $instructor = Instructor::with('user', 'courses')->find($request->instructor_id);
+        $instructor = Instructor::with('user')->find($request->instructor_id);
     
         if (!$instructor) {
             return response()->json(['message' => 'Instructor no encontrado.'], 404);
         }
     
-        // Crear la sesión con el instructor_id incluido
+        // Crear la sesión con el instructor_id y course_id incluidos
         $session = Session::create([
             'date' => $request->date,
             'start_time' => $request->start_time,
             'end_time' => $request->end_time,
             'instructor_id' => $request->instructor_id,
+            'course_id' => $request->course_id,
         ]);
     
-        // Obtener los aprendices activos en el curso del instructor
+        // Obtener los aprendices activos en el curso proporcionado
         $aprendices = Apprentice::with('user')
-            ->whereHas('course', function ($query) use ($instructor) {
-                $query->where('id', $instructor->course_id);
-            })
-            ->whereHas('user.roles', function ($query) {
-                $query->where('name', 'Aprendiz');
-            })
-            ->whereNull('end_date')
+            ->where('course_id', $request->course_id) // Filtrar solo los aprendices activos
             ->get();
     
         if ($aprendices->isEmpty()) {
-            return response()->json(['message' => 'No se encontraron aprendices activos para esta ficha.'], 400);
+            return response()->json(['message' => 'No se encontraron aprendices activos para este curso.'], 400);
         }
     
         // Crear asistencias para cada aprendiz
@@ -112,7 +108,7 @@ class SessionController extends Controller
     
         return response()->json([
             'message' => 'Sesión y asistencias creadas exitosamente.',
-            'profesor' => $instructor,
+            'instructor' => $instructor,
             'aprendices' => $aprendices,
         ]);
     }

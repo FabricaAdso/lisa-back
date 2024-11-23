@@ -14,6 +14,7 @@ use App\Http\Controllers\CourseController;
 use App\Http\Controllers\EducationLevelController;
 use App\Http\Controllers\InstructorController;
 use App\Http\Controllers\ProgramController;
+use App\Http\Controllers\RegionalController;
 use App\Http\Controllers\SessionController;
 use App\Http\Controllers\ShiftController;
 use Illuminate\Http\Request;
@@ -78,6 +79,12 @@ Route::resource('apprentice',ApprenticeController::class);
 Route::resource('sessions',SessionController::class);
 Route::post('sessions', [SessionController::class, 'createSession']);
 
+//Ruta regionales
+Route::get('regionals',[RegionalController::class, 'index']);
+
 // Assistance
-Route::resource('assistance',AssistanceController::class);
+//Route::resource('assistance',AssistanceController::class);
 Route::put('/assistance/{assistanceId}', [AssistanceController::class, 'editAssistance']);
+
+Route::get('/apprentices/{apprenticeId}/unjustified-absences', [AssistanceController::class, 'UnjustifiedAbsences']);
+

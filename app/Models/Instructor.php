@@ -6,6 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class Instructor extends Model
 {
+    protected $fillable = [
+        'user_id',
+        'training_center_id',
+        'state'    
+    ];
+
     //
     public function aprobations ()
     {
@@ -27,9 +33,9 @@ class Instructor extends Model
         return $this->belongsTo(TrainingCenter::class);
     }
 
-    public function course()
+    public function courses()
     {
-        return $this->hasOne(Course::class);
+        return $this->hasMany(Course::class);
     }
 
     

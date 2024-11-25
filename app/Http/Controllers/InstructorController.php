@@ -28,7 +28,6 @@ class InstructorController extends Controller
         ]);
 
         $instructor = Instructor::create($request->all());
-        $instructor->courses()->attach($request->course_id,['start_date' => now()]);
         return response()->json($instructor);
     }
 

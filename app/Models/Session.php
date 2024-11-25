@@ -7,18 +7,25 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Session extends Model
 {
+    protected $fillable = [
+        'date',
+        'start_time',
+        'end_time',
+        'instructor_id',
+        'course_id'
+    ];
     //
     public function assistances ()
     {
         return $this->hasMany(Assistance::class);
     }
 
-    public function instructor ()
+    public function instructor()
     {
         return $this->belongsTo(Instructor::class);
     }
 
-    public function course ()
+    public function course()
     {
         return $this->belongsTo(Course::class);
     }

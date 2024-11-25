@@ -13,6 +13,7 @@ class Course extends Model
         'date_end',
         'shift',
         'state',
+        'stage',
         'program_id',
         'course_leader_id',
         'representative_id',

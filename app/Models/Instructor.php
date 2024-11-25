@@ -6,8 +6,14 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 class Instructor extends Model
 {
+    protected $fillable = [
+        'user_id',
+        'training_center_id',
+        'state'    
+    ];
+
     //
-    protected $fillable = ['state','user_id','training_center_id'];
+  
     protected $allowIncluded = [''];
 
     public function aprobations ()
@@ -30,6 +36,10 @@ class Instructor extends Model
         return $this->belongsTo(TrainingCenter::class);
     }
 
+    public function courses()
+    {
+        return $this->hasMany(Course::class);
+    }
 
     public function scopeIncluded(Builder $query)
     {

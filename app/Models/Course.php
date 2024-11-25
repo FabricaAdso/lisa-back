@@ -12,7 +12,12 @@ class Course extends Model
         'date_start',
         'date_end',
         'shift',
-        'program_id'
+        'state',
+        'stage',
+        'program_id',
+        'course_leader_id',
+        'representative_id',
+        'co_representative_id',
     ];
 
     protected $allowIncluded = [
@@ -44,6 +49,13 @@ class Course extends Model
     {
         return $this->belongsTo(Environment::class);
     }
+
+    public function instructor()
+    {
+        return $this->belongsTo(Instructor::class);
+    }
+
+    
     ////
     public function scopeIncluded(Builder $query)
     {

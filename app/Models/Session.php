@@ -15,12 +15,12 @@ class Session extends Model
         return $this->hasMany(Assistance::class);
     }
 
-    public function instructor ()
+    public function instructor()
     {
         return $this->belongsTo(Instructor::class);
     }
 
-    public function course ()
+    public function course()
     {
         return $this->belongsTo(Course::class);
     }

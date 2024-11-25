@@ -17,7 +17,8 @@ return new class extends Migration
             $table->date('date_start');
             $table->date('date_end');
             $table->string('shift');
-            $table->enum('state', ['Lectiva','Productiva']);
+            $table->enum('state', ['Terminada_por_fecha','En_ejecucion','Terminada','Termindad_por_unificacion']);//estado
+            $table->enum('stage', ['PRACTICA','LECTIVA']);//etapa
             //FK
             $table->foreignId('program_id')->nullable()->constrained()->onDelete('set null');
             $table->foreignId('environment_id')->nullable()->constrained()->onDelete('set null');

@@ -23,8 +23,8 @@ class SessionController extends Controller
     public function index()
     {
         //$sessions = Session::all();
-        $sessions = Session::included()->filter()->get();
-
+        $sessions = Session::included()->get();
+        
 
         return response()->json($sessions);
     }
@@ -62,9 +62,10 @@ class SessionController extends Controller
         return response()->json(['message' => 'Session deleted successfully']);
     }
 
-    
+    // Crear sesión
     public function createSession(Request $request)
     {
         return $this->sessionService->createSession($request);
     }
+
 }

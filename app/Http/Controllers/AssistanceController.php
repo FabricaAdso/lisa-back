@@ -3,11 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Models\Assistance;
+use App\Services\ApprenticeService;
 use Illuminate\Http\Request;
 
 class AssistanceController extends Controller
 {
-    //
+    
+    protected $apprenticeService;
+
+    public function __construct(ApprenticeService $apprenticeService)
+    {
+        $this->apprenticeService = $apprenticeService;
+    }
+
     public function editAssistance(Request $request, $assistanceId)
     {
 
@@ -33,4 +41,10 @@ class AssistanceController extends Controller
         ]);
     }
 
+    public function UnjustifiedAbsences($apprenticeId)
+    {
+        $faults = $this->apprenticeService->UnjustifiedAbsences($apprenticeId);
+
+        return response()->json(['unjustifiedAbsences' => $faults]);
+    }
 }

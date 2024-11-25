@@ -3,15 +3,22 @@
 namespace App\Http\Controllers;
 
 use App\Models\Apprentice;
+use App\Services\TokenService;
 use Illuminate\Http\Request;
 
 class ApprenticeController extends Controller
 {
-    //
+    protected  $token_service;
+
+    function __construct(TokenService $token_service)
+    {   
+        $this->token_service = $token_service;
+    }
+
     public function index()
     {
-        $apprentices = Apprentice::all();
-     //  $apprentices = Apprentice::included()->get();
+     //  $apprentices = Apprentice::all();
+         $apprentices = Apprentice::byTrainingCenter()->included()->filter()->get();
         
 
         return response()->json($apprentices);
@@ -26,9 +33,14 @@ class ApprenticeController extends Controller
             'state' => 'required|in:formacion,Desertado,Etapa_productiva,Retiro_voluntario',
 
         ]);
-
-        $apprentice = Apprentice::create($request->all());
-
+        $training_center_id = $this->token_service->getTrainingCenterIdFromToken();
+        $apprentice = Apprentice::create([
+            'course_id' => $request->course_id,
+            'state' => $request->state,
+            'user_id' => $request->user_id,
+            'training_center_id'=>$training_center_id
+        ]);
+        
         return response()->json($apprentice);
     }
 

@@ -17,6 +17,7 @@ use App\Http\Controllers\ProgramController;
 use App\Http\Controllers\RegionalController;
 use App\Http\Controllers\SessionController;
 use App\Http\Controllers\ShiftController;
+use App\Models\Course;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -53,7 +54,12 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::resource('educationLevel', EducationLevelController::class);
     Route::resource('programs', ProgramController::class);
     Route::resource('courses', CourseController::class);
-    Route::put('courses/{courseId}/shifts', [CourseController::class, 'updateShifts']);
+    //instructores que tiene sesiones pendientes
+    Route::get('course/{instructor_id}/Instructorsessions', [CourseController::class, 'getInstructorAndSessions']);
+    //instructores con fichas que tuvo formacion
+    Route::get('course/{instructor_id}/sessions', [CourseController::class, 'getCourseInstructor']);
+    //sesiones que tiene un instructor hoy
+    Route::get('course/{instructor_id}/sessionsNow', [CourseController::class, 'getCourseInstructorNow']);
 
     // Centros de formacion, ambientes y sedes
     Route::apiResource('headquarters', HeadquartersController::class);

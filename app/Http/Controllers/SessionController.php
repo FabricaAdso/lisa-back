@@ -13,8 +13,8 @@ class SessionController extends Controller
     //
     public function index()
     {
-        //$sessions = Session::all();
-        $sessions = Session::included()->get();
+        $sessions = Session::all();
+        // $sessions = Session::included()->get();
         
 
         return response()->json($sessions);
@@ -50,7 +50,6 @@ class SessionController extends Controller
     }
 
     // Crear sesión
-    
     public function createSession(Request $request)
     {
         // Validar los datos de entrada
@@ -88,7 +87,6 @@ class SessionController extends Controller
             'course_id' => $request->course_id,
         ]);
     
-        // Obtener los aprendices activos en el curso proporcionado
         $aprendices = Apprentice::with('user')
             ->where('course_id', $request->course_id) // Filtrar solo los aprendices activos
             ->get();
@@ -97,14 +95,6 @@ class SessionController extends Controller
             return response()->json(['message' => 'No se encontraron aprendices activos para este curso.'], 400);
         }
     
-        // Crear asistencias para cada aprendiz
-        foreach ($aprendices as $aprendiz) {
-            Assistance::create([
-                'apprentice_id' => $aprendiz->id,
-                'session_id' => $session->id,
-                'assistance' => null,
-            ]);
-        }
     
         return response()->json([
             'message' => 'Sesión y asistencias creadas exitosamente.',

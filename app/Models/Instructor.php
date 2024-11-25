@@ -13,7 +13,7 @@ class Instructor extends Model
     ];
 
     //
-    protected $fillable = ['state','user_id','training_center_id'];
+  
     protected $allowIncluded = [''];
 
     public function aprobations ()

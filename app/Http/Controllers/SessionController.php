@@ -87,28 +87,19 @@ class SessionController extends Controller
             'course_id' => $request->course_id,
         ]);
     
-        // // Obtener los aprendices activos en el curso proporcionado
-        // $aprendices = Apprentice::with('user')
-        //     ->where('course_id', $request->course_id) // Filtrar solo los aprendices activos
-        //     ->get();
+        $aprendices = Apprentice::with('user')
+            ->where('course_id', $request->course_id) // Filtrar solo los aprendices activos
+            ->get();
     
-        // if ($aprendices->isEmpty()) {
-        //     return response()->json(['message' => 'No se encontraron aprendices activos para este curso.'], 400);
-        // }
+        if ($aprendices->isEmpty()) {
+            return response()->json(['message' => 'No se encontraron aprendices activos para este curso.'], 400);
+        }
     
-        // // Crear asistencias para cada aprendiz
-        // foreach ($aprendices as $aprendiz) {
-        //     Assistance::create([
-        //         'apprentice_id' => $aprendiz->id,
-        //         'session_id' => $session->id,
-        //         'assistance' => null,
-        //     ]);
-        // }
     
         return response()->json([
             'message' => 'Sesión y asistencias creadas exitosamente.',
             'instructor' => $instructor,
-            // 'aprendices' => $aprendices,
+            'aprendices' => $aprendices,
         ]);
     }
     

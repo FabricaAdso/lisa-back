@@ -15,6 +15,8 @@ class Session extends Model
         'course_id'
     ];
     //
+    protected $fillable = ['date','start_time','end_time','instructor_id','course_id'];
+
     public function assistances ()
     {
         return $this->hasMany(Assistance::class);

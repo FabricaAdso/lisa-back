@@ -17,9 +17,9 @@ class ApprenticeServiceImpl implements ApprenticeService
         $faults = 0;
     
         foreach ($assistances as $assistance) {
-            if ($assistance->assistance === false) { // Falta no justificada
+            if ($assistance->assistance === 0) { // Falta no justificada
                 $faults++;
-            } elseif ($assistance->assistance === true) { // Asistió
+            } elseif ($assistance->assistance === 1) { // Asistió
                 $faults = 0;
             }
     

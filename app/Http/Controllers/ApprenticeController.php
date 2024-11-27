@@ -17,7 +17,7 @@ class ApprenticeController extends Controller
 
     public function index()
     {
-     //  $apprentices = Apprentice::all();
+    //  $apprentices = Apprentice::all();
          $apprentices = Apprentice::byTrainingCenter()->included()->filter()->get();
         
 

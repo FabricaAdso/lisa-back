@@ -86,9 +86,13 @@ class TrainingCenter extends Model
             if ($allowFilter->contains($filter)) {
                 $query->where($filter, 'LIKE', '%' . $value . '%');
             }
+            if($filter === 'regional_id' && $allowFilter->contains('regional_id')){
+                $query->where('regional_id', $value  );
+            } 
         }
     
         return $query;
     }
+
     
 }

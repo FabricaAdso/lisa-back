@@ -11,7 +11,7 @@ class TrainingCenter extends Model
     //
     protected $fillable = ['name'];
     protected $allowIncluded = ['headquarters'];
-    protected $allowFilter = ['name'];
+    protected $allowFilter = ['name','regional_id'];
 
 
     public function headquarters()

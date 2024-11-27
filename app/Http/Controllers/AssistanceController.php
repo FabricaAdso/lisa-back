@@ -28,7 +28,7 @@ class AssistanceController extends Controller
 
 
         $request->validate([
-            'assistance' => 'required|in:ASISTIO,FALTA,FALTA_JUSTIFICADA',
+            'assistance' => 'required|boolean',
         ]);
 
 

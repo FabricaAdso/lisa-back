@@ -37,7 +37,7 @@ class CourseController extends Controller
             'state' => 'required|in:Terminada_por_fecha,En_ejecucion,Terminada,Termindad_por_unificacion',
             'stage' => 'required|in:PRACTICA,LECTIVA',
             'program_id' => 'required|exists:programs,id',
-            'course_leader_id' => 'required|exists:instructors,id',
+            'course_leader_id' => 'nullable|exists:instructors,id',
             'representative_id' => 'nullable|exists:apprentices,id',
             'co_representative_id' => 'nullable|exists:apprentices,id',
         ]);
@@ -72,7 +72,7 @@ class CourseController extends Controller
             'state' => 'required|in:Terminada_por_fecha,En_ejecucion,Terminada,Termindad_por_unificacion',
             'stage' => 'required|in: PRACTICA, LECTIVA',
             'program_id' => 'required|exists:programs,id',
-            'course_leader_id' => 'required|exists:instructors,id',
+            'course_leader_id' => 'nullable|exists:instructors,id',
             'representative_id' => 'nullable|exists:apprentices,id',
             'co_representative_id' => 'nullable|exists:apprentices,id',
         ]);

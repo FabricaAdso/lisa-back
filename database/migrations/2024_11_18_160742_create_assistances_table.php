@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('assistances', function (Blueprint $table) {
             $table->id();
-            $table->boolean('assistance')->nullable()->change();
+            $table->boolean('assistance');
             //FK
             $table->foreignId('session_id')->nullable()->constrained()->onDelete('set null');
             $table->foreignId('apprentice_id')->nullable()->constrained()->onDelete('set null');

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Assistance;
+use App\Models\Justification;
 use App\Services\ApprenticeService;
 use Illuminate\Http\Request;
 
@@ -34,6 +35,13 @@ class AssistanceController extends Controller
 
         $assistance->assistance = $request->input('assistance');
         $assistance->save();
+        if($assistance->assistance == 0){
+            $justification = Justification::firstOrcreate([
+            'assistance_id' => $assistance->id,
+            'file_url' => null,
+            'description' => null,
+            ]);
+        }
 
         return response()->json([
             'message' => 'Asistencia actualizada correctamente.',

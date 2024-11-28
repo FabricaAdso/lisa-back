@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('aprobations', function (Blueprint $table) {
             $table->id();
-            $table->enum('state',['Aprobado','No_aprobado']);
+            $table->enum('state',['Pendiente', 'Aprobada', 'Rechazada', 'Vencida'])->default('Pendiente');
             $table->string('motive');
             //FK
             $table->foreignId('justification_id')->nullable()->constrained()->onDelete('set null');

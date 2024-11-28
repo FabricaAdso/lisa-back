@@ -13,6 +13,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\EducationLevelController;
 use App\Http\Controllers\InstructorController;
+use App\Http\Controllers\JustificationController;
 use App\Http\Controllers\ProgramController;
 use App\Http\Controllers\RegionalController;
 use App\Http\Controllers\SessionController;
@@ -73,7 +74,12 @@ Route::group(['middleware' => 'auth:api'], function () {
 
     // Ruta desencriptar training_center_id del token
     Route::get('/training-center', [AuthController::class, 'getTrainingCenterIdFromToken']);
+
+    //Justification CRUD
+    Route::resource('justifications', JustificationController::class);
+    Route::put('justifications', [JustificationController::class, 'createJustification']);
 });
+
 
 Route::post('logout', [AuthController::class, 'logout']);
 

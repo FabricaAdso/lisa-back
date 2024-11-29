@@ -9,9 +9,17 @@ use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rules\Can;
 
 class JustificationServiceImpl implements JustificationService
 {
+    protected $festivos;
+
+    public function __construct()
+    {
+        $this->festivos = $this->calcularFestivos(Carbon::now()->year);
+    }
+
     public function createJustification($request)
     {
         $request->validate([
@@ -26,49 +34,80 @@ class JustificationServiceImpl implements JustificationService
         $startJustificationDate = Carbon::parse($assistanceDate);
         $endJustificationDate = Carbon::now();
 
-        // Calcular los días hábiles
         $diasHabiles = 0;
         $periodo = CarbonPeriod::create($startJustificationDate, $endJustificationDate);
-        foreach($periodo as $date){
-            if(!$date->isWeekend()){
+        foreach ($periodo as $date) {
+            if (!$date->isSunday() && !$this->isHoliday($date)) {
                 $diasHabiles++;
             }
         }
 
-        // Validar si el plazo ha terminado
-        if($diasHabiles > 3){
+        if ($diasHabiles > 3) {
             return [
-                'message' => 'No se puede crear justificación, ya que el plazo terminó'
+                'message' => 'No se puede crear justificación, ya que el plazo terminó',
             ];
         }
 
-        // Subir el archivo si está presente
         $fileUrl = null;
         if ($request->hasFile('file')) {
             $file = $request->file('file');
             $fileName = "pdf_" . time() . "." . $file->guessExtension();
-            $filePath = $file->storeAs('public/files', $fileName); // Guarda el archivo en 'storage/app/public/files'
-            $fileUrl = Storage::url($filePath);  // Obtiene la URL pública del archivo
+            $filePath = $file->storeAs('public/files', $fileName);
+            $fileUrl = Storage::url($filePath);
         }
 
-        // Buscar la justificación existente
         $justification = Justification::where('assistance_id', $request->assistance_id)->first();
 
-        // Si la justificación existe, la actualizamos
         if ($justification) {
             $justification->update([
-                'file_url' => $fileUrl ?? $justification->file_url,  // Solo actualizar si hay un nuevo archivo
+                'file_url' => $fileUrl ?? $justification->file_url,
                 'description' => $request->description,
             ]);
 
             return [
                 'message' => 'Justificación actualizada con éxito',
-                'justification' => $justification
-            ];
-        } else {
-            return [
-                'message' => 'No se encontró la justificación para esta asistencia'
+                'justification' => $justification,
             ];
         }
+    }
+
+    private function isHoliday(Carbon $date): bool
+    {
+        return in_array($date->toDateString(), $this->festivos);
+    }
+
+    ///Festivos
+    private function calcularFestivos($year): array
+    {
+        // Festivos fijos
+        $festivosFijos = [
+            Carbon::create($year, 1, 1)->toDateString(),   // Año Nuevo
+            Carbon::create($year, 5, 1)->toDateString(),   // Día del Trabajo
+            Carbon::create($year, 7, 20)->toDateString(),  // Independencia de Colombia
+            Carbon::create($year, 8, 7)->toDateString(),   // Batalla de Boyacá
+            Carbon::create($year, 12, 25)->toDateString(), // Navidad
+        ];
+
+        // Festivos móviles
+        $festivosMoviles = [
+            $this->calcularFestivoMovil($year, 1, 6),   // Reyes Magos
+            $this->calcularFestivoMovil($year, 3, 19),  // Día de San José
+            $this->calcularFestivoMovil($year, 6, 29),  // San Pedro y San Pablo
+            $this->calcularFestivoMovil($year, 8, 15),  // Asunción de la Virgen
+            $this->calcularFestivoMovil($year, 10, 12), // Día de la Diversidad Étnica y Cultural
+            $this->calcularFestivoMovil($year, 11, 1),  // Todos los Santos
+            $this->calcularFestivoMovil($year, 11, 11), // Independencia de Cartagena
+        ];
+
+        return array_merge($festivosFijos, $festivosMoviles);
+    }
+
+    private function calcularFestivoMovil($year, $mont, $day): string
+    {
+        $fecha = Carbon::create($year, $mont, $day);
+        if($fecha->isSunday()){
+            return $fecha->toDateString();
+        }
+        return $fecha->next(Carbon::MONDAY)->toDateString();
     }
 }

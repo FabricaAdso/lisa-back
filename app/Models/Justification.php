@@ -13,7 +13,7 @@ class Justification extends Model
     ];
 
     //
-    public function aprobations ()
+    public function aprobation ()
     {
         return $this->hasOne(Aprobation::class);
     }

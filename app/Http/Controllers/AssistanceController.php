@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Aprobation;
 use App\Models\Assistance;
 use App\Models\Justification;
 use App\Services\ApprenticeService;
@@ -32,16 +33,11 @@ class AssistanceController extends Controller
             'assistance' => 'required|boolean',
         ]);
 
-
-        $assistance->assistance = $request->input('assistance');
+        $assistancePrevius = $assistance->assistance;
+        $newAssistance = $request->input('assistance');
+        $assistance->assistance = $newAssistance;
         $assistance->save();
-        if($assistance->assistance == 0){
-            $justification = Justification::firstOrcreate([
-            'assistance_id' => $assistance->id,
-            'file_url' => null,
-            'description' => null,
-            ]);
-        }
+        $this->JustificationAndAprobation($assistance ,$assistancePrevius, $newAssistance);
 
         return response()->json([
             'message' => 'Asistencia actualizada correctamente.',
@@ -54,5 +50,34 @@ class AssistanceController extends Controller
         $faults = $this->apprenticeService->UnjustifiedAbsences($apprenticeId);
 
         return response()->json(['unjustifiedAbsences' => $faults]);
+    }
+
+    public function JustificationAndAprobation($assistance, $assistancePrevius, $newAssistance)
+    {
+        if ($assistancePrevius == 0 && $newAssistance == 1) {
+            $justificationDelete = Justification::where('assistance_id', $assistance->id)->first();
+            
+            if ($justificationDelete) {
+                Aprobation::where('justification_id', $justificationDelete->id)->delete();
+                $justificationDelete->delete();
+            }
+        } elseif ($newAssistance == 0) {
+            $justification = Justification::firstOrCreate([
+                'assistance_id' => $assistance->id,
+            ], [
+                'file_url' => null,  
+                'description' => null,
+            ]);
+
+            // Crear o actualizar la aprobación asociada a la justificación
+            $aprobation = Aprobation::firstOrCreate([
+                'justification_id' => $justification->id,
+            ], [
+                'state' => 'Pendiente',  
+                'motive' => null,
+                'instructor_id' => $assistance->session->instructor_id,
+                'instructor2_id' => $assistance->session->instructor2_id ?? null,  // El instructor secundario, si existe
+            ]);
+        }
     }
 }

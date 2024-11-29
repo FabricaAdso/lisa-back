@@ -6,6 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class Aprobation extends Model
 {
+    protected $fillable = [
+        'state',
+        'motive',
+        'justification_id',
+        'instructor_id'
+    ];
     //
     public function justification ()
     {

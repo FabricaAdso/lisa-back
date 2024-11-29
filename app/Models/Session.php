@@ -17,7 +17,11 @@ class Session extends Model
 
     public function instructor()
     {
-        return $this->belongsTo(Instructor::class);
+        return $this->belongsTo(Instructor::class, 'instructor_id');
+    }
+    public function instructor2()
+    {
+        return $this->belongsTo(Instructor::class, 'instructor2_id');
     }
 
     public function course()

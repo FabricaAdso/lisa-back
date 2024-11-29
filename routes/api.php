@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ApprenticeController;
+use App\Http\Controllers\AprobationController;
 use App\Http\Controllers\AssistanceController;
 use App\Http\Controllers\DepartamentController;
 use App\Http\Controllers\EnvironmentAreaController;
@@ -78,6 +79,9 @@ Route::group(['middleware' => 'auth:api'], function () {
     //Justification CRUD
     Route::resource('justifications', JustificationController::class);
     Route::put('justifications', [JustificationController::class, 'createJustification']);
+
+    //Aprobation Crud y Filtros
+    Route::resource('aprobations', AprobationController::class);
 });
 
 

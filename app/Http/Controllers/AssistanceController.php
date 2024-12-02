@@ -58,6 +58,9 @@ class AssistanceController extends Controller
             $justificationDelete = Justification::where('assistance_id', $assistance->id)->first();
             
             if ($justificationDelete) {
+                if($justificationDelete->aprobation){
+                    $justificationDelete->aprobation->delete();
+                }
                 $justificationDelete->delete();
             }
         } elseif ($newAssistance == 0) {

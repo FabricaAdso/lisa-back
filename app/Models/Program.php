@@ -8,8 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 class Program extends Model
 {
     protected $fillable = [
+        'code',
+        'version',
         'name',
-        'education_level_id'
+        'education_level_id',
+        'training_center_id'
     ];
 
     protected $allowIncluded = [

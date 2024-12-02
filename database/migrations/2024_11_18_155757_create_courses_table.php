@@ -14,11 +14,11 @@ return new class extends Migration
         Schema::create('courses', function (Blueprint $table) {
             $table->id();
             $table->string('code')->unique();
-            $table->date('date_start');
-            $table->date('date_end');
-            $table->string('shift');
+            $table->date('date_start')->nullable();
+            $table->date('date_end')->nullable();
+            $table->string('shift')->nullable();
             $table->enum('state', ['Terminada_por_fecha','En_ejecucion','Terminada','Termindad_por_unificacion']);//estado
-            $table->enum('stage', ['PRACTICA','LECTIVA']);//etapa
+            $table->enum('stage', ['PRACTICA','LECTIVA'])->nullable();//etapa
             //FK
             $table->foreignId('program_id')->nullable()->constrained()->onDelete('set null');
             $table->foreignId('environment_id')->nullable()->constrained()->onDelete('set null');

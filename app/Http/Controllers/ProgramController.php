@@ -19,8 +19,11 @@ class ProgramController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|String|max:20',
-            'education_level_id' => 'required|exists:education_levels,id'
+            'code' => 'required|String',
+            'version' => 'required|String',
+            'name' => 'required|String',
+            'education_level_id' => 'required|exists:education_levels,id',
+            'training_center_id' => 'required|exists:training_center_id,id'
         ]);
 
         $Program = Program::create($request->all());
@@ -36,8 +39,11 @@ class ProgramController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'name' => 'required|String|max:20',
-            'education_level_id' => 'required|exists:education_levels,id'
+            'code' => 'required|String',
+            'version' => 'required|String',
+            'name' => 'required|String',
+            'education_level_id' => 'required|exists:education_levels,id',
+            'training_center_id' => 'required|exists:training_center_id,id'
         ]);
         
         $Program = Program::find($id);

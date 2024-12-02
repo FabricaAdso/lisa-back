@@ -13,6 +13,7 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\EducationLevelController;
+use App\Http\Controllers\ExcelController;
 use App\Http\Controllers\InstructorController;
 use App\Http\Controllers\JustificationController;
 use App\Http\Controllers\ProgramController;
@@ -85,6 +86,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::put('aprobations', [AprobationController::class, 'editStateOfJustification']);
 });
 
+Route::post('excel', [ExcelController::class, 'excel']);
 
 Route::post('logout', [AuthController::class, 'logout']);
 

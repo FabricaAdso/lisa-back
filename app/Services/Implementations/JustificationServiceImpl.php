@@ -2,11 +2,13 @@
 
 namespace App\Services\Implementations;
 
+use App\Models\Aprobation;
 use App\Models\Assistance;
 use App\Models\Justification;
 use App\Services\JustificationService;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
+use Exception;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rules\Can;
@@ -29,6 +31,7 @@ class JustificationServiceImpl implements JustificationService
         ]);
 
         $assistance = Assistance::with('session')->findOrFail($request->assistance_id);
+        $justification = Justification::where('assistance_id', $request->assistance_id)->first();
 
         $assistanceDate = $assistance->session->date ?? null;
         $startJustificationDate = Carbon::parse($assistanceDate);
@@ -42,13 +45,16 @@ class JustificationServiceImpl implements JustificationService
             }
         }
 
-        if ($diasHabiles > 3) {
-            return [
-                'message' => 'No se puede crear justificación, ya que el plazo terminó',
-            ];
-        }
+
+        $this->stateJustification($diasHabiles, $justification);
 
         $fileUrl = null;
+        if(!is_null($justification->file_url)){
+            return [
+                'message' => 'Ya existe un archivo asociado a esta justificación, no se puede cargar uno nuevo.'
+            ];
+        }
+        if(is_null($fileUrl)) return;
         if ($request->hasFile('file')) {
             $file = $request->file('file');
             $fileName = "pdf_" . time() . "." . $file->guessExtension();
@@ -56,18 +62,67 @@ class JustificationServiceImpl implements JustificationService
             $fileUrl = Storage::url($filePath);
         }
 
-        $justification = Justification::where('assistance_id', $request->assistance_id)->first();
 
         if ($justification) {
             $justification->update([
                 'file_url' => $fileUrl ?? $justification->file_url,
                 'description' => $request->description,
             ]);
+            Aprobation::firstOrCreate([
+                'state' => 'Pendiente',
+                'motive' => null,
+                'justification_id' => $justification->id,
+            ]);
 
             return [
                 'message' => 'Justificación actualizada con éxito',
                 'justification' => $justification,
             ];
+        }
+    }
+
+    public function stateJustification($diasHabiles, $justification)
+    {
+        if ($diasHabiles > 3) {
+            if ($justification->file_url === null) {
+                $justification->aprobation->update(['state' => 'Vencida']);
+                Aprobation::firstOrCreate([
+                    'state' => $justification,
+                    'motive' => null,
+                    'justification_id' => $justification->id,
+                ]);
+                return [
+                    'message' => 'No puedes cargar una justificación, ya que el plazo terminó',
+                ];
+            } elseif ($justification->file_url !== null) {
+                $justification->aprobation->update(['state' => 'Pendiente']);
+                return [
+                    'message' => 'Ya subiste una justificación, no puedes subir otra',
+                ];
+            }
+        } elseif ($diasHabiles < 3) {
+            if ($justification->file_url !== null) {
+                if ($justification->aprobation->state === 'Aprobada') {
+                    return [
+                        'message' => 'Justificación Aprobada'
+                    ];
+                } elseif ($justification->aprobation->state === 'Rechazada') {
+                    return [
+                        'message' => 'Justificación Rechazada'
+                    ];
+                } elseif ($justification->file_url !== null) {
+                    $justification->aprobation->update(['state' => 'Pendiente']);
+                    return [
+                        'message' => 'Ya subiste una justificación, no puedes subir otra',
+                    ];
+                } else {
+                    return [
+                        'message' => 'No se ha cargado ninguna justificación'
+                    ];
+                }
+            }
+
+            return null;
         }
     }
 
@@ -105,7 +160,7 @@ class JustificationServiceImpl implements JustificationService
     private function calcularFestivoMovil($year, $mont, $day): string
     {
         $fecha = Carbon::create($year, $mont, $day);
-        if($fecha->isSunday()){
+        if ($fecha->isSunday()) {
             return $fecha->toDateString();
         }
         return $fecha->next(Carbon::MONDAY)->toDateString();

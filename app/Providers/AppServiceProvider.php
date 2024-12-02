@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Services\AprobationService;
+use App\Services\Implementations\AprobationServiceImpl;
 use App\Services\Implementations\JustificationServiceImpl;
 use App\Services\JustificationService;
 use Illuminate\Support\ServiceProvider;
@@ -20,6 +22,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind('App\Services\ApprenticeService','App\Services\Implementations\ApprenticeServiceImpl');
         $this->app->bind('App\Services\CourseService','App\Services\Implementations\CourseServiceImpl');
         $this->app->bind(JustificationService::class, JustificationServiceImpl::class);
+        $this->app->bind(AprobationService::class, AprobationServiceImpl::class);
     }
 
     /**

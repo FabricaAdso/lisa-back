@@ -3,13 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Models\Aprobation;
+use App\Services\AprobationService;
 use Illuminate\Http\Request;
 
 class AprobationController extends Controller
 {
+    protected $aprobationService;
+    public function __construct(AprobationService $aprobationService)
+    {
+        $this->aprobationService = $aprobationService;
+    }
+    
     public function index()
     {
-        $aprobations = Aprobation::all();
+        $aprobations = Aprobation::included()->filter()->get();
         return response()->json($aprobations);
     }
 
@@ -21,6 +28,7 @@ class AprobationController extends Controller
 
     public function editStateOfJustification(Request $request)
     {
-        
+        $updateAprobation = $this->aprobationService->editStateOfJustification($request);
+        return response()->json($updateAprobation);
     }
 }

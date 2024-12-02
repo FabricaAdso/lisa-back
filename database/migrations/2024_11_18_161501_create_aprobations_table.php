@@ -13,11 +13,10 @@ return new class extends Migration
     {
         Schema::create('aprobations', function (Blueprint $table) {
             $table->id();
-            $table->enum('state',['Pendiente', 'Aprobada', 'Rechazada', 'Vencida'])->default('Pendiente');
+            $table->enum('state',['Pendiente', 'Aprobada', 'Rechazada', 'Vencida'])->nullable();
             $table->string('motive')->nullable();
             //FK
             $table->foreignId('justification_id')->nullable()->constrained()->onDelete('set null');
-            $table->foreignId('instructor_id')->nullable()->constrained()->onDelete('set null');
             $table->timestamps();
         });
     }

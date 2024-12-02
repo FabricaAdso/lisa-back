@@ -82,6 +82,7 @@ Route::group(['middleware' => 'auth:api'], function () {
 
     //Aprobation Crud y Filtros
     Route::resource('aprobations', AprobationController::class);
+    Route::put('aprobations', [AprobationController::class, 'editStateOfJustification']);
 });
 
 

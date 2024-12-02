@@ -58,25 +58,14 @@ class AssistanceController extends Controller
             $justificationDelete = Justification::where('assistance_id', $assistance->id)->first();
             
             if ($justificationDelete) {
-                Aprobation::where('justification_id', $justificationDelete->id)->delete();
                 $justificationDelete->delete();
             }
         } elseif ($newAssistance == 0) {
-            $justification = Justification::firstOrCreate([
+            Justification::firstOrCreate([
                 'assistance_id' => $assistance->id,
             ], [
                 'file_url' => null,  
                 'description' => null,
-            ]);
-
-            // Crear o actualizar la aprobación asociada a la justificación
-            $aprobation = Aprobation::firstOrCreate([
-                'justification_id' => $justification->id,
-            ], [
-                'state' => 'Pendiente',  
-                'motive' => null,
-                'instructor_id' => $assistance->session->instructor_id,
-                'instructor2_id' => $assistance->session->instructor2_id ?? null,  // El instructor secundario, si existe
             ]);
         }
     }

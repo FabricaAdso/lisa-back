@@ -23,7 +23,7 @@ class ProgramController extends Controller
             'version' => 'required|String',
             'name' => 'required|String',
             'education_level_id' => 'required|exists:education_levels,id',
-            'training_center_id' => 'required|exists:training_center_id,id'
+            'training_center_id' => 'required|exists:training_centers,id'
         ]);
 
         $Program = Program::create($request->all());
@@ -43,7 +43,7 @@ class ProgramController extends Controller
             'version' => 'required|String',
             'name' => 'required|String',
             'education_level_id' => 'required|exists:education_levels,id',
-            'training_center_id' => 'required|exists:training_center_id,id'
+            'training_center_id' => 'required|exists:training_centers,id'
         ]);
         
         $Program = Program::find($id);

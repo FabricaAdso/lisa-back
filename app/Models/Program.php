@@ -14,14 +14,16 @@ class Program extends Model
         'education_level_id',
         'training_center_id'
     ];
-
     protected $allowIncluded = [
-        'educationLevel'
+        'educationLevel',
+        'trainingCenter'
+    ];
+    protected $allowFilter = [
+        'name',
+        'training_Center'
     ];
 
-    protected $allowFilter = [
-        'education_level'
-    ];
+    // Relaciones
     //{{api}}/programs?included=educationLevel&filter[education_level]=logo
     public function educationLevel()
     {
@@ -39,33 +41,28 @@ class Program extends Model
     }
 
 
-    ///////////////
+    // Scope
 
     public function scopeIncluded(Builder $query)
     {
        
-        if(empty($this->allowIncluded)||empty(request('included'))){// validamos que la lista blanca y la variable included enviada a travez de HTTP no este en vacia.
+        if(empty($this->allowIncluded)||empty(request('included'))){
             return;
         }
 
         
-        $relations = explode(',', request('included')); //['posts','relation2']//recuperamos el valor de la variable included y separa sus valores por una coma
+        $relations = explode(',', request('included')); 
 
         //return $relations;
 
-        $allowIncluded = collect($this->allowIncluded); //colocamos en una colecion lo que tiene $allowIncluded en este caso = ['posts','posts.user']
+        $allowIncluded = collect($this->allowIncluded); 
 
-        foreach ($relations as $key => $relationship) { //recorremos el array de relaciones
-
+        foreach ($relations as $key => $relationship) { 
             if (!$allowIncluded->contains($relationship)) {
                 unset($relations[$key]);
             }
         }
-        $query->with($relations); //se ejecuta el query con lo que tiene $relations en ultimas es el valor en la url de included
-
-        //http://api.codersfree1.test/v1/categories?included=posts
-
-
+        $query->with($relations); 
     }
 
     ////////////
@@ -81,8 +78,8 @@ class Program extends Model
     
         foreach ($filters as $filter => $value) {
             // Filtrar por nivel de educación (relación)
-            if ($filter === 'education_level') {
-                $query->whereHas('educationLevel', function ($q) use ($value) {
+            if ($filter === 'training_Center') {
+                $query->whereHas('trainingCenter', function ($q) use ($value) {
                     $q->where('name', 'LIKE', '%' . $value . '%');
                 });
             }

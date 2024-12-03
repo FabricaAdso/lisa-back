@@ -57,6 +57,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::resource('educationLevel', EducationLevelController::class);
     Route::resource('programs', ProgramController::class);
     Route::resource('courses', CourseController::class);
+    
     //instructores que tiene sesiones pendientes
     Route::get('course/{instructor_id}/Instructorsessions', [CourseController::class, 'getInstructorAndSessions']);
     //instructores con fichas que tuvo formacion

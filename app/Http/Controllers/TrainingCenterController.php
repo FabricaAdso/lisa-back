@@ -28,8 +28,8 @@ class TrainingCenterController extends Controller
 
         $request->validate([
             'name' => 'required|max:100',
-            
-
+            'code' => 'required|max:100',
+            'regional_id' => 'required|exists:regionals,id',
         ]);
 
         $trainingCenter = TrainingCenter::create($request->all());
@@ -60,6 +60,8 @@ class TrainingCenterController extends Controller
     {
         $request->validate([
             'name' => 'required|max:100',
+            'code' => 'required|max:100',
+            'regional_id' => 'required|exists:regionals,id',
         ]);
 
         $trainingCenter->update($request->all());

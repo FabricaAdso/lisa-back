@@ -54,7 +54,6 @@ class JustificationServiceImpl implements JustificationService
                 'message' => 'Ya existe un archivo asociado a esta justificación, no se puede cargar uno nuevo.'
             ];
         }
-        if(is_null($fileUrl)) return;
         if ($request->hasFile('file')) {
             $file = $request->file('file');
             $fileName = "pdf_" . time() . "." . $file->guessExtension();
@@ -85,9 +84,11 @@ class JustificationServiceImpl implements JustificationService
     {
         if ($diasHabiles > 3) {
             if ($justification->file_url === null) {
-                $justification->aprobation->update(['state' => 'Vencida']);
+                if ($justification->aprobation) {
+                    $justification->aprobation->update(['state' => 'Vencida']);
+                }
                 Aprobation::firstOrCreate([
-                    'state' => $justification,
+                    'state' => 'vencida',
                     'motive' => null,
                     'justification_id' => $justification->id,
                 ]);
@@ -95,26 +96,30 @@ class JustificationServiceImpl implements JustificationService
                     'message' => 'No puedes cargar una justificación, ya que el plazo terminó',
                 ];
             } elseif ($justification->file_url !== null) {
-                $justification->aprobation->update(['state' => 'Pendiente']);
+                if ($justification->aprobation) {
+                    $justification->aprobation->update(['state' => 'Pendiente']);
+                }
                 return [
                     'message' => 'Ya subiste una justificación, no puedes subir otra',
                 ];
             }
         } elseif ($diasHabiles < 3) {
             if ($justification->file_url !== null) {
-                if ($justification->aprobation->state === 'Aprobada') {
-                    return [
-                        'message' => 'Justificación Aprobada'
-                    ];
-                } elseif ($justification->aprobation->state === 'Rechazada') {
-                    return [
-                        'message' => 'Justificación Rechazada'
-                    ];
-                } elseif ($justification->file_url !== null) {
-                    $justification->aprobation->update(['state' => 'Pendiente']);
-                    return [
-                        'message' => 'Ya subiste una justificación, no puedes subir otra',
-                    ];
+                if ($justification->aprobation) {
+                    if ($justification->aprobation->state === 'Aprobada') {
+                        return [
+                            'message' => 'Justificación Aprobada'
+                        ];
+                    } elseif ($justification->aprobation->state === 'Rechazada') {
+                        return [
+                            'message' => 'Justificación Rechazada'
+                        ];
+                    } else {
+                        $justification->aprobation->update(['state' => 'Pendiente']);
+                        return [
+                            'message' => 'Ya subiste una justificación, no puedes subir otra',
+                        ];
+                    }
                 } else {
                     return [
                         'message' => 'No se ha cargado ninguna justificación'

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Builder;
 class Assistance extends Model
 {
     //
+    
     protected $fillable = ['assitance','session_id','apprentice_id'];
 
     public function session ()
@@ -25,7 +26,7 @@ class Assistance extends Model
     }
 
     public function scopeIncluded(Builder $query)
-    {
+    { 
 
         if (empty($this->allowIncluded) || empty(request('included'))) {
             return;

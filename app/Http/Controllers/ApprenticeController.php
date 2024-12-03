@@ -19,8 +19,6 @@ class ApprenticeController extends Controller
     {
     //  $apprentices = Apprentice::all();
          $apprentices = Apprentice::byTrainingCenter()->included()->filter()->get();
-        
-
         return response()->json($apprentices);
     }
 

@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Models;
-
+use App\Services\Implementations\TokenServiceImpl;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 class Instructor extends Model
@@ -12,9 +12,7 @@ class Instructor extends Model
         'state'    
     ];
 
-    //
-  
-    protected $allowIncluded = [''];
+    protected $allowIncluded = ['user','trainingCenter'];
 
     public function aprobations ()
     {
@@ -63,6 +61,14 @@ class Instructor extends Model
         }
         $query->with($relations);
     }
+
+    public function scopeByTrainingCenter(Builder $query)
+{
+    $token_service = new TokenServiceImpl();
+    $training_center_id = $token_service->getTrainingCenterIdFromToken();   
+    
+    return $query->where('training_center_id', $training_center_id);
+}
 
     
 }

@@ -3,7 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Day;
-use App\Models\User;
+
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             DocumentTypeSeeder::class,
             RegionalSeeder::class,
             TrainingCenterSeeder::class,
+            UserRegisterSeeder::class
             // DaySeeder::class,
         ]);
         // $this->call(DepartamentSeeder::class);

@@ -19,9 +19,7 @@ class InstructorController extends Controller
     public function index()
     {
        // $instructor = Instructor::all();
-      $instructor = Instructor::included()->get();
-
-
+      $instructor = Instructor::byTrainingCenter()->included()->get();
         return response()->json($instructor);
     }
 

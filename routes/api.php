@@ -46,6 +46,8 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::get('deactivated', [UserController::class, 'deactivated']);
     Route::get('active', [UserController::class, 'active']);
 
+    Route::resource('apprentice',ApprenticeController::class);
+
     // Ruta para gestionar roles
     Route::get('/roles', [RoleController::class, 'getRoles']);
     Route::post('users/{userId}/training-centers/{trainingCenterId}/toggle-role', [RoleController::class, 'toggleRole']);
@@ -79,7 +81,7 @@ Route::post('logout', [AuthController::class, 'logout']);
 
 // Ruta instructor & Apprentice
 Route::resource('instructor',InstructorController::class);
-Route::resource('apprentice',ApprenticeController::class);
+;
 
 //session
 Route::resource('sessions',SessionController::class);

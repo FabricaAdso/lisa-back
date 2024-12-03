@@ -8,6 +8,7 @@ class Assistance extends Model
 {
     //
     protected $fillable = ['assitance','session_id','apprentice_id'];
+    protected $allowIncluded = ['apprentice','apprentice.user'];
 
     public function session ()
     {

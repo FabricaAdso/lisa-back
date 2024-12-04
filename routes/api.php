@@ -59,11 +59,11 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::resource('courses', CourseController::class);
     
     //instructores que tiene sesiones pendientes
-    Route::get('course/{instructor_id}/Instructorsessions', [CourseController::class, 'getInstructorAndSessions']);
+    Route::get('course/Instructorsessions', [CourseController::class, 'getInstructorAndSessions']);
     //instructores con fichas que tuvo formacion
-    Route::get('course/{instructor_id}/sessions', [CourseController::class, 'getCourseInstructor']);
+    Route::get('course/sessions', [CourseController::class, 'getCourseInstructor']);
     //sesiones que tiene un instructor hoy
-    Route::get('course/{instructor_id}/sessionsNow', [CourseController::class, 'getCourseInstructorNow']);
+    Route::get('course/sessionsNow', [CourseController::class, 'getCourseInstructorNow']);
 
     // Centros de formacion, ambientes y sedes
     Route::apiResource('headquarters', HeadquartersController::class);
@@ -85,6 +85,8 @@ Route::group(['middleware' => 'auth:api'], function () {
     //Aprobation Crud y Filtros
     Route::resource('aprobations', AprobationController::class);
     Route::put('aprobations', [AprobationController::class, 'editStateOfJustification']);
+    //
+    Route::get('/apprentices/all', [AssistanceController::class, 'getInassitanceApprentice']);
 });
 
 Route::post('excel', [ExcelController::class, 'excel']);

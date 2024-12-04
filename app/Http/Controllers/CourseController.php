@@ -92,25 +92,25 @@ class CourseController extends Controller
         return response()->json(['message' => 'Course deleted successfully']);
     }
     
-    public function getInstructorAndSessions(Request $request, $id)
+    public function getInstructorAndSessions(Request $request)
     {
-        $courseInstructorSession = $this->courseService->getInstructorAndSessions($request, $id);
+        $courseInstructorSession = $this->courseService->getInstructorAndSessions($request);
         return response()->json([
             'las fichas que tienen sesion con el instructor son' => $courseInstructorSession,
         ]);
     }
 
-    public function getCourseInstructor(Request $request, $id)
+    public function getCourseInstructor(Request $request)
     {
-        $courseIntructor = $this->courseService->getCourseInstructor($request, $id);
+        $courseIntructor = $this->courseService->getCourseInstructor($request);
         return response()->json([
             'las fichas donde el instructor tuvo formacion son:' => $courseIntructor,
         ]);
     }
 
-    public function getCourseInstructorNow(Request $request, $id)
+    public function getCourseInstructorNow(Request $request)
     {
-        $courseIntructor = $this->courseService->getCourseInstructorNow($request, $id);
+        $courseIntructor = $this->courseService->getCourseInstructorNow($request);
         return response()->json([
             'las fichas donde el instructor tiene sesiones actualmente:' => $courseIntructor,
         ]);

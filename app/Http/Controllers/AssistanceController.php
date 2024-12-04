@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Apprentice;
 use App\Models\Aprobation;
 use App\Models\Assistance;
 use App\Models\Justification;
+use App\Models\User;
 use App\Services\ApprenticeService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class AssistanceController extends Controller
 {
@@ -71,5 +74,18 @@ class AssistanceController extends Controller
                 'description' => null,
             ]);
         }
+    }
+
+    public function getInassitanceApprentice ()
+    {
+        $user = User::find(Auth::id());
+        $apprendice = Apprentice::where('user_id', $user->id)->first();
+        $assistance = Assistance::where('apprentice_id', $apprendice->id)
+            ->with('session')
+            ->with('justifications.aprobation')
+            ->whereHas('justifications.aprobation')
+            ->get();
+            
+        return response()->json($assistance);
     }
 }

@@ -4,7 +4,7 @@ namespace App\Services;
 
 interface CourseService
 {
-    public function getInstructorAndSessions($request, $id);
-    public function getCourseInstructor($request, $id);
-    public function getCourseInstructorNow($request, $id);
+    public function getInstructorAndSessions($request);
+    public function getCourseInstructor($request);
+    public function getCourseInstructorNow($request);
 }

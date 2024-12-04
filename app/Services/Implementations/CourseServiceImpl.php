@@ -5,14 +5,17 @@ namespace App\Services\Implementations;
 use App\Models\Course;
 use App\Models\Instructor;
 use App\Models\Session;
+use App\Models\User;
 use App\Services\CourseService;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class CourseServiceImpl implements CourseService
 {
-    public function getInstructorAndSessions($request, $id)
+    public function getInstructorAndSessions($request)
     {
-        $instructor = Instructor::findOrFail($id);
+      $user = User::find(Auth::id());
+        $instructor = Instructor::where('user_id', $user->id)->first();
         $session = Session::where('instructor_id', $instructor->id)
         ->where(function ($query){
             $query->where('date', '>', Carbon::now()->toDateString())
@@ -25,10 +28,11 @@ class CourseServiceImpl implements CourseService
         return $session;
     }
 
-    public function getCourseInstructor($request, $id)
+    public function getCourseInstructor($request)
     {
-        $instructor = Instructor::findOrFail($id);
-        $session = Session::where('instructor_id', $instructor->id)
+      $user = User::find(Auth::id());
+      $instructor = Instructor::where('user_id', $user->id)->first();
+        $session = Session::where('instructor_id', $instructor)
         ->where(function ($query){
             $query->where('date', '<', Carbon::now()->toDateString())
                   ->orWhere(function ($query){
@@ -40,9 +44,10 @@ class CourseServiceImpl implements CourseService
         return $session;
     }
 
-    public function getCourseInstructorNow($request, $id)
+    public function getCourseInstructorNow($request)
     {
-        $instructor = Instructor::findOrFail($id);
+      $user = User::find(Auth::id());
+      $instructor = Instructor::where('user_id', $user->id)->first();
         $session = Session::where('instructor_id', $instructor->id)
         ->where(function ($query){
             $query->where('date', '=', Carbon::now()->toDateString())

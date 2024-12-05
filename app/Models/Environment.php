@@ -18,6 +18,11 @@ class Environment extends Model
     {
         return $this->belongsTo(Headquarters::class);
     }
+
+    public function knowledgeNetwork ()
+    {
+        return $this->belongsTo(KnowledgeNetwork::class);
+    }
     
     public function courses ()
     {

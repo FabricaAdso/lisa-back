@@ -9,10 +9,11 @@ class Instructor extends Model
     protected $fillable = [
         'user_id',
         'training_center_id',
-        'state'    
+        'state',
+        'knowledge_network_id' 
     ];
 
-    protected $allowIncluded = ['user','trainingCenter'];
+    protected $allowIncluded = ['user','trainingCenter','knowledgeNetwork'];
 
     public function aprobations ()
     {
@@ -22,6 +23,11 @@ class Instructor extends Model
     public function sessions ()
     {
         return $this->hasMany(Session::class);
+    }
+
+    public function knowledgeNetwork ()
+    {
+        return $this->belongsTo(KnowledgeNetwork::class,'knowledge_network_id');
     }
 
     public function user ()
@@ -63,12 +69,12 @@ class Instructor extends Model
     }
 
     public function scopeByTrainingCenter(Builder $query)
-{
-    $token_service = new TokenServiceImpl();
-    $training_center_id = $token_service->getTrainingCenterIdFromToken();   
-    
-    return $query->where('training_center_id', $training_center_id);
-}
+    {
+        $token_service = new TokenServiceImpl();
+        $training_center_id = $token_service->getTrainingCenterIdFromToken();   
+        
+        return $query->where('training_center_id', $training_center_id);
+    }
 
     
 }

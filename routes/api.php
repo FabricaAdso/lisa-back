@@ -13,6 +13,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\EducationLevelController;
 use App\Http\Controllers\InstructorController;
+use App\Http\Controllers\KnowledgeNetworkController;
 use App\Http\Controllers\ProgramController;
 use App\Http\Controllers\RegionalController;
 use App\Http\Controllers\SessionController;
@@ -75,13 +76,17 @@ Route::group(['middleware' => 'auth:api'], function () {
 
     // Ruta desencriptar training_center_id del token
     Route::get('/training-center', [AuthController::class, 'getTrainingCenterIdFromToken']);
+
+    //Ruta para red de conocimiento
+    Route::resource('/knowledgeNetwork', KnowledgeNetworkController::class);
+    Route::get('/knowledgeNetwork/{id}', [KnowledgeNetworkController::class, 'show']);
+   
 });
 
 Route::post('logout', [AuthController::class, 'logout']);
 
 // Ruta instructor & Apprentice
 Route::resource('instructor',InstructorController::class);
-;
 
 //session
 Route::resource('sessions',SessionController::class);

@@ -14,20 +14,17 @@ class CourseServiceImpl implements CourseService
 {
     public function getInstructorAndSessions($request)
     {
-      $user = User::find(Auth::id());
+        $user = User::find(Auth::id());
         $instructor = Instructor::where('user_id', $user->id)->first();
-        if(!$instructor){
-          return [];
-        }
-        $session = Session::where('instructor_id', $instructor->id)
-        ->where(function ($query){
+        $session = Session::where('instructor_id', $instructor->id) 
+          ->where(function ($query){
             $query->where('date', '>', Carbon::now()->toDateString())
-                  ->orWhere(function ($query){
-                    $query->where('date','=',Carbon::now()->toDateString())
-                    ->where('start_time','>',Carbon::now()->toTimeString())
-                    ->where('end_time','>',Carbon::now()->toTimeString());
-                  });
-        })->included()->get();
+            ->orWhere(function ($query){
+              $query->where('date','=',Carbon::now()->toDateString())
+              ->where('start_time','>',Carbon::now()->toTimeString())
+              ->where('end_time','>',Carbon::now()->toTimeString());
+            });
+          })->with('course')->get();
         return $session;
     }
 
@@ -35,7 +32,7 @@ class CourseServiceImpl implements CourseService
     {
       $user = User::find(Auth::id());
       $instructor = Instructor::where('user_id', $user->id)->first();
-        $session = Session::where('instructor_id', $instructor)
+        $session = Session::where('instructor_id', $instructor->id)
         ->where(function ($query){
             $query->where('date', '<', Carbon::now()->toDateString())
                   ->orWhere(function ($query){
@@ -43,7 +40,7 @@ class CourseServiceImpl implements CourseService
                     ->where('start_time','<',Carbon::now()->toTimeString())
                     ->where('end_time','<',Carbon::now()->toTimeString());
                   });
-        })->included()->get();
+        })->with('course')->get();
         return $session;
     }
 

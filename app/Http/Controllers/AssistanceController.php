@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Services\ApprenticeService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Console\Scheduling\Schedule;
 
 class AssistanceController extends Controller
 {
@@ -67,11 +68,17 @@ class AssistanceController extends Controller
                 $justificationDelete->delete();
             }
         } elseif ($newAssistance == 0) {
-            Justification::firstOrCreate([
+            $Justification = Justification::firstOrCreate([
                 'assistance_id' => $assistance->id,
             ], [
                 'file_url' => null,  
                 'description' => null,
+            ]);
+            Aprobation::firstOrCreate([
+                'justification_id' => $Justification->id,
+            ],[
+                'state' => null,
+                'motive' => null,
             ]);
         }
     }

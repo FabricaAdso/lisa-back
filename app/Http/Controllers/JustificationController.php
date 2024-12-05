@@ -13,6 +13,10 @@ class JustificationController extends Controller
     {
         $this->justificationService = $justificationService;
     }
+    public function checkAndUpdateExpiredJustifications()
+    {
+        return $this->justificationService->checkAndUpdateExpiredJustifications();
+    }
 
     public function index()
     {

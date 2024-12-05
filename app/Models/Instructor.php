@@ -23,7 +23,7 @@ class Instructor extends Model
 
     public function sessions ()
     {
-        return $this->hasMany(Session::class);
+        return $this->hasMany(Session::class, 'instructor_id');
     }
 
     public function user ()

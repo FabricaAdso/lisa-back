@@ -2,6 +2,7 @@
 
 namespace App\Services\Implementations;
 
+use App\Jobs\UpdateExpiredJustificationsJob;
 use App\Models\Aprobation;
 use App\Models\Assistance;
 use App\Models\Justification;
@@ -22,6 +23,16 @@ class JustificationServiceImpl implements JustificationService
         $this->festivos = $this->calcularFestivos(Carbon::now()->year);
     }
 
+    //jobs
+    public function checkAndUpdateExpiredJustifications()
+    {
+        // php artisan queue:work
+        UpdateExpiredJustificationsJob::dispatch();
+        return [
+            'message' => 'Job para actualizar justificaciones vencidas despachado correctamente',
+        ];
+    }
+
     public function createJustification($request)
     {
         $request->validate([
@@ -33,7 +44,7 @@ class JustificationServiceImpl implements JustificationService
         $assistance = Assistance::with('session')->findOrFail($request->assistance_id);
         $justification = Justification::where('assistance_id', $request->assistance_id)->first();
 
-        $assistanceDate = $assistance->session->date ?? null;
+        $assistanceDate = $assistance->assistance->updated_at;
         $startJustificationDate = Carbon::parse($assistanceDate);
         $endJustificationDate = Carbon::now();
 
@@ -85,19 +96,12 @@ class JustificationServiceImpl implements JustificationService
         if ($diasHabiles > 3) {
             if ($justification->file_url === null) {
                 if ($justification->aprobation) {
-                    $justification->aprobation->update(['state' => 'Vencida']);
                 }
-                Aprobation::firstOrCreate([
-                    'state' => 'vencida',
-                    'motive' => null,
-                    'justification_id' => $justification->id,
-                ]);
                 return [
                     'message' => 'No puedes cargar una justificación, ya que el plazo terminó',
                 ];
             } elseif ($justification->file_url !== null) {
                 if ($justification->aprobation) {
-                    $justification->aprobation->update(['state' => 'Pendiente']);
                 }
                 return [
                     'message' => 'Ya subiste una justificación, no puedes subir otra',

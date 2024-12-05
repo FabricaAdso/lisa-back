@@ -104,10 +104,6 @@ Route::group(['middleware' => 'auth:api'], function () {
 });
 
 
-// Assistance
-//Route::resource('assistance',AssistanceController::class);
-Route::put('/assistance/{assistanceId}', [AssistanceController::class, 'editAssistance']);
-Route::get('/apprentices/{apprenticeId}/unjustified-absences', [AssistanceController::class, 'UnjustifiedAbsences']);
 //trainig center for login
 Route::resource('trainingCentersLogin', TrainingCenterController::class);
 

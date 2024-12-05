@@ -22,7 +22,8 @@ class Course extends Model
 
     protected $allowIncluded = [
         'program',
-        'shifts'
+        'shifts',
+        'course'
     ];
 
     protected $allowFilter = [

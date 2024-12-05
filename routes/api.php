@@ -63,7 +63,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     //instructores con fichas que tuvo formacion
     Route::get('course/sessions', [CourseController::class, 'getCourseInstructor']);
     //sesiones que tiene un instructor hoy
-    Route::get('course/sessionsNow', [CourseController::class, 'getCourseInstructorNow']);
+    Route::get('courses/sessionsNow', [CourseController::class, 'getCourseInstructorNow']);
 
     // Centros de formacion, ambientes y sedes
     Route::apiResource('headquarters', HeadquartersController::class);
@@ -87,22 +87,22 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::put('aprobations', [AprobationController::class, 'editStateOfJustification']);
     //
     Route::get('/apprentices/all', [AssistanceController::class, 'getInassitanceApprentice']);
+    Route::post('excel', [ExcelController::class, 'excel']);
+    
+    Route::post('logout', [AuthController::class, 'logout']);
+    
+    // Ruta instructor & Apprentice
+    Route::resource('instructor',InstructorController::class);
+    Route::resource('apprentice',ApprenticeController::class);
+    
+    //session
+    Route::resource('sessions',SessionController::class);
+    Route::post('sessions', [SessionController::class, 'createSession']);
+    
+    //Ruta regionales
+    Route::get('regionals',[RegionalController::class, 'index']);
 });
 
-Route::post('excel', [ExcelController::class, 'excel']);
-
-Route::post('logout', [AuthController::class, 'logout']);
-
-// Ruta instructor & Apprentice
-Route::resource('instructor',InstructorController::class);
-Route::resource('apprentice',ApprenticeController::class);
-
-//session
-Route::resource('sessions',SessionController::class);
-Route::post('sessions', [SessionController::class, 'createSession']);
-
-//Ruta regionales
-Route::get('regionals',[RegionalController::class, 'index']);
 
 // Assistance
 //Route::resource('assistance',AssistanceController::class);

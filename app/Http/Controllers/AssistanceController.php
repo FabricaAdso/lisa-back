@@ -87,12 +87,16 @@ class AssistanceController extends Controller
     {
         $user = User::find(Auth::id());
         $apprendice = Apprentice::where('user_id', $user->id)->first();
+        if(!$apprendice){
+            return response()->json([]);
+        }
         $assistance = Assistance::where('apprentice_id', $apprendice->id)
-            ->with('session')
-            ->with('justifications.aprobation')
+            ->with([
+                'session',
+                'justifications.aprobation'
+            ])
             ->whereHas('justifications.aprobation')
             ->get();
-            
         return response()->json($assistance);
     }
 }

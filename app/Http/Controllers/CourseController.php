@@ -95,9 +95,9 @@ class CourseController extends Controller
     public function getInstructorAndSessions(Request $request)
     {
         $courseInstructorSession = $this->courseService->getInstructorAndSessions($request);
-        return response()->json([
-            'las fichas que tienen sesion con el instructor son' => $courseInstructorSession,
-        ]);
+        return response()->json(
+            $courseInstructorSession
+        );
     }
 
     public function getCourseInstructor(Request $request)

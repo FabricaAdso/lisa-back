@@ -2,43 +2,31 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Auth;
-
 use Illuminate\Database\Eloquent\Builder;
-class Assistance extends Model
+use Illuminate\Database\Eloquent\Model;
+
+class KnowledgeNetwork extends Model
 {
-    //
-    
-    protected $fillable = ['assitance','session_id','apprentice_id'];
-    protected $allowIncluded = ['apprentice','apprentice.user'];
+    protected $fillable = ['name'];
 
-    public function session ()
+    public function environments ()
     {
-        return $this->belongsTo(Session::class);
+        return $this->hasMany(Environment::class);
     }
 
-    public function apprentice ()
+    public function instructors ()
     {
-        return $this->belongsTo(Apprentice::class);
-    }
-
-    public function justifications ()
-    {
-        return $this->hasMany(Justification::class);
+        return $this->hasMany(Instructor::class);
     }
 
     public function scopeIncluded(Builder $query)
-    { 
+    {
 
         if (empty($this->allowIncluded) || empty(request('included'))) {
             return;
         }
 
-
         $relations = explode(',', request('included'));
-
-        // return $relations;
 
         $allowIncluded = collect($this->allowIncluded);
 

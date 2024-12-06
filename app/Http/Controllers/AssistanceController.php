@@ -22,6 +22,11 @@ class AssistanceController extends Controller
         $this->apprenticeService = $apprenticeService;
     }
 
+    public function index(){
+        $assistance = Assistance::included()->get();
+        return response()->json($assistance);
+    } 
+
     public function editAssistance(Request $request, $assistanceId)
     {
 

@@ -9,7 +9,7 @@ class KnowledgeNetworkController extends Controller
 {
     public function index()
     {
-        $networks = KnowledgeNetwork::included()->filter()->get();
+        $networks = KnowledgeNetwork::included()->get();
         return response()->json($networks);
     }
 

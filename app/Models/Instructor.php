@@ -15,6 +15,8 @@ class Instructor extends Model
 
     protected $allowIncluded = ['user','trainingCenter','knowledgeNetwork'];
 
+    protected $allowFilter = ['knowledge_network_id'];
+
     public function aprobations ()
     {
         return $this->hasMany(Aprobation::class);
@@ -76,5 +78,35 @@ class Instructor extends Model
         return $query->where('training_center_id', $training_center_id);
     }
 
+    public function scopeFilter(Builder $query)
+    {
+    
+        if (empty($this->allowFilter) || !is_array($this->allowFilter) || !is_array(request('filter'))) {
+            return $query;
+        }
+    
+        $filters = request('filter');
+        $allowFilter = collect($this->allowFilter);
+    
+        foreach ($filters as $filter => $value) {
+            if (empty($value)) {
+                continue; 
+            }
+    
+            if ($filter === 'name' && $allowFilter->contains('name')) {
+                $query->where('name', 'LIKE', '%' . $value . '%');
+                continue;
+            }
+    
+            if ($allowFilter->contains($filter)) {
+                $query->where($filter, 'LIKE', '%' . $value . '%');
+            }
+            if($filter === 'knowledge_network_id' && $allowFilter->contains('knowledge_network_id')){
+                $query->where('knowledge_network_id', $value  );
+            } 
+        }
+    
+        return $query;
+    }
     
 }

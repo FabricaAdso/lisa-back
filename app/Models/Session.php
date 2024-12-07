@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Builder;
 class Session extends Model
 {
-    protected $allowIncluded = ['course.program','course'];
+    protected $allowIncluded = ['course.program','instructor','course','assistances.apprentice'];
     protected $fillable = ['date','start_time','end_time','instructor_id','instructor2_id','course_id'];
 
     public function assistances ()

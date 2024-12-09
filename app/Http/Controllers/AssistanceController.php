@@ -23,9 +23,9 @@ class AssistanceController extends Controller
     }
 
     public function index(){
-        $assistance = Assistance::included()->get();
+        $assistance = Assistance::included()->filter()->get();
         return response()->json($assistance);
-    } 
+    }
 
     public function editAssistance(Request $request, $assistanceId)
     {

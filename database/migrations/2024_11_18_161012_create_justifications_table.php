@@ -12,11 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('justifications', function (Blueprint $table) {
+            
             $table->id();
             $table->string('file_url')->nullable();
             $table->string('description')->nullable();
-            //FK
             $table->foreignId('assistance_id')->nullable()->constrained()->onDelete('set null');
+
+            
             $table->timestamps();
         });
     }

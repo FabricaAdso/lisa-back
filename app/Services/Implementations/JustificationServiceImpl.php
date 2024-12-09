@@ -41,7 +41,7 @@ class JustificationServiceImpl implements JustificationService
             'description' => 'nullable|string',
         ]);
 
-        $assistance = Assistance::with('session')->findOrFail($request->assistance_id);
+        $assistance = Assistance::included()->findOrFail($request->assistance_id);
         $justification = Justification::where('assistance_id', $request->assistance_id)->first();
 
         $assistanceDate = $assistance->assistance->updated_at;

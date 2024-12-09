@@ -21,7 +21,7 @@ class JustificationController extends Controller
     public function index()
     {
         // $justifications = Justification::included()->filter()->get();
-        $justifications = Justification::with('assistance')->get();
+        $justifications = Justification::included()->filter()->get();
         return response()->json($justifications);
     }
 

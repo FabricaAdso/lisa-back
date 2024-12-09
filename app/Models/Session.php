@@ -5,12 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Builder;
+
 class Session extends Model
 {
-    protected $allowIncluded = ['course.program','course'];
-    protected $fillable = ['date','start_time','end_time','instructor_id','instructor2_id','course_id'];
+    protected $allowIncluded = ['course.program', 'course'];
+    protected $fillable = ['date', 'start_time', 'end_time', 'instructor_id', 'instructor2_id', 'course_id'];
 
-    public function assistances ()
+    public function assistances()
     {
         return $this->hasMany(Assistance::class);
     }
@@ -50,5 +51,4 @@ class Session extends Model
         }
         $query->with($relations);
     }
-
 }

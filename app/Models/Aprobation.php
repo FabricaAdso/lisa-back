@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Aprobation extends Model
 {
+    
+
     protected $fillable = [
         'state',
         'motive',
@@ -18,6 +20,7 @@ class Aprobation extends Model
     protected $allowFilter = [
         'state'
     ];
+
     //
     public function justification ()
     {
@@ -68,4 +71,15 @@ class Aprobation extends Model
         }
     }
 
+}
+class State
+{
+    public $name;
+    public $id;
+
+    public function __construct($name, $id)
+    {
+        $this->name = $name;
+        $this->id = $id;
+    }
 }

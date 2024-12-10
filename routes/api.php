@@ -85,8 +85,12 @@ Route::group(['middleware' => 'auth:api'], function () {
     //Aprobation Crud y Filtros
     Route::resource('aprobations', AprobationController::class);
     Route::put('aprobations', [AprobationController::class, 'editStateOfJustification']);
-    //
-    Route::get('/apprentices/all', [AssistanceController::class, 'getInassitanceApprentice']);
+
+    //justificaciones por aprendices
+    Route::get('/apprentices/assistance', [AssistanceController::class, 'getInassitanceApprentice']);
+    //justificaciones por sessiones y aprendices
+    Route::get('/instructor/apprentice/assistance', [AssistanceController::class, 'getInassitanceInstructor']);
+    
     Route::post('excel', [ExcelController::class, 'excel']);
     
     Route::post('logout', [AuthController::class, 'logout']);

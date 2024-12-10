@@ -12,6 +12,7 @@ use Carbon\CarbonPeriod;
 use Exception;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
+use Illuminate\Foundation\Http\Kernel;
 use Illuminate\Validation\Rules\Can;
 
 class JustificationServiceImpl implements JustificationService
@@ -78,12 +79,6 @@ class JustificationServiceImpl implements JustificationService
                 'file_url' => $fileUrl ?? $justification->file_url,
                 'description' => $request->description,
             ]);
-            Aprobation::firstOrCreate([
-                'state' => 'Pendiente',
-                'motive' => null,
-                'justification_id' => $justification->id,
-            ]);
-
             return [
                 'message' => 'Justificación actualizada con éxito',
                 'justification' => $justification,

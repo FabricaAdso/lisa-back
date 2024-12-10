@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Apprentice;
 use App\Models\Aprobation;
 use App\Models\Assistance;
+use App\Models\Instructor;
 use App\Models\Justification;
+use App\Models\Session;
 use App\Models\User;
 use App\Services\ApprenticeService;
 use Illuminate\Http\Request;
@@ -86,17 +88,21 @@ class AssistanceController extends Controller
     public function getInassitanceApprentice ()
     {
         $user = User::find(Auth::id());
-        $apprendice = Apprentice::where('user_id', $user->id)->first();
-        if(!$apprendice){
-            return response()->json([]);
-        }
-        $assistance = Assistance::where('apprentice_id', $apprendice->id)
-            ->with([
-                'session',
-                'justifications.aprobation'
-            ])
-            ->whereHas('justifications.aprobation')
+        $apprentice = Apprentice::where('user_id', $user->id)->first();
+        $assistance = Assistance::where('apprentice_id', $apprentice->id)
+            ->with(['session','justifications.aprobation'])
+            ->filter()
             ->get();
-        return response()->json($assistance);
+        return response()->json([$apprentice ,$assistance]);
+    }
+
+    public function getInassitanceInstructor ()
+    {
+        $user = User::find(Auth::id());
+        $instructor = Instructor::where('user_id', $user->id)->first();
+        $session = Session::where('instructor_id', $instructor->id)
+            ->with('assistances.apprentice.user')
+            ->get();
+        return response()->json([$instructor ,$session]);
     }
 }

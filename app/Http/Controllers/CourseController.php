@@ -3,10 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Course;
-use App\Models\Instructor;
-use App\Models\Shift;
 use App\Services\CourseService;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 
@@ -95,20 +92,20 @@ class CourseController extends Controller
     public function getInstructorAndSessions(Request $request)
     {
         $courseInstructorSession = $this->courseService->getInstructorAndSessions($request);
-        return response()->json([
-            'las fichas que tienen sesion con el instructor son' => $courseInstructorSession,
-        ]);
+        return response()->json(
+            $courseInstructorSession
+        );
     }
 
     public function getCourseInstructor(Request $request)
     {
         $courseIntructor = $this->courseService->getCourseInstructor($request);
-        return response()->json([$courseIntructor]);
+        return response()->json($courseIntructor);
     }
 
     public function getCourseInstructorNow(Request $request)
     {
         $courseIntructor = $this->courseService->getCourseInstructorNow($request);
-        return response()->json([ $courseIntructor]);
+        return response()->json( $courseIntructor);
     }
 }

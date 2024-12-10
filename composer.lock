@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "854442c06e1c0e16abbefeca93cd6a4d",
+    "content-hash": "1d1e6165c22fde6315ec9892e6440322",
     "packages": [
         {
             "name": "brick/math",
@@ -134,6 +134,70 @@
                 }
             ],
             "time": "2024-02-09T16:56:22+00:00"
+        },
+        {
+            "name": "cmixin/business-day",
+            "version": "1.19.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/kylekatarnls/business-day.git",
+                "reference": "69f34c08cffa38f9c677b19e364ac85314047a79"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/kylekatarnls/business-day/zipball/69f34c08cffa38f9c677b19e364ac85314047a79",
+                "reference": "69f34c08cffa38f9c677b19e364ac85314047a79",
+                "shasum": ""
+            },
+            "require": {
+                "nesbot/carbon": "^2.29 || ^3.0.1",
+                "php": ">=7.1"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^7.5.20 || ^8.5.31"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.x-dev"
+                },
+                "laravel": {
+                    "providers": [
+                        "Cmixin\\BusinessDay\\Laravel\\ServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Cmixin\\": "src/Cmixin/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "KyleKatarn",
+                    "email": "carbon@selfbuild.fr"
+                }
+            ],
+            "description": "Carbon mixin to handle business days",
+            "support": {
+                "issues": "https://github.com/kylekatarnls/business-day/issues",
+                "source": "https://github.com/kylekatarnls/business-day/tree/1.19.2"
+            },
+            "funding": [
+                {
+                    "url": "https://opencollective.com/Carbon",
+                    "type": "open_collective"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/nesbot/carbon",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2024-10-19T17:33:46+00:00"
         },
         {
             "name": "dflydev/dot-access-data",
@@ -3318,6 +3382,70 @@
                 }
             ],
             "time": "2024-04-27T21:32:50+00:00"
+        },
+        {
+            "name": "rmunate/calendario-colombia",
+            "version": "v3.0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/rmunate/ColombianHolidaysCalendar.git",
+                "reference": "6b2efcf2d04c0210997b5ee3ee86708ef999c21a"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/rmunate/ColombianHolidaysCalendar/zipball/6b2efcf2d04c0210997b5ee3ee86708ef999c21a",
+                "reference": "6b2efcf2d04c0210997b5ee3ee86708ef999c21a",
+                "shasum": ""
+            },
+            "require": {
+                "ext-pdo_sqlite": "*",
+                "ext-sqlite3": "*",
+                "illuminate/support": "^8.0|^9.0|^10.0|^11.0",
+                "nesbot/carbon": "^2.72.2|^3.0",
+                "php": "^7.4|^8.0"
+            },
+            "require-dev": {
+                "phpstan/phpstan": "^1.10",
+                "phpunit/phpunit": "^10.4|^11.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-main": "v2.0.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Rmunate\\Calendar\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Raul Mauricio Uñate Castro",
+                    "email": "raulmauriciounate@gmail.com",
+                    "homepage": "https://github.com/rmunate",
+                    "role": "owner"
+                }
+            ],
+            "description": "This package simplifies working with Colombian holidays. It provides an easy, reliable, and convenient way to query, manipulate, or retrieve data related to holidays in Colombia, including detailed information about the reasons for each holiday.",
+            "homepage": "https://github.com/rmunate/ColombianCalendar",
+            "keywords": [
+                "calendar",
+                "colombia",
+                "feriados",
+                "festivos",
+                "holidays",
+                "rmunate"
+            ],
+            "support": {
+                "issues": "https://github.com/rmunate/ColombianHolidaysCalendar/issues",
+                "source": "https://github.com/rmunate/ColombianHolidaysCalendar/tree/v3.0.1"
+            },
+            "time": "2024-07-02T15:31:39+00:00"
         },
         {
             "name": "spatie/laravel-permission",

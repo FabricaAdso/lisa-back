@@ -9,8 +9,9 @@ use Illuminate\Database\Eloquent\Builder;
 class Assistance extends Model
 {
     //
+    
     protected $fillable = ['assitance','session_id','apprentice_id'];
-    protected $allowIncluded = ['session', 'justifications.aprobation'];
+    protected $allowIncluded = ['apprentice','apprentice.user'];
 
     public function session ()
     {

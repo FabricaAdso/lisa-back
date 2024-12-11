@@ -48,19 +48,25 @@ class JustificationController extends Controller
         $user = User::find(Auth::id());
         $instructor = Instructor::where('user_id', $user->id)->first();
         if (!$instructor) {
-            return response()->json(['message' => 'instructor not found'], 404);
+            return response()->json(['message' => 'Instructor not found'], 404);
         }
+    
         $sessions = Session::where('instructor_id', $instructor->id)->get();
-
-        // Obtener todas las justificaciones asociadas a las asistencias de esas sesiones.
+    
+        // Obtener todas las justificaciones asociadas a las asistencias de esas sesiones, incluyendo la relación de usuario
         $justifications = Justification::whereIn('assistance_id', function($query) use ($sessions) {
             $query->select('id')
                 ->from('assistances')
                 ->whereIn('session_id', $sessions->pluck('id'));
-        })->included()->filter()->get();
-
-        return response()->json([$justifications]);
+        })
+        ->included()  // Aquí debería incluir la relación 'assistance.apprentice.user'
+        ->filter()
+        ->get();
+    
+        return response()->json($justifications);
     }
+    
+    
 
 
     public function show($id)

@@ -47,6 +47,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     // Ruta para gestionar roles
     Route::get('/roles', [RoleController::class, 'getRoles']);
     Route::post('users/{userId}/training-centers/{trainingCenterId}/toggle-role', [RoleController::class, 'toggleRole']);
+    Route::post('/assign-role', [RoleController::class, 'assignRole']);
 
     //  Rutas para cursos y demas
     Route::resource('educationLevel', EducationLevelController::class);

@@ -83,8 +83,8 @@ Route::group(['middleware' => 'auth:api'], function () {
 
     //Justification CRUD
     Route::resource('justifications', JustificationController::class);
-    Route::get('justifications/apprentice', [JustificationController::class, 'indexApprentice']);
-    Route::get('justifications/instructor', [JustificationController::class, 'getInassitanceInstructor']);
+    Route::get('justification/apprentice11', [JustificationController::class, 'indexApprentice111']);
+    Route::get('justification/instructor', [JustificationController::class, 'getInassitanceInstructor']);
     Route::put('justifications', [JustificationController::class, 'createJustification']);
 
     //Aprobation Crud y Filtros

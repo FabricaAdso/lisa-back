@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Apprentice;
+use App\Models\Assistance;
 use App\Models\Instructor;
 use App\Models\Justification;
 use App\Models\Session;
@@ -23,26 +24,32 @@ class JustificationController extends Controller
         return $this->justificationService->checkAndUpdateExpiredJustifications();
     }
 
-    public function indexApprentice()
+
+    public function indexApprentice111()
     {
-        $user = User::find(Auth::id());
-        $apprentice = Apprentice::where('user_id', $user->id)->first();
+        $user = User::find(Auth::id());        
+        $apprentice = Apprentice::where('user_id', $user->id)->first();   
+        if (!$apprentice) {
+            return response()->json(['message' => 'Apprentice not found'], 404);
+        }
+        
         // Obtener todas las justificaciones asociadas al aprendiz.
-        $justifications = Justification::where('assistance_id', function($query) use ($apprentice) {
+        $justifications = Justification::whereIn('assistance_id', function ($query) use ($apprentice) {
             $query->select('id')
                 ->from('assistances')
                 ->where('apprentice_id', $apprentice->id);
         })->included()->filter()->get();
-
         return response()->json($justifications);
     }
+    
 
     public function getInassitanceInstructor()
     {
         $user = User::find(Auth::id());
         $instructor = Instructor::where('user_id', $user->id)->first();
-        
-        // Obtener todas las sesiones del instructor sin 'included' para las sesiones.
+        if (!$instructor) {
+            return response()->json(['message' => 'instructor not found'], 404);
+        }
         $sessions = Session::where('instructor_id', $instructor->id)->get();
 
         // Obtener todas las justificaciones asociadas a las asistencias de esas sesiones.

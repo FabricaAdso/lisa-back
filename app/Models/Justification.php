@@ -15,14 +15,13 @@ class Justification extends Model
         'description'
     ];
     protected $allowFilter = ['assistance_id', 'file_url', 'description'];
-    protected $allowIncluded = ['assistance.session.instructor.user','assistance.session.apprentice.user','aprobation','assistance.session.course','session'];
+    protected $allowIncluded = ['assistance.session.instructor.user','assistance.session','aprobation','assistance.session.course','assistance.apprentice'];
 
     //
     public function aprobation ()
     {
         return $this->hasOne(Aprobation::class);
     }
-
     public function assistance ()
     {
         return $this->belongsTo(Assistance::class);
@@ -72,9 +71,6 @@ class Justification extends Model
             }
         }
          $query->with($relations); //se ejecuta el query con lo que tiene $relations en ultimas es el valor en la url de included
-
-        
-
     }
 
 }

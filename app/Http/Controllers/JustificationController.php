@@ -25,7 +25,7 @@ class JustificationController extends Controller
     }
 
 
-    public function indexApprentice111()
+    public function indexApprentice()
     {
         $user = User::find(Auth::id());        
         $apprentice = Apprentice::where('user_id', $user->id)->first();   

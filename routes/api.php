@@ -83,7 +83,7 @@ Route::group(['middleware' => 'auth:api'], function () {
 
     //Justification CRUD
     Route::resource('justifications', JustificationController::class);
-    Route::get('justification/apprentice11', [JustificationController::class, 'indexApprentice111']);
+    Route::get('justification/apprentice', [JustificationController::class, 'indexApprentice']);
     Route::get('justification/instructor', [JustificationController::class, 'getInassitanceInstructor']);
     Route::put('justifications', [JustificationController::class, 'createJustification']);
 

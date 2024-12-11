@@ -13,7 +13,7 @@ class Instructor extends Model
         'knowledge_network_id' 
     ];
 
-    protected $allowIncluded = ['user','trainingCenter','knowledgeNetwork'];
+    protected $allowIncluded = ['user','trainingCenter','knowledgeNetwork','aprobations','sessions','courses'];
 
     protected $allowFilter = ['knowledge_network_id'];
 

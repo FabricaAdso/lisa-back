@@ -25,9 +25,9 @@ class AssistanceController extends Controller
     }
 
     public function index(){
-        $assistance = Assistance::included()->get();
+        $assistance = Assistance::included()->filter()->get();
         return response()->json($assistance);
-    } 
+    }
 
     public function editAssistance(Request $request, $assistanceId)
     {
@@ -95,7 +95,7 @@ class AssistanceController extends Controller
         $user = User::find(Auth::id());
         $apprentice = Apprentice::where('user_id', $user->id)->first();
         $assistance = Assistance::where('apprentice_id', $apprentice->id)
-            ->with(['session','justifications.aprobation'])
+            ->included()
             ->filter()
             ->get();
         return response()->json([$apprentice ,$assistance]);
@@ -106,7 +106,8 @@ class AssistanceController extends Controller
         $user = User::find(Auth::id());
         $instructor = Instructor::where('user_id', $user->id)->first();
         $session = Session::where('instructor_id', $instructor->id)
-            ->with('assistances.apprentice.user')
+            ->included()
+            ->filter()
             ->get();
         return response()->json([$instructor ,$session]);
     }

@@ -96,7 +96,6 @@ Route::group(['middleware' => 'auth:api'], function () {
     //justificaciones por sessiones y aprendices
     Route::get('/instructor/apprentice/assistance', [AssistanceController::class, 'getInassitanceInstructor']);
     
-    Route::post('excel', [ExcelController::class, 'excel']);
     
     Route::post('logout', [AuthController::class, 'logout']);
     
@@ -111,10 +110,11 @@ Route::group(['middleware' => 'auth:api'], function () {
     //Ruta para red de conocimiento
     Route::resource('/knowledgeNetwork', KnowledgeNetworkController::class);
     Route::get('/knowledgeNetwork/{id}', [KnowledgeNetworkController::class, 'show']);
-   
+    
     Route::get('regionals',[RegionalController::class, 'index'])->withoutMiddleware(['auth:api']);
 });
 
+Route::post('excel', [ExcelController::class, 'excel']);
 
 // Ruta instructor & Apprentice
 Route::resource('instructor',InstructorController::class);

@@ -14,8 +14,8 @@ class Justification extends Model
         'file_url',
         'description'
     ];
-    protected $allowFilter = ['assistance_id', 'file_url', 'description'];
-    protected $allowIncluded = ['assistance.session.instructor.user','assistance.session','aprobation','assistance.session.course','assistance.apprentice.user'];
+    protected $allowFilter = ['assistance_id', 'file_url', 'description', 'aprobationState'];
+    protected $allowIncluded = ['assistance.session.instructor.user','assistance.session','aprobation','assistance.session.course','assistance.apprentice'];
 
     //
     public function aprobation ()
@@ -29,22 +29,23 @@ class Justification extends Model
 
     public function scopeFilter(Builder $query)
     {
-        // If no allowed filters are set or no filter is requested, exit the method
         if (empty($this->allowFilter) || empty(request('filter'))) {
             return;
         }
-    
-        // Get the filter parameters from the request
+
         $filters = request('filter');
-        
-        // Convert the allowed filters to a collection for easy checking
         $allowFilter = collect($this->allowFilter);
-    
-        // Iterate through each filter in the request
+
         foreach ($filters as $filter => $value) {
-            // Check if the current filter is in the list of allowed filters
-            if ($allowFilter->contains($filter)) {
-                // Apply a LIKE query where the specified column contains the filter value
+            // Filtrar por el nombre del programa relacionado
+            if ($filter === 'aprobationState') {
+                $query->whereHas('aprobation', function ($q) use ($value) {
+                    $q->where('state', 'LIKE', '%' . $value . '%');
+                });
+            }
+
+            //filtros para la tabla de cursos
+            if ($allowFilter->contains($filter) && $filter !== 'aprobationState') {
                 $query->where($filter, 'LIKE', '%' . $value . '%');
             }
         }

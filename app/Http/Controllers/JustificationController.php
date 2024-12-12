@@ -46,6 +46,7 @@ class JustificationController extends Controller
     public function getInassitanceInstructor()
     {
         $user = User::find(Auth::id());
+        $elements = request()->query('elements',15);
         $instructor = Instructor::where('user_id', $user->id)->first();
         if (!$instructor) {
             return response()->json(['message' => 'Instructor not found'], 404);
@@ -58,12 +59,9 @@ class JustificationController extends Controller
             $query->select('id')
                 ->from('assistances')
                 ->whereIn('session_id', $sessions->pluck('id'));
-        })
-        ->included()  // Aquí debería incluir la relación 'assistance.apprentice.user'
-        ->filter()
-        ->get();
-    
-        return response()->json($justifications);
+        })->included()->filter()->paginate(intval($elements));
+
+        return response()->json([$justifications]);
     }
     
     

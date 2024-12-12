@@ -1,3 +1,4 @@
+SET NAMES utf8mb4;
 INSERT INTO `regionals` (`id`, `name`)
 VALUES
     (1, 'REGIONAL ANTIOQUIA'),
@@ -33,3 +34,5 @@ VALUES
     (31, 'REGIONAL GUAVIARE'),
     (32, 'REGIONAL VAUPÉS'),
     (33, 'REGIONAL VICHADA');
+
+SHOW TABLE STATUS LIKE 'regionals';

@@ -3,12 +3,21 @@
 namespace App\Http\Controllers;
 
 use App\Models\Course;
+use App\Models\Instructor;
 use App\Models\Shift;
+use App\Services\CourseService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class CourseController extends Controller
 {
+    protected $courseService;
+    public function __construct(CourseService $courseService)
+    {
+        $this->courseService = $courseService;
+    }
+
     public function index()
     {
         $courses = Course::included()->filter()->get();
@@ -24,7 +33,13 @@ class CourseController extends Controller
             'code' => 'required|string|max:10',
             'date_start' => 'required|date',
             'date_end' => 'required|date|after:date_start',
+            'shift' => 'required|String',
+            'state' => 'required|in:Terminada_por_fecha,En_ejecucion,Terminada,Termindad_por_unificacion',
+            'stage' => 'required|in:PRACTICA,LECTIVA',
             'program_id' => 'required|exists:programs,id',
+            'course_leader_id' => 'nullable|exists:instructors,id',
+            'representative_id' => 'nullable|exists:apprentices,id',
+            'co_representative_id' => 'nullable|exists:apprentices,id',
         ]);
 
         // Asignación masiva
@@ -41,16 +56,28 @@ class CourseController extends Controller
 
     public function update(Request $request, $id)
     {
+        // Buscar el curso 
+        $course = Course::findOrFail($id);
+        
+        //usar la policity para vocero y co-vocero
+        Gate::authorize('updateRepresentative', [$course, $request->only(['representative_id', 'co_representative_id'])]);
+        //usar la policity para lider de ficha
+        Gate::authorize('updateLeader', [$course, $request->only(['course_leader_id'])]);
         // Validar los datos
         $request->validate([
             'code' => 'required|string|max:10',
             'date_start' => 'required|date',
             'date_end' => 'required|date|after:date_start',
+            'shift' => 'required|String',
+            'state' => 'required|in:Terminada_por_fecha,En_ejecucion,Terminada,Termindad_por_unificacion',
+            'stage' => 'required|in: PRACTICA, LECTIVA',
             'program_id' => 'required|exists:programs,id',
+            'course_leader_id' => 'nullable|exists:instructors,id',
+            'representative_id' => 'nullable|exists:apprentices,id',
+            'co_representative_id' => 'nullable|exists:apprentices,id',
         ]);
 
-        // Buscar el curso y actualizar con asignación masiva
-        $course = Course::findOrFail($id);
+        //actualizar con asignación masiva
         $course->update($request->all());
 
         return response()->json($course);
@@ -64,62 +91,28 @@ class CourseController extends Controller
 
         return response()->json(['message' => 'Course deleted successfully']);
     }
-
-    //asignar curso a una jornada
-    public function updateShifts(Request $request, $courseId)
+    
+    public function getInstructorAndSessions(Request $request, $id)
     {
-        $request->validate([
-            'shift_ids' => 'required|array',
-            'shift_ids.*' => 'integer|exists:shifts,id'
+        $courseInstructorSession = $this->courseService->getInstructorAndSessions($request, $id);
+        return response()->json([
+            'las fichas que tienen sesion con el instructor son' => $courseInstructorSession,
         ]);
-    
-        // Buscar el curso
-        $course = Course::findOrFail($courseId);
-    
-        // Obtener las IDs de las jornadas actuales asignadas al curso
-        $currentShiftIds = $course->shifts()->pluck('shifts.id')->toArray();
-    
-        // Verificar si hay cruces de jornadas
-        foreach ($request->shift_ids as $shiftId) {
-            $shift = Shift::findOrFail($shiftId);
-        
-            // Validar que el tiempo de la nueva jornada no se cruce con las jornadas existentes del curso
-            $conflictingShifts = $course->shifts()
-                ->where(function ($query) use ($shift) {
-                    $query->where('shifts.start_time', '<', $shift->end_time)
-                          ->where('shifts.end_time', '>', $shift->start_time);
-                })
-                ->exists();
-            
-            if ($conflictingShifts) {
-                return response()->json([
-                    'error' => "La jornada '{$shift->name}' se cruza con una ya asignada al curso '{$course->code}'"
-                ], 400);
-            }
-        
-            // Validar que la jornada no esté ya asignada a otro curso
-            if ($shift->courses()->where('courses.id', '!=', $courseId)->exists()) {
-                return response()->json([
-                    'error' => "La jornada '{$shift->name}' ya está asignada a otro curso."
-                ], 400);
-            }
-        }
-    
-        // Eliminar las jornadas que ya no están en la lista
-        $shiftsToRemove = array_diff($currentShiftIds, $request->shift_ids);
-        if (!empty($shiftsToRemove)) {
-            $course->shifts()->detach($shiftsToRemove);
-        }
-    
-        // Agregar las nuevas jornadas
-        $shiftsToAdd = array_diff($request->shift_ids, $currentShiftIds);
-        if (!empty($shiftsToAdd)) {
-            $course->shifts()->attach($shiftsToAdd);
-        }
-    
-        return response()->json(['message' => 'Jornadas actualizadas correctamente.']);
     }
 
-    
-    
+    public function getCourseInstructor(Request $request, $id)
+    {
+        $courseIntructor = $this->courseService->getCourseInstructor($request, $id);
+        return response()->json([
+            'las fichas donde el instructor tuvo formacion son:' => $courseIntructor,
+        ]);
+    }
+
+    public function getCourseInstructorNow(Request $request, $id)
+    {
+        $courseIntructor = $this->courseService->getCourseInstructorNow($request, $id);
+        return response()->json([
+            'las fichas donde el instructor tiene sesiones actualmente:' => $courseIntructor,
+        ]);
+    }
 }

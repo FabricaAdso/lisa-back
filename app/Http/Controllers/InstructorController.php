@@ -3,17 +3,22 @@
 namespace App\Http\Controllers;
 
 use App\Models\Instructor;
+use App\Services\TokenService;
 use Illuminate\Http\Request;
 
 class InstructorController extends Controller
 {
-    //
+
+    protected  $token_service;
+
+    function __construct(TokenService $token_service)
+    {   
+        $this->token_service = $token_service;
+    }
+    
     public function index()
     {
-        //$instructor = Instructor::all();
-       $instructor = Instructor::included()->get();
-
-
+      $instructor = Instructor::byTrainingCenter()->included()->filter()->get();
         return response()->json($instructor);
     }
 
@@ -22,13 +27,15 @@ class InstructorController extends Controller
 
         $request->validate([
             'user_id' => 'required|exists:users,id',
-            'training_center_id'=>'required|exists:training_centers,id',
             'state' => 'required|in:Activo,Inactivo',
-
         ]);
-
-        $instructor = Instructor::create($request->all());
-        $instructor->courses()->attach($request->course_id,['start_date' => now()]);
+        $training_center_id = $this->token_service->getTrainingCenterIdFromToken();
+        $instructor = Instructor::create([
+            'user_id' => $request->user_id,
+            'training_center_id'=>$training_center_id,
+            'knowledge_network_id'=>$request->knowledge_networks_id
+        ]);
+   
         return response()->json($instructor);
     }
 
@@ -44,6 +51,7 @@ class InstructorController extends Controller
             'user_id' => 'required|exists:users,id',
             'training_center_id'=>'required|exists:training_centers,id',
             'state' => 'required|in:Activo,Inactivo',
+            'knowledge_network_id'=> 'required|exists:knowledge_networks,id'
         ]);
 
         $instructor = Instructor::find($id);

@@ -11,12 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('instructors', function (Blueprint $table) {
+        Schema::create('knowledge_networks', function (Blueprint $table) {
             $table->id();
-            $table->enum('state',['Activo','Inactivo']);
-            //FK
-            $table->foreignId('user_id')->nullable()->constrained()->onDelete('set null');
-            $table->foreignId('training_center_id')->nullable()->constrained()->onDelete('set null');
+            $table->string('name');
             $table->timestamps();
         });
     }
@@ -26,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('instructors');
+        Schema::dropIfExists('knowledge_networks');
     }
 };

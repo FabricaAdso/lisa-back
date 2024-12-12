@@ -11,12 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('assistances', function (Blueprint $table) {
+        Schema::create('apprentices', function (Blueprint $table) {
             $table->id();
-            $table->boolean('assistance')->nullable();
+            $table->enum('state',['Formacion', 'Desertado', 'Etapa_productiva', 'Retiro_voluntario']);
             //FK
-            $table->foreignId('session_id')->nullable()->constrained()->onDelete('set null');
-            $table->foreignId('apprentice_id')->nullable()->constrained()->onDelete('set null');
+            $table->foreignId('user_id')->nullable()->constrained()->onDelete('set null');
+            $table->foreignId('course_id')->nullable()->constrained()->onDelete('set null');
             $table->timestamps();
         });
     }
@@ -26,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('assistances');
+        Schema::dropIfExists('apprentices');
     }
 };

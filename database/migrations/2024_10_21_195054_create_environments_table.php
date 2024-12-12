@@ -15,9 +15,10 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->integer('capacity');
-            $table->string('knowledge_network');
+     
             //Llave Foranea Sede
             $table->foreignId('headquarters_id')->nullable()->constrained()->onDelete('set null');
+            $table->foreignId('knowledge_network_id')->nullable()->constrained()->onDelete('set null');
             $table->timestamps();
         });
     }

@@ -11,7 +11,7 @@ class TrainingCenter extends Model
     //
     protected $fillable = ['name'];
     protected $allowIncluded = ['headquarters'];
-    protected $allowFilter = ['name'];
+    protected $allowFilter = ['name','regional_id'];
 
 
     public function headquarters()
@@ -86,9 +86,13 @@ class TrainingCenter extends Model
             if ($allowFilter->contains($filter)) {
                 $query->where($filter, 'LIKE', '%' . $value . '%');
             }
+            if($filter === 'regional_id' && $allowFilter->contains('regional_id')){
+                $query->where('regional_id', $value  );
+            } 
         }
     
         return $query;
     }
+
     
 }

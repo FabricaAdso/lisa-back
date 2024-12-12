@@ -11,12 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('apprentices', function (Blueprint $table) {
+        Schema::create('instructors', function (Blueprint $table) {
             $table->id();
-            $table->enum('state',['formacion', 'Desertado', 'Etapa_productiva', 'Retiro_voluntario']);
+            $table->enum('state',['Activo','Inactivo']);
             //FK
             $table->foreignId('user_id')->nullable()->constrained()->onDelete('set null');
-            $table->foreignId('course_id')->nullable()->constrained()->onDelete('set null');
+            $table->foreignId('training_center_id')->nullable()->constrained()->onDelete('set null');
+            $table->foreignId('knowledge_network_id')->nullable()->constrained()->onDelete('set null');
+            $table->unique(['user_id','training_center_id']);
             $table->timestamps();
         });
     }
@@ -26,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('apprentices');
+        Schema::dropIfExists('instructors');
     }
 };

@@ -6,11 +6,20 @@ use App\Models\Apprentice;
 use App\Models\Assistance;
 use App\Models\Instructor;
 use App\Models\Session;
+use App\Services\SessionService;
 use Illuminate\Http\Request;
 
 class SessionController extends Controller
 {
-    //
+
+    protected $sessionService;
+
+    public function __construct(SessionService $sessionService)
+    {
+        $this->sessionService = $sessionService;
+    }
+    
+
     public function index()
     {
         //$sessions = Session::all();
@@ -20,102 +29,50 @@ class SessionController extends Controller
         return response()->json($sessions);
     }
 
+
     public function show($id)
     {
         $session = Session::find($id);
         return response()->json($session);
     }
 
+
     public function update(Request $request, $id)
     {
         $request->validate([
-            'date' => 'required|date_format:Y-m-d',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'days_of_week' => 'required|string', 
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
             'course_id' => 'required|exists:courses,id',
-            'instructor_id' => 'required|exists:users,id',
+            'instructor_id' => 'required|exists:instructors,id',
+            'instructor2_id' => 'nullable|exists:users,id',
         ]);
-
+    
         $session = Session::find($id);
+    
+        if (!$session->date || now()->gt($session->date)) {
+            return response()->json(['error' => 'La sesión ya ha pasado'], 400);
+        }
+    
         $session->update($request->all());
+    
         return response()->json($session);
     }
-
+    
     public function destroy($id)
     {
         $session =  Session::find($id);
         $session->assistances()->delete();
         $session->delete();
-        return response()->json(['message' => 'Session deleted successfully']);
+        return response()->json(['message' => 'Session eliminada exitosamente']);
     }
 
     // Crear sesión
-    
     public function createSession(Request $request)
     {
-        // Validar los datos de entrada
-        $request->validate([
-            'date' => 'required|date',
-            'start_time' => 'required|date_format:H:i',
-            'end_time' => 'required|date_format:H:i|after:start_time',
-            'course_id' => 'required|exists:courses,id',
-            'instructor_id' => 'required|exists:instructors,id', // ID del instructor de la sesión
-        ]);
-    
-        // Comprobar si ya existe una sesión en la misma fecha y con el mismo instructor
-        $existingSession = Session::where('date', $request->date)
-            ->where('instructor_id', $request->instructor_id)
-            ->first();
-    
-        if ($existingSession) {
-            return response()->json(['message' => 'Ya existe una sesión para esta fecha y usuario.'], 409);
-        }
-    
-        // Obtener el instructor
-        $instructor = Instructor::with('user', 'courses')->find($request->instructor_id);
-    
-        if (!$instructor) {
-            return response()->json(['message' => 'Instructor no encontrado.'], 404);
-        }
-    
-        // Crear la sesión con el instructor_id incluido
-        $session = Session::create([
-            'date' => $request->date,
-            'start_time' => $request->start_time,
-            'end_time' => $request->end_time,
-            'instructor_id' => $request->instructor_id,
-        ]);
-    
-        // Obtener los aprendices activos en el curso del instructor
-        $aprendices = Apprentice::with('user')
-            ->whereHas('course', function ($query) use ($instructor) {
-                $query->where('id', $instructor->course_id);
-            })
-            ->whereHas('user.roles', function ($query) {
-                $query->where('name', 'Aprendiz');
-            })
-            ->whereNull('end_date')
-            ->get();
-    
-        if ($aprendices->isEmpty()) {
-            return response()->json(['message' => 'No se encontraron aprendices activos para esta ficha.'], 400);
-        }
-    
-        // Crear asistencias para cada aprendiz
-        foreach ($aprendices as $aprendiz) {
-            Assistance::create([
-                'apprentice_id' => $aprendiz->id,
-                'session_id' => $session->id,
-                'assistance' => null,
-            ]);
-        }
-    
-        return response()->json([
-            'message' => 'Sesión y asistencias creadas exitosamente.',
-            'profesor' => $instructor,
-            'aprendices' => $aprendices,
-        ]);
+        return $this->sessionService->createSession($request);
     }
-    
 
 }

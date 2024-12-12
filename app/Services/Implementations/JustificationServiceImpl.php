@@ -38,14 +38,14 @@ class JustificationServiceImpl implements JustificationService
     {
         $request->validate([
             'assistance_id' => 'required|exists:assistances,id',
-            'file' => 'required|mimes:pdf|max:2048',
+            'file' => 'required|mimes:pdf',
             'description' => 'nullable|string',
         ]);
 
         $assistance = Assistance::included()->findOrFail($request->assistance_id);
         $justification = Justification::where('assistance_id', $request->assistance_id)->first();
 
-        $assistanceDate = $assistance->assistance->updated_at;
+        $assistanceDate = $assistance->updated_at;
         $startJustificationDate = Carbon::parse($assistanceDate);
         $endJustificationDate = Carbon::now();
 
@@ -70,7 +70,7 @@ class JustificationServiceImpl implements JustificationService
             $file = $request->file('file');
             $fileName = "pdf_" . time() . "." . $file->guessExtension();
             $filePath = $file->storeAs('public/files', $fileName);
-            $fileUrl = Storage::url($filePath);
+            $fileUrl = url(Storage::url($filePath));
         }
 
 

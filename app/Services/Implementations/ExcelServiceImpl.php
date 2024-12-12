@@ -51,14 +51,14 @@ class ExcelServiceImpl implements ExcelService
         $allData = [];
         $rowData = [];
 
-        foreach ($worksheet->getRowIterator(6) as $row) {
+        foreach ( $worksheet->getRowIterator(6) as $row){
             $data = [];
             $cellIterator = $row->getCellIterator();
             $cellIterator->setIterateOnlyExistingCells(false);
 
             $index = 0;
             foreach ($cellIterator as $cell) {
-                $header = $headers[$index] ?? 'Columna desconocida';
+                $header = $headers[$index];
                 $data[$header] = $cell->getValue();
                 if (empty($data[$header]) && !in_array($header, $optionalColumns)) {
                     return [
@@ -68,29 +68,22 @@ class ExcelServiceImpl implements ExcelService
                         'datos' => $data,
                     ];
                 }
-                $index++;
+                $data['ESTADO_FICHA'] = $stateMapping[$data['ESTADO_FICHA']] ?? null;
+                $rowData[] = $data;
+
+                if(count($rowData) >= $batchSize){
+                    $this->processChunk($rowData);
+                    $rowData = [];
+                }
             }
-            $data['ESTADO_FICHA'] = $stateMapping[$data['ESTADO_FICHA']] ?? null;
-
-            $rowData[] = $data;
-
-            if (count($rowData) >= $batchSize) {
+            if(!empty($rowData)){
                 $this->processChunk($rowData);
-                $allData = array_merge($allData, $rowData);
-                $rowData = []; // Reiniciar el chunk
             }
+            
+            return [
+                'message' => 'Archivo procesado correctamente',
+            ];
         }
-
-        // Procesar los registros restantes si quedaron fuera del último chunk
-        if (!empty($rowData)) {
-            $this->processChunk($rowData);
-            $allData = array_merge($allData, $rowData);
-        }
-
-        return [
-            'message' => 'Datos asignados correctamente',
-            'datos' => $allData,
-        ];
     }
 
     private function processChunk($chunk)

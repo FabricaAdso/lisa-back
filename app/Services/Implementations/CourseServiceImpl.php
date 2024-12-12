@@ -24,7 +24,11 @@ class CourseServiceImpl implements CourseService
               ->where('start_time','>',Carbon::now()->toTimeString())
               ->where('end_time','>',Carbon::now()->toTimeString());
             });
-          })->included()->get();
+          })
+          ->included()
+          ->orderBy('date')
+          ->orderBy('start_time')
+          ->get();
         return $session;
     }
 
@@ -40,7 +44,11 @@ class CourseServiceImpl implements CourseService
                     ->where('start_time','<',Carbon::now()->toTimeString())
                     ->where('end_time','<',Carbon::now()->toTimeString());
                   });
-        })->included()->get();
+        })
+        ->included()
+        ->orderBy('date')
+        ->orderBy('start_time')
+        ->get();
         return $session;
     }
 
@@ -56,7 +64,11 @@ class CourseServiceImpl implements CourseService
                     ->where('start_time','<=',Carbon::now()->toTimeString())
                     ->where('end_time','>=',Carbon::now()->toTimeString());
                   });
-        })->included()->get();
+        })
+        ->included()
+        ->orderBy('date')
+        ->orderBy('start_time')
+        ->get();
         return $session;
     }
         

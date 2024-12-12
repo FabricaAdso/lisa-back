@@ -69,8 +69,8 @@ class JustificationServiceImpl implements JustificationService
         if ($request->hasFile('file')) {
             $file = $request->file('file');
             $fileName = "pdf_" . time() . "." . $file->guessExtension();
-            $filePath = $file->storeAs('public/files', $fileName);
-            $fileUrl = url(Storage::url($filePath));
+            $filePath = $file->storeAs('files', $fileName, 'public');     
+            $fileUrl = url('storage/' . $filePath);
         }
 
 

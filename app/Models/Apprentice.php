@@ -11,7 +11,7 @@ class Apprentice extends Model
 {
     //
     protected $fillable = ['state','user_id','course_id'];
-    protected $allowIncluded = ['course.program.trainingCenter'];
+    protected $allowIncluded = ['course.program.trainingCenter','user'];
     protected $allowFilter = ['course_'];
     
     public function user ()
@@ -53,7 +53,7 @@ class Apprentice extends Model
    public function scopeByTrainingCenter(Builder $query)
     {
         $token_service = new TokenServiceImpl();
-        $training_center_id = $token_service->getTrainingCenterIdFromToken();
+        $training_center_id = $token_service->getTrainingCenterIdFromToken();   
         
         return $query->whereHas('course.program', function($query) use ($training_center_id) {
             return $query->whereHas('trainingCenter', function ($query) use ($training_center_id) {

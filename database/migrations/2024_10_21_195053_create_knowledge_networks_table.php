@@ -11,14 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('environments', function (Blueprint $table) {
+        Schema::create('knowledge_networks', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->integer('capacity');
-     
-            //Llave Foranea Sede
-            $table->foreignId('headquarters_id')->nullable()->constrained()->onDelete('set null');
-            $table->foreignId('knowledge_network_id')->nullable()->constrained()->onDelete('set null');
             $table->timestamps();
         });
     }
@@ -28,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('environments');
+        Schema::dropIfExists('knowledge_networks');
     }
 };

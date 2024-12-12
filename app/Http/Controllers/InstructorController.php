@@ -15,13 +15,10 @@ class InstructorController extends Controller
     {   
         $this->token_service = $token_service;
     }
-    //
+    
     public function index()
     {
-       // $instructor = Instructor::all();
-      $instructor = Instructor::included()->get();
-
-
+      $instructor = Instructor::byTrainingCenter()->included()->filter()->get();
         return response()->json($instructor);
     }
 
@@ -33,10 +30,10 @@ class InstructorController extends Controller
             'state' => 'required|in:Activo,Inactivo',
         ]);
         $training_center_id = $this->token_service->getTrainingCenterIdFromToken();
-        //echo($training_center_id);
         $instructor = Instructor::create([
             'user_id' => $request->user_id,
-            'training_center_id'=>$training_center_id
+            'training_center_id'=>$training_center_id,
+            'knowledge_network_id'=>$request->knowledge_networks_id
         ]);
    
         return response()->json($instructor);
@@ -54,6 +51,7 @@ class InstructorController extends Controller
             'user_id' => 'required|exists:users,id',
             'training_center_id'=>'required|exists:training_centers,id',
             'state' => 'required|in:Activo,Inactivo',
+            'knowledge_network_id'=> 'required|exists:knowledge_networks,id'
         ]);
 
         $instructor = Instructor::find($id);

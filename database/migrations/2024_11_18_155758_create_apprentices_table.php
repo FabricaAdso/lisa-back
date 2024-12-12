@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('apprentices', function (Blueprint $table) {
             $table->id();
-            $table->enum('state',['formacion', 'Desertado', 'Etapa_productiva', 'Retiro_voluntario']);
+            $table->enum('state',['Formacion', 'Desertado', 'Etapa_productiva', 'Retiro_voluntario']);
             //FK
             $table->foreignId('user_id')->nullable()->constrained()->onDelete('set null');
             $table->foreignId('course_id')->nullable()->constrained()->onDelete('set null');

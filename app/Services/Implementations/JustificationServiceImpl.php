@@ -38,7 +38,7 @@ class JustificationServiceImpl implements JustificationService
     {
         $request->validate([
             'assistance_id' => 'required|exists:assistances,id',
-            'file' => $request->hasFile('file'),
+            'file' => 'required|mimes:pdf',
             'description' => 'nullable|string',
         ]);
 
@@ -70,7 +70,7 @@ class JustificationServiceImpl implements JustificationService
             $file = $request->file('file');
             $fileName = "pdf_" . time() . "." . $file->guessExtension();
             $filePath = $file->storeAs('public/files', $fileName);
-            $fileUrl = Storage::url($filePath);
+            $fileUrl = url(Storage::url($filePath));
         }
 
 

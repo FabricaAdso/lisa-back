@@ -62,6 +62,12 @@ class JustificationController extends Controller
         return response()->json([$justifications]);
     }
 
+    public function index()
+    {
+        $justifications = Justification::all();
+        return response()->json($justifications);
+    }
+
 
     public function show($id)
     {

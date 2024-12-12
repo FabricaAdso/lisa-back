@@ -2,9 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Apprentice;
+use App\Models\Aprobation;
 use App\Models\Assistance;
+use App\Models\Instructor;
+use App\Models\Justification;
+use App\Models\Session;
+use App\Models\User;
 use App\Services\ApprenticeService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Console\Scheduling\Schedule;
 
 class AssistanceController extends Controller
 {
@@ -17,9 +25,9 @@ class AssistanceController extends Controller
     }
 
     public function index(){
-        $assistance = Assistance::included()->get();
+        $assistance = Assistance::included()->filter()->get();
         return response()->json($assistance);
-    } 
+    }
 
     public function editAssistance(Request $request, $assistanceId)
     {
@@ -36,9 +44,11 @@ class AssistanceController extends Controller
             'assistance' => 'required|boolean',
         ]);
 
-
-        $assistance->assistance = $request->input('assistance');
+        $assistancePrevius = $assistance->assistance;
+        $newAssistance = $request->input('assistance');
+        $assistance->assistance = $newAssistance;
         $assistance->save();
+        $this->JustificationAndAprobation($assistance ,$assistancePrevius, $newAssistance);
 
         return response()->json([
             'message' => 'Asistencia actualizada correctamente.',
@@ -51,5 +61,54 @@ class AssistanceController extends Controller
         $faults = $this->apprenticeService->UnjustifiedAbsences($apprenticeId);
 
         return response()->json(['unjustifiedAbsences' => $faults]);
+    }
+
+    public function JustificationAndAprobation($assistance, $assistancePrevius, $newAssistance)
+    {
+        if ($assistancePrevius == 0 && $newAssistance == 1) {
+            $justificationDelete = Justification::where('assistance_id', $assistance->id)->first();
+            
+            if ($justificationDelete) {
+                if($justificationDelete->aprobation){
+                    $justificationDelete->aprobation->delete();
+                }
+                $justificationDelete->delete();
+            }
+        } elseif ($newAssistance == 0) {
+            $Justification = Justification::firstOrCreate([
+                'assistance_id' => $assistance->id,
+            ], [
+                'file_url' => null,  
+                'description' => null,
+            ]);
+            Aprobation::firstOrCreate([
+                'justification_id' => $Justification->id,
+            ],[
+                'state' => null,
+                'motive' => null,
+            ]);
+        }
+    }
+
+    public function getInassitanceApprentice ()
+    {
+        $user = User::find(Auth::id());
+        $apprentice = Apprentice::where('user_id', $user->id)->first();
+        $assistance = Assistance::where('apprentice_id', $apprentice->id)
+            ->included()
+            ->filter()
+            ->get();
+        return response()->json([$apprentice ,$assistance]);
+    }
+
+    public function getInassitanceInstructor ()
+    {
+        $user = User::find(Auth::id());
+        $instructor = Instructor::where('user_id', $user->id)->first();
+        $session = Session::where('instructor_id', $instructor->id)
+            ->included()
+            ->filter()
+            ->get();
+        return response()->json([$instructor ,$session]);
     }
 }

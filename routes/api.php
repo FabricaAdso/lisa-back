@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ApprenticeController;
+use App\Http\Controllers\AprobationController;
 use App\Http\Controllers\AssistanceController;
 use App\Http\Controllers\DepartamentController;
 use App\Http\Controllers\EnvironmentAreaController;
@@ -12,7 +13,9 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\EducationLevelController;
+use App\Http\Controllers\ExcelController;
 use App\Http\Controllers\InstructorController;
+use App\Http\Controllers\JustificationController;
 use App\Http\Controllers\KnowledgeNetworkController;
 use App\Http\Controllers\ProgramController;
 use App\Http\Controllers\RegionalController;
@@ -57,12 +60,13 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::resource('educationLevel', EducationLevelController::class);
     Route::resource('programs', ProgramController::class);
     Route::resource('courses', CourseController::class);
+    
     //instructores que tiene sesiones pendientes
-    Route::get('course/{instructor_id}/Instructorsessions', [CourseController::class, 'getInstructorAndSessions']);
+    Route::get('course/Instructorsessions', [CourseController::class, 'getInstructorAndSessions']);
     //instructores con fichas que tuvo formacion
-    Route::get('course/{instructor_id}/sessions', [CourseController::class, 'getCourseInstructor']);
+    Route::get('course/sessions', [CourseController::class, 'getCourseInstructor']);
     //sesiones que tiene un instructor hoy
-    Route::get('course/{instructor_id}/sessionsNow', [CourseController::class, 'getCourseInstructorNow']);
+    Route::get('course/sessionsNow', [CourseController::class, 'getCourseInstructorNow']);
 
     // Centros de formacion, ambientes y sedes
     Route::apiResource('headquarters', HeadquartersController::class);
@@ -77,13 +81,40 @@ Route::group(['middleware' => 'auth:api'], function () {
     // Ruta desencriptar training_center_id del token
     Route::get('/training-center', [AuthController::class, 'getTrainingCenterIdFromToken']);
 
+    //Justification CRUD
+    Route::resource('justifications', JustificationController::class);
+    Route::get('justification/apprentice', [JustificationController::class, 'indexApprentice']);
+    Route::get('justification/instructor', [JustificationController::class, 'getInassitanceInstructor']);
+    Route::put('justifications', [JustificationController::class, 'createJustification']);
+
+    //Aprobation Crud y Filtros
+    Route::resource('aprobations', AprobationController::class);
+    Route::put('aprobations', [AprobationController::class, 'editStateOfJustification']);
+
+    //justificaciones por aprendices
+    Route::get('/apprentices/assistance', [AssistanceController::class, 'getInassitanceApprentice']);
+    //justificaciones por sessiones y aprendices
+    Route::get('/instructor/apprentice/assistance', [AssistanceController::class, 'getInassitanceInstructor']);
+    
+    
+    Route::post('logout', [AuthController::class, 'logout']);
+    
+    // Ruta instructor & Apprentice
+    Route::resource('instructor',InstructorController::class);
+    Route::resource('apprentice',ApprenticeController::class);
+    
+    //session
+    Route::resource('sessions',SessionController::class);
+    Route::post('sessions', [SessionController::class, 'createSession']);
+    
     //Ruta para red de conocimiento
     Route::resource('/knowledgeNetwork', KnowledgeNetworkController::class);
     Route::get('/knowledgeNetwork/{id}', [KnowledgeNetworkController::class, 'show']);
-   
+    
+    Route::get('regionals',[RegionalController::class, 'index'])->withoutMiddleware(['auth:api']);
 });
 
-Route::post('logout', [AuthController::class, 'logout']);
+Route::post('excel', [ExcelController::class, 'excel']);
 
 // Ruta instructor & Apprentice
 Route::resource('instructor',InstructorController::class);

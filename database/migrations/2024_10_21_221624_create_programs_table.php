@@ -13,6 +13,8 @@ return new class extends Migration
     {
         Schema::create('programs', function (Blueprint $table) {
             $table->id();
+            $table->string('code')->unique();
+            $table->string('version');
             $table->string('name');
             //FK
             $table->foreignId('education_level_id')->nullable()->constrained()->onDelete('set null');

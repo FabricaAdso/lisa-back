@@ -9,7 +9,11 @@ use App\Models\User;
 class TrainingCenter extends Model
 {
     //
-    protected $fillable = ['name'];
+    protected $fillable = [
+        'code',
+        'name',
+        'regional_id'
+    ];
     protected $allowIncluded = ['headquarters'];
     protected $allowFilter = ['name','regional_id'];
 

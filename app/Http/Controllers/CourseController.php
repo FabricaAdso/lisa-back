@@ -3,10 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Course;
-use App\Models\Instructor;
-use App\Models\Shift;
 use App\Services\CourseService;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 
@@ -92,27 +89,23 @@ class CourseController extends Controller
         return response()->json(['message' => 'Course deleted successfully']);
     }
     
-    public function getInstructorAndSessions(Request $request, $id)
+    public function getInstructorAndSessions(Request $request)
     {
-        $courseInstructorSession = $this->courseService->getInstructorAndSessions($request, $id);
-        return response()->json([
-            'las fichas que tienen sesion con el instructor son' => $courseInstructorSession,
-        ]);
+        $courseInstructorSession = $this->courseService->getInstructorAndSessions($request);
+        return response()->json(
+            $courseInstructorSession
+        );
     }
 
-    public function getCourseInstructor(Request $request, $id)
+    public function getCourseInstructor(Request $request)
     {
-        $courseIntructor = $this->courseService->getCourseInstructor($request, $id);
-        return response()->json([
-            'las fichas donde el instructor tuvo formacion son:' => $courseIntructor,
-        ]);
+        $courseIntructor = $this->courseService->getCourseInstructor($request);
+        return response()->json($courseIntructor);
     }
 
-    public function getCourseInstructorNow(Request $request, $id)
+    public function getCourseInstructorNow(Request $request)
     {
-        $courseIntructor = $this->courseService->getCourseInstructorNow($request, $id);
-        return response()->json([
-            'las fichas donde el instructor tiene sesiones actualmente:' => $courseIntructor,
-        ]);
+        $courseIntructor = $this->courseService->getCourseInstructorNow($request);
+        return response()->json( $courseIntructor);
     }
 }

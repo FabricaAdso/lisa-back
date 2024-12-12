@@ -47,26 +47,33 @@ class SessionController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'date' => 'required|date_format:Y-m-d',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'days_of_week' => 'required|string', 
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
             'course_id' => 'required|exists:courses,id',
-            'instructor_id' => 'required|exists:users,id',
+            'instructor_id' => 'required|exists:instructors,id',
             'instructor2_id' => 'nullable|exists:users,id',
         ]);
-
+    
         $session = Session::find($id);
+    
+        if (!$session->date || now()->gt($session->date)) {
+            return response()->json(['error' => 'La sesión ya ha pasado'], 400);
+        }
+    
         $session->update($request->all());
+    
         return response()->json($session);
     }
-
-
+    
     public function destroy($id)
     {
         $session =  Session::find($id);
         $session->assistances()->delete();
         $session->delete();
-        return response()->json(['message' => 'Session deleted successfully']);
+        return response()->json(['message' => 'Session eliminada exitosamente']);
     }
 
     // Crear sesión

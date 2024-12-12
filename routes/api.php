@@ -111,7 +111,10 @@ Route::group(['middleware' => 'auth:api'], function () {
     //Ruta para red de conocimiento
     Route::resource('/knowledgeNetwork', KnowledgeNetworkController::class);
     Route::get('/knowledgeNetwork/{id}', [KnowledgeNetworkController::class, 'show']);
-   
+    
+    Route::resource('sessions',SessionController::class);
+    Route::post('sessions', [SessionController::class, 'createSession']);
+    
     Route::get('regionals',[RegionalController::class, 'index'])->withoutMiddleware(['auth:api']);
 });
 
@@ -120,8 +123,6 @@ Route::group(['middleware' => 'auth:api'], function () {
 Route::resource('instructor',InstructorController::class);
 
 //session
-Route::resource('sessions',SessionController::class);
-Route::post('sessions', [SessionController::class, 'createSession']);
 
 //Ruta regionales
 Route::get('regionals',[RegionalController::class, 'index']);

@@ -79,9 +79,8 @@ class JustificationServiceImpl implements JustificationService
                 'file_url' => $fileUrl ?? $justification->file_url,
                 'description' => $request->description,
             ]);
-            $justifications = Justification::findOrFail($justification->id)->included();
+            $justifications = Justification::included()->findOrFail($justification->id);
             return [
-                'message' => 'Justificación actualizada con éxito',
                 'justification' => $justifications,
             ];
         }

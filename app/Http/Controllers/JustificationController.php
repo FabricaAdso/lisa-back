@@ -61,7 +61,7 @@ class JustificationController extends Controller
                 ->whereIn('session_id', $sessions->pluck('id'));
         })->included()->filter()->paginate(intval($elements));
 
-        return response()->json([$justifications]);
+        return response()->json($justifications);
     }
     
     

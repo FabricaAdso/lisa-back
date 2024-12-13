@@ -15,7 +15,7 @@ class Justification extends Model
         'description'
     ];
     protected $allowFilter = ['assistance_id', 'file_url', 'description', 'aprobationState'];
-    protected $allowIncluded = ['assistance.session.instructor.user','assistance.session','aprobation','assistance.session.course','assistance.apprentice'];
+    protected $allowIncluded = ['assistance.session.instructor.user','assistance.session','aprobation','assistance.session.course','assistance.apprentice.user'];
 
     //
     public function aprobation ()

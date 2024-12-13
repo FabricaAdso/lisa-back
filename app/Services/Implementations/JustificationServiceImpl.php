@@ -73,7 +73,6 @@ class JustificationServiceImpl implements JustificationService
             $fileUrl = url('storage/' . $filePath);
         }
 
-
         if ($justification) {
             $justification->update([
                 'file_url' => $fileUrl ?? $justification->file_url,
@@ -81,7 +80,7 @@ class JustificationServiceImpl implements JustificationService
             ]);
             $justifications = Justification::included()->findOrFail($justification->id);
             return [
-                'justification' => $justifications,
+                $justifications,
             ];
         }
     }

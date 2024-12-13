@@ -79,7 +79,7 @@ class ExcelServiceImpl implements ExcelService
             if(!empty($rowData)){
                 $this->processChunk($rowData);
             }
-            
+
             return [
                 'message' => 'Archivo procesado correctamente',
             ];
@@ -106,7 +106,7 @@ class ExcelServiceImpl implements ExcelService
         // Buscar o crear el Training Center
         $trainingCenter = TrainingCenter::updateOrCreate(
             ['code' => $data['CODIGO_SEDE']],
-            ['name' => $data['SEDE'], 
+            ['name' => $data['SEDE'],
             'regional_id' => $regional->id]
         );
 

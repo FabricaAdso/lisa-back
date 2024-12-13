@@ -16,6 +16,11 @@ class AssistanceController extends Controller
         $this->apprenticeService = $apprenticeService;
     }
 
+    public function index(){
+        $assistance = Assistance::included()->get();
+        return response()->json($assistance);
+    } 
+
     public function editAssistance(Request $request, $assistanceId)
     {
 
@@ -28,7 +33,7 @@ class AssistanceController extends Controller
 
 
         $request->validate([
-            'assistance' => 'required|in:ASISTIO,FALTA,FALTA_JUSTIFICADA',
+            'assistance' => 'required|boolean',
         ]);
 
 

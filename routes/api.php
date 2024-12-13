@@ -13,6 +13,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\EducationLevelController;
 use App\Http\Controllers\InstructorController;
+use App\Http\Controllers\KnowledgeNetworkController;
 use App\Http\Controllers\ProgramController;
 use App\Http\Controllers\RegionalController;
 use App\Http\Controllers\SessionController;
@@ -46,6 +47,8 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::get('deactivated', [UserController::class, 'deactivated']);
     Route::get('active', [UserController::class, 'active']);
 
+    Route::resource('apprentice',ApprenticeController::class);
+
     // Ruta para gestionar roles
     Route::get('/roles', [RoleController::class, 'getRoles']);
     Route::post('users/{userId}/training-centers/{trainingCenterId}/toggle-role', [RoleController::class, 'toggleRole']);
@@ -73,13 +76,17 @@ Route::group(['middleware' => 'auth:api'], function () {
 
     // Ruta desencriptar training_center_id del token
     Route::get('/training-center', [AuthController::class, 'getTrainingCenterIdFromToken']);
+
+    //Ruta para red de conocimiento
+    Route::resource('/knowledgeNetwork', KnowledgeNetworkController::class);
+    Route::get('/knowledgeNetwork/{id}', [KnowledgeNetworkController::class, 'show']);
+   
 });
 
 Route::post('logout', [AuthController::class, 'logout']);
 
 // Ruta instructor & Apprentice
 Route::resource('instructor',InstructorController::class);
-Route::resource('apprentice',ApprenticeController::class);
 
 //session
 Route::resource('sessions',SessionController::class);
@@ -90,7 +97,10 @@ Route::get('regionals',[RegionalController::class, 'index']);
 
 // Assistance
 //Route::resource('assistance',AssistanceController::class);
+Route::get('assistance',[AssistanceController::class, 'index']);
 Route::put('/assistance/{assistanceId}', [AssistanceController::class, 'editAssistance']);
-
 Route::get('/apprentices/{apprenticeId}/unjustified-absences', [AssistanceController::class, 'UnjustifiedAbsences']);
+
+//trainig center for login
+Route::resource('trainingCentersLogin', TrainingCenterController::class);
 

@@ -93,13 +93,26 @@ class AuthController extends Controller
 
     public function me()
     {
-        $user = User::find(Auth::id());
-
-        $userWithTrainingCenters = $user->load(['trainingCenters' => function($query) {
+        $user = User::with(['trainingCenters' => function($query) {
             $query->withPivot('role_id');
-        }]);
+        }, 'roles'])->find(Auth::id());
 
-        return response()->json($userWithTrainingCenters);
+        $userWithRoles = [
+            'id' => $user->id,
+            'identity_document' => $user->identity_document,
+            'name' => $user->name,
+            'last_name' => $user->last_name,
+            'deactivation_date' => $user->deactivation_date,
+            'is_superuser' => $user->is_superuser,
+            'email' => $user->email,
+            'email_verified_at' => $user->email_verified_at,
+            'document_type_id' => $user->document_type_id,
+            'created_at' => $user->created_at,
+            'updated_at' => $user->updated_at,
+            'training_centers' => $user->training_centers_with_roles,
+        ];
+
+        return response()->json($userWithRoles);
     }
 
     public function logout()

@@ -54,7 +54,7 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->hasMany(Instructor::class);
     }
-    
+
     /**
      * The attributes that should be hidden for serialization.
      *
@@ -86,6 +86,23 @@ class User extends Authenticatable implements JWTSubject
     public function getJWTCustomClaims()
     {
         return [];
+    }
+
+    public function getTrainingCentersWithRolesAttribute()
+    {
+        $centers = $this->trainingCenters->groupBy('pivot.training_center_id')->map(function($center) {
+            return [
+                'id' => $center->first()->id,
+                'code' => $center->first()->code,
+                'name' => $center->first()->name,
+                'regional_id' => $center->first()->regional_id,
+                'roles' => $center->pluck('pivot.role_id')->unique()->map(function($roleId) {
+                     return \Spatie\Permission\Models\Role::findById($roleId)->name;
+                })->implode(', '),
+            ];
+        });
+
+        return $centers->values()->all();
     }
 
 }

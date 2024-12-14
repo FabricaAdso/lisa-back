@@ -69,34 +69,34 @@ class TrainingCenter extends Model
 
     public function scopeFilter(Builder $query)
     {
-    
+
         if (empty($this->allowFilter) || !is_array($this->allowFilter) || !is_array(request('filter'))) {
             return $query;
         }
-    
+
         $filters = request('filter');
         $allowFilter = collect($this->allowFilter);
-    
+
         foreach ($filters as $filter => $value) {
             if (empty($value)) {
-                continue; 
+                continue;
             }
-    
+
             if ($filter === 'name' && $allowFilter->contains('name')) {
                 $query->where('name', 'LIKE', '%' . $value . '%');
                 continue;
             }
-    
+
             if ($allowFilter->contains($filter)) {
                 $query->where($filter, 'LIKE', '%' . $value . '%');
             }
             if($filter === 'regional_id' && $allowFilter->contains('regional_id')){
                 $query->where('regional_id', $value  );
-            } 
+            }
         }
-    
+
         return $query;
     }
 
-    
+
 }

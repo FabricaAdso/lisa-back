@@ -1,31 +1,38 @@
 <?php
 
 namespace Database\Seeders;
-
-use App\Models\Day;
-use App\Models\KnowledgeNetwork;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+
+// use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    /**
-     * Seed the application's database.
-     */
-    public function run(): void
+    public function run()
     {
-        // User::factory(10)->create();
-
+        // Primero, se crean los registros básicos que no dependen de otros seeders
         $this->call([
-            RolesSeeder::class,
+            RolesSeeder::class, 
             DocumentTypeSeeder::class,
             RegionalSeeder::class,
             TrainingCenterSeeder::class,
-            UserRegisterSeeder::class,
-            KnowledgeNetworkSeeder::class
-            // DaySeeder::class,
+            KnowledgeNetworkSeeder::class,
+            programSeeder::class, 
+            CourseSeeder::class,
         ]);
-        // $this->call(DepartamentSeeder::class);
-        // $this->call(MunicipalitySeeder::class);
+
+        // Luego, se crean los usuarios
+        $this->call([
+            UserRegisterSeeder::class, // Los usuarios
+        ]);
+
+        // Llamada a seeders que dependen de los anteriores
+        $this->call([
+            InstructorSeeder::class, // El instructor con el usuario 30
+            SessionSeeder::class, // Las sesiones
+            ApprenticeSeeder::class, // Los aprendices
+            AssistanceSeeder::class, // Las asistencias
+            JustificationSeeder::class, // Las justificaciones
+        ]);
     }
 }
+

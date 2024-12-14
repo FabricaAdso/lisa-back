@@ -98,7 +98,8 @@ class User extends Authenticatable implements JWTSubject
                 'regional_id' => $center->first()->regional_id,
                 'roles' => $center->pluck('pivot.role_id')->unique()->map(function($roleId) {
                      return \Spatie\Permission\Models\Role::findById($roleId)->name;
-                })->implode(', '),
+                // })->implode(', '),
+                })->all(),
             ];
         });
 

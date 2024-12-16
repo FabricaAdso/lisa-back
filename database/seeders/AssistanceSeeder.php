@@ -11,14 +11,14 @@ class AssistanceSeeder extends Seeder
 {
     public function run()
     {
-        $sessions = Session::all();
-        $apprentices = Apprentice::all();
+        $sessions = Session::all();  // Obtiene todas las sesiones
+        $apprentices = Apprentice::all();  // Obtiene todos los aprendices
 
-        // Para cada sesión y aprendiz, generamos un registro de asistencia
+        // Para cada sesión, generamos un registro de asistencia para cada aprendiz
         foreach ($sessions as $session) {
-            foreach ($apprentices->random(10) as $apprentice) { // asignamos asistencia a 10 aprendices por sesión
+            foreach ($apprentices as $apprentice) { // Asigna a todos los aprendices
                 Assistance::create([
-                    'assistance' => rand(0, 1), // 0 o 1 para asistencia
+                    'assistance' => 0, // Todas las asistencias serán 0
                     'session_id' => $session->id, // ID de la sesión
                     'apprentice_id' => $apprentice->id, // ID del aprendiz
                 ]);

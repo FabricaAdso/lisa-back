@@ -32,6 +32,7 @@ class DatabaseSeeder extends Seeder
             ApprenticeSeeder::class, // Los aprendices
             AssistanceSeeder::class, // Las asistencias
             JustificationSeeder::class, // Las justificaciones
+            // AprobationSeeder::class,
         ]);
     }
 }

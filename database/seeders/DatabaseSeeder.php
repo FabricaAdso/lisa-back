@@ -16,7 +16,7 @@ class DatabaseSeeder extends Seeder
             RegionalSeeder::class,
             TrainingCenterSeeder::class,
             KnowledgeNetworkSeeder::class,
-            programSeeder::class, 
+            ProgramSeeder::class, 
             CourseSeeder::class,
         ]);
 

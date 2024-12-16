@@ -38,7 +38,7 @@ class CourseServiceImpl implements CourseService
     public function getCourseInstructor($request)
     {
       $user = User::find(Auth::id());
-      $instructor = Instructor::where('user_id', $user->id)->get();
+      $instructor = Instructor::where('user_id', $user->id)->first();
       if(!$instructor){
         return ['message' => 'instructor no encontrado'];
       }

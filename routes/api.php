@@ -97,6 +97,8 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::get('/apprentices/assistance', [AssistanceController::class, 'getInassitanceApprentice']);
     //justificaciones por sessiones y aprendices
     Route::get('/instructor/apprentice/assistance', [AssistanceController::class, 'getInassitanceInstructor']);
+    //getAssistanceForSession
+    Route::get('/assistance/{sessionId}', [AssistanceController::class, 'getAssistanceForSession']);
     
     
     Route::post('logout', [AuthController::class, 'logout']);

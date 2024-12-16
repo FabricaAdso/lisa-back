@@ -73,16 +73,13 @@ class JustificationServiceImpl implements JustificationService
             $fileUrl = url('storage/' . $filePath);
         }
 
-
         if ($justification) {
             $justification->update([
                 'file_url' => $fileUrl ?? $justification->file_url,
                 'description' => $request->description,
             ]);
-            return [
-                'message' => 'Justificación actualizada con éxito',
-                'justification' => $justification,
-            ];
+            $justifications = Justification::included()->findOrFail($justification->id);
+            return $justifications;
         }
     }
 

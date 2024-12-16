@@ -92,18 +92,15 @@ class User extends Authenticatable implements JWTSubject
     {
         $centers = $this->trainingCenters->groupBy('pivot.training_center_id')->map(function($center) {
             return [
-                'id' => $center->first()->id,
-                'code' => $center->first()->code,
-                'name' => $center->first()->name,
-                'regional_id' => $center->first()->regional_id,
+
                 'roles' => $center->pluck('pivot.role_id')->unique()->map(function($roleId) {
                      return \Spatie\Permission\Models\Role::findById($roleId)->name;
                 // })->implode(', '), Como cadena de texto
                 })->all(), //Como arreglo
             ];
-        });
+        })->pluck('roles');
 
-        return $centers->values()->all();
+        return $centers->values()->first();
     }
 
 }

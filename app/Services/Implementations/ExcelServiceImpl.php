@@ -2,11 +2,15 @@
 
 namespace App\Services\Implementations;
 
+use App\Models\Apprentice;
 use App\Models\Course;
+use App\Models\DocumentType;
 use App\Models\EducationLevel;
+use App\Models\Instructor;
 use App\Models\Program;
 use App\Models\Regional;
 use App\Models\TrainingCenter;
+use App\Models\User;
 use App\Services\ExcelService;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Illuminate\Support\Facades\Log;
@@ -185,7 +189,7 @@ class ExcelServiceImpl implements ExcelService
 
         return $data;
     }
-    
+
     // public function excelImport($request)
     // {
     //     set_time_limit(300); // 300 segundos (5 minutos)

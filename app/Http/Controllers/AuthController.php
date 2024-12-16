@@ -109,7 +109,7 @@ class AuthController extends Controller
             'document_type_id' => $user->document_type_id,
             'created_at' => $user->created_at,
             'updated_at' => $user->updated_at,
-            'training_centers' => $user->training_centers_with_roles,
+            'roles' => $user->training_centers_with_roles,
         ];
 
         return response()->json($userWithRoles);

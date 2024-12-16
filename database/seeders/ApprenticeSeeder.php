@@ -14,12 +14,9 @@ class ApprenticeSeeder extends Seeder
         $users = User::all();
         $courses = Course::all();
 
-        $states = ['Formacion', 'Desertado', 'Etapa_productiva', 'Retiro_voluntario'];
-
-        // Creamos 22 aprendices con un estado aleatorio
-        foreach ($users->take(22) as $user) {
+        foreach ($users->take(20) as $user) {
             Apprentice::create([
-                'state' => $states[array_rand($states)], // Estado aleatorio
+                'state' =>'Formacion',
                 'user_id' => $user->id, // ID del usuario
                 'course_id' => $courses->random()->id, // Curso aleatorio
             ]);

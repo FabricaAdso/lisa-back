@@ -83,14 +83,14 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::get('/training-center', [AuthController::class, 'getTrainingCenterIdFromToken']);
 
     //Justification CRUD
+    Route::get('justifications/apprentice', [JustificationController::class, 'indexApprentice'])->name('justifications.indexApprentice');
+    Route::get('justifications/instructor', [JustificationController::class, 'getInassitanceInstructor'])->name('justifications.getInassistanceInstructor');
+    Route::put('justifications/{assistance_id}', [JustificationController::class, 'createJustification']);
     Route::resource('justifications', JustificationController::class);
-    Route::get('justification/apprentice', [JustificationController::class, 'indexApprentice']);
-    Route::get('justification/instructor', [JustificationController::class, 'getInassitanceInstructor']);
-    Route::put('justifications', [JustificationController::class, 'createJustification']);
 
     //Aprobation Crud y Filtros
     Route::resource('aprobations', AprobationController::class);
-    Route::put('aprobations', [AprobationController::class, 'editStateOfJustification']);
+    Route::put('aprobations', [AprobationController::class, 'update']);
 
     //justificaciones por aprendices
     Route::get('/apprentices/assistance', [AssistanceController::class, 'getInassitanceApprentice']);

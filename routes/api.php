@@ -67,7 +67,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::get('course/Instructorsessions', [CourseController::class, 'getInstructorAndSessions']);
     //instructores con fichas que tuvo formacion
     Route::get('course/sessions', [CourseController::class, 'getCourseInstructor']);
-    //sesiones que tiene un instructor hoy
+    //sesiones del dia
     Route::get('course/sessionsNow', [CourseController::class, 'getCourseInstructorNow']);
 
     // Centros de formacion, ambientes y sedes

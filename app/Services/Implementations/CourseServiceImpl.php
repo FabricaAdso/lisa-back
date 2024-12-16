@@ -48,10 +48,11 @@ class CourseServiceImpl implements CourseService
         ->included()
         ->orderBy('date')
         ->orderBy('start_time')
-        ->first();
+        ->get();
         return $session;
     }
 
+    //sesiones del dia
     public function getCourseInstructorNow($request)
     {
       $user = User::find(Auth::id());
@@ -68,7 +69,7 @@ class CourseServiceImpl implements CourseService
         ->included()
         ->orderBy('date')
         ->orderBy('start_time')
-        ->first();
+        ->get();
         return $session;
     }
         

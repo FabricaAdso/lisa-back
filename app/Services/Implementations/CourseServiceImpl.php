@@ -28,7 +28,7 @@ class CourseServiceImpl implements CourseService
           ->included()
           ->orderBy('date')
           ->orderBy('start_time')
-          ->get();
+          ->first();
         return $session;
     }
 
@@ -48,7 +48,7 @@ class CourseServiceImpl implements CourseService
         ->included()
         ->orderBy('date')
         ->orderBy('start_time')
-        ->get();
+        ->first();
         return $session;
     }
 
@@ -68,7 +68,7 @@ class CourseServiceImpl implements CourseService
         ->included()
         ->orderBy('date')
         ->orderBy('start_time')
-        ->get();
+        ->first();
         return $session;
     }
         

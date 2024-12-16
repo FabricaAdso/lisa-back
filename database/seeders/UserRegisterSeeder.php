@@ -254,6 +254,14 @@ class UserRegisterSeeder extends Seeder
                 'email' => 'gloria.barreto@gmail.com',
                 'password' => bcrypt('12345678'),
             ],
+            [
+                'identity_document' => '1061702745',
+                'document_type_id' => 1,
+                'name' => 'Yesith',
+                'last_name' => 'Jimenez',
+                'email' => 'deironyesithym21@gmail.com',
+                'password' => bcrypt('12345678'),
+            ],
         ];
 
 

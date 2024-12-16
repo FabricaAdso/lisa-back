@@ -107,7 +107,8 @@ Route::group(['middleware' => 'auth:api'], function () {
     
     //session
     Route::resource('sessions',SessionController::class);
-    Route::post('sessions', [SessionController::class, 'createSession']);
+    Route::post('session', [SessionController::class, 'createSession']);
+    Route::put('session/update', [SessionController::class, 'updateSessions']);
     
     //Ruta para red de conocimiento
     Route::resource('/knowledgeNetwork', KnowledgeNetworkController::class);
@@ -122,8 +123,6 @@ Route::post('excel', [ExcelController::class, 'excel']);
 Route::resource('instructor',InstructorController::class);
 
 //session
-Route::resource('sessions',SessionController::class);
-Route::post('sessions', [SessionController::class, 'createSession']);
 
 //Ruta regionales
 Route::get('regionals',[RegionalController::class, 'index']);

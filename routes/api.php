@@ -60,6 +60,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     //  Rutas para cursos y demas
     Route::resource('educationLevel', EducationLevelController::class);
     Route::resource('programs', ProgramController::class);
+    Route::get('course', [CourseController::class, 'index']);
     Route::resource('courses', CourseController::class);
     
     //instructores que tiene sesiones pendientes

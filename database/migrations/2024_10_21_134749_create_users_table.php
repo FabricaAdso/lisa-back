@@ -14,10 +14,8 @@ return new class extends Migration
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('identity_document')->unique();
-            $table->string('first_name');
-            $table->string('middle_name')->nullable();
+            $table->string('name');
             $table->string('last_name');
-            $table->string('second_last_name')->nullable();
             $table->timestamp('deactivation_date')->nullable();
             $table->boolean('is_superuser')->default(false);
             $table->string('email')->unique();

@@ -17,6 +17,17 @@ class Instructor extends Model
 
     protected $allowFilter = ['knowledge_network_id'];
 
+
+    public static function boot(){
+        parent::boot();
+        static::created(function (self $instructor) {
+            $user = User::find($instructor->user_id);
+            $user->trainingCenters()
+                ->wherePivot('training_center_id',$instructor->training_center_id)
+                ->withPivot('role_id',3);
+        });
+    }
+
     public function aprobations ()
     {
         return $this->hasMany(Aprobation::class);

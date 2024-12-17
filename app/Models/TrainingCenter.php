@@ -26,7 +26,7 @@ class TrainingCenter extends Model
     public function users()
     {
         return $this->belongsToMany(User::class, 'role_training_center_user')
-                    ->withPivot('role_id');
+                    ->withPivot('role_id')->with('roles');
     }
 
     public function programs ()

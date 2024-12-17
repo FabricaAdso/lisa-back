@@ -60,6 +60,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     //  Rutas para cursos y demas
     Route::resource('educationLevel', EducationLevelController::class);
     Route::resource('programs', ProgramController::class);
+    Route::get('course',[ CourseController::class, 'index']);
     Route::resource('courses', CourseController::class);
     
     //instructores que tiene sesiones pendientes
@@ -112,8 +113,8 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::resource('/knowledgeNetwork', KnowledgeNetworkController::class);
     Route::get('/knowledgeNetwork/{id}', [KnowledgeNetworkController::class, 'show']);
     
-    Route::get('regionals',[RegionalController::class, 'index'])->withoutMiddleware(['auth:api']);
 });
+Route::get('regionals',[RegionalController::class, 'index'])->withoutMiddleware(['auth:api']);
 
 Route::post('excel', [ExcelController::class, 'excel']);
 
@@ -121,8 +122,6 @@ Route::post('excel', [ExcelController::class, 'excel']);
 Route::resource('instructor',InstructorController::class);
 
 //session
-Route::resource('sessions',SessionController::class);
-Route::post('sessions', [SessionController::class, 'createSession']);
 
 //Ruta regionales
 Route::get('regionals',[RegionalController::class, 'index']);

@@ -59,4 +59,6 @@ class Assistance extends Model
         $query->with($relations);
     }
 
+    
+
 }

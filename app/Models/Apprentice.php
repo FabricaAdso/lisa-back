@@ -19,9 +19,11 @@ class Apprentice extends Model
         parent::boot();
         static::created(function (self $apprentice) {
             $user = User::find($apprentice->user_id);
+            if($apprentice->course && $apprentice->course->program){
             $user->trainingCenters()
-                ->wherePivot('training_center_id',$apprentice->program()->training_center_id)
+                ->wherePivot('training_center_id',$apprentice->course->program->training_center_id)
                 ->withPivot('role_id',3);
+            }
         });
     }
     

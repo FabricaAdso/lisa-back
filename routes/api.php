@@ -108,9 +108,9 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::resource('apprentice',ApprenticeController::class);
     
     //session
-    Route::resource('sessions',SessionController::class);
     Route::post('session', [SessionController::class, 'createSession']);
     Route::put('session/update', [SessionController::class, 'updateSessions']);
+    Route::resource('sessions',SessionController::class);
     
     //Ruta para red de conocimiento
     Route::resource('/knowledgeNetwork', KnowledgeNetworkController::class);

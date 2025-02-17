@@ -22,8 +22,13 @@ use App\Http\Controllers\RegionalController;
 use App\Http\Controllers\SessionController;
 use App\Http\Controllers\ShiftController;
 use App\Models\Course;
+use Illuminate\Broadcasting\BroadcastController;
+use Illuminate\Broadcasting\Broadcasters\Broadcaster;
+use Illuminate\Broadcasting\BroadcastManager;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -34,6 +39,8 @@ Route::group([], function () {
     Route::post('login', [AuthController::class, 'login']);
     Route::get('document-type', [AuthController::class, 'getDocument']);
 });
+
+Route::post('broadcasting/auth', [BroadcastController::class, 'authenticate']);
 
 Route::group(['middleware' => 'auth:api'], function () {
     Route::post('refresh', [AuthController::class, 'refresh']);

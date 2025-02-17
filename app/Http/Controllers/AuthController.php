@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Services\TokenService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Hash;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -185,6 +186,18 @@ class AuthController extends Controller
         $user->trainingCenters()->detach($request->training_center_id);
 
         return response()->json(['message' => 'Centro de formación eliminado exitosamente.']);
+    }
+
+    public function broadcastAuth(Request $request)
+    {
+        $user = Auth::user(); // Obtener el usuario autenticado
+
+        if (!$user) {
+            return response('Unauthorized', 401);
+        }
+
+        // Aquí se maneja la autenticación de canales privados o de presencia
+        return Broadcast::auth($request);
     }
 
 }

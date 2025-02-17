@@ -6,8 +6,10 @@ use App\Models\Apprentice;
 use App\Models\Assistance;
 use App\Models\Instructor;
 use App\Models\Session;
+use App\Models\User;
 use App\Services\SessionService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class SessionController extends Controller
 {
@@ -23,10 +25,15 @@ class SessionController extends Controller
     public function index()
     {
         //$sessions = Session::all();
-        $sessions = Session::included()->get();
-        
-
+        $user = User::find(Auth::id()); 
+        $instructor = Instructor::where('user_id', $user->id)->first();
+        if (!$instructor) {
+            // Si no se encuentra un instructor, devolver un mensaje de error
+            return response()->json();
+        }
+        $sessions = Session::where('instructor_id', $instructor->id)->included()->get();
         return response()->json($sessions);
+
     }
 
 
@@ -71,6 +78,11 @@ class SessionController extends Controller
 
     // Crear sesión
     public function createSession(Request $request)
+    {
+        return $this->sessionService->createSession($request);
+    }
+
+    public function updateSessions(Request $request)
     {
         return $this->sessionService->createSession($request);
     }

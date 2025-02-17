@@ -10,6 +10,7 @@ use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use App\Models\TrainingCenter;
+use Spatie\Permission\Models\Role;
 
 class User extends Authenticatable implements JWTSubject
 {
@@ -54,7 +55,7 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->hasMany(Instructor::class);
     }
-    
+
     /**
      * The attributes that should be hidden for serialization.
      *
@@ -86,6 +87,21 @@ class User extends Authenticatable implements JWTSubject
     public function getJWTCustomClaims()
     {
         return [];
+    }
+
+    public function getTrainingCentersWithRolesAttribute()
+    {
+        $centers = $this->trainingCenters->groupBy('pivot.training_center_id')->map(function($center) {
+            return [
+
+                'roles' => $center->pluck('pivot.role_id')->unique()->map(function($roleId) {
+                     return \Spatie\Permission\Models\Role::findById($roleId)->name;
+                // })->implode(', '), Como cadena de texto
+                })->all(), //Como arreglo
+            ];
+        })->pluck('roles');
+
+        return $centers->values()->first();
     }
 
 }

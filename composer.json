@@ -8,9 +8,10 @@
         "php": "^8.2",
         "cmixin/business-day": "^1.19",
         "laravel/framework": "^11.9",
+        "laravel/reverb": "^1.4",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.9",
-        "rmunate/calendario-colombia": "^3.0",
+        "phpoffice/phpspreadsheet": "^3.6",
         "spatie/laravel-permission": "^6.9",
         "tymon/jwt-auth": "^2.1"
     },

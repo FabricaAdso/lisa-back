@@ -25,6 +25,11 @@ class Program extends Model
 
     // Relaciones
     //{{api}}/programs?included=educationLevel&filter[education_level]=logo
+    public function subjects ()
+    {
+        return $this->hasMany(Subject::class);
+    }
+
     public function educationLevel()
     {
         return $this->belongsTo(EducationLevel::class);

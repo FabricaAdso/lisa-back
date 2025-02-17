@@ -21,6 +21,7 @@ use App\Http\Controllers\ProgramController;
 use App\Http\Controllers\RegionalController;
 use App\Http\Controllers\SessionController;
 use App\Http\Controllers\ShiftController;
+use App\Http\Controllers\SubjectController;
 use App\Models\Course;
 use Illuminate\Broadcasting\BroadcastController;
 use Illuminate\Broadcasting\Broadcasters\Broadcaster;
@@ -110,7 +111,8 @@ Route::group(['middleware' => 'auth:api'], function () {
     // Ruta instructor & Apprentice
     Route::resource('instructor', InstructorController::class);
     Route::resource('apprentice', ApprenticeController::class);
-
+    // Competencia
+    Route::resource('subject', SubjectController::class);
     //session
     Route::post('session', [SessionController::class, 'createSession']);
     Route::put('session/update', [SessionController::class, 'updateSessions']);

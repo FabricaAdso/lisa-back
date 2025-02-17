@@ -2,6 +2,7 @@
 
 namespace App\Events;
 
+use App\Models\Notification;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PresenceChannel;
@@ -11,17 +12,18 @@ use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 
+use function Laravel\Prompts\error;
+
 class NotificationEvent implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
 
-    public $message;
+    public $notification;
 
-    public function __construct($message)
+    public function __construct(Notification $notification)
     {
-        $this->message=$message;
-        Log::info('NotificationEvent created with message: ' . $message);
+        $this->notification = $notification;
     }
 
     /**
@@ -30,22 +32,28 @@ class NotificationEvent implements ShouldBroadcast
      * @return array<int, \Illuminate\Broadcasting\Channel>
      */
     public function broadcastOn()
-{
-    Log::info('NotificationEvent created with message onnnnnnnnn: ' . $this->message);
-    return [
-        new Channel('notifications'),
-    ];
-}
-    
-    public function broadcastAs()
     {
-        Log::info('NotificationEvent created with message onnnnnnnnn: ' . $this->message);
-        return 'notification.event';
+
+        return [
+            new PrivateChannel('notifications.' . $this->notification->user_id),
+        ];
     }
 
-    public function test()
-{
-    event(new NotificationEvent("Prueba desde controlador"));
-    return response()->json(['message' => 'Evento enviado']);
-}
+    public function broadcastAs()
+    {
+        return 'notification.received';
+    }
+
+    public function broadcastWith(): array
+    {
+        return [
+            'id' => $this->notification->id,
+            'title' => $this->notification->title,
+            'message' => $this->notification->message,
+            'type' => $this->notification->type,
+            'data' => $this->notification->data,
+            'created_at' => $this->notification->created_at->toISOString()
+        ];
+    }
+   
 }

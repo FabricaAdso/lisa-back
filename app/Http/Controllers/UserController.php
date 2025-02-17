@@ -17,7 +17,7 @@ class UserController extends Controller
             $filter = $request->input('filter');
             $query->where(function ($q) use ($filter) {
                 $q->where('identity_document', 'like', "%{$filter}%")
-                  ->orWhere('first_name', 'like', "%{$filter}%")
+                  ->orWhere('name', 'like', "%{$filter}%")
                   ->orWhere('last_name', 'like', "%{$filter}%");
             });
         }
@@ -28,10 +28,8 @@ class UserController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'first_name' => 'required|string|max:255',
-            'middle_name' => 'nullable|string|max:255',
+            'name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
-            'second_last_name' => 'nullable|string|max:255',
             'identity_document' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:6|confirmed',
@@ -40,10 +38,8 @@ class UserController extends Controller
 
         $user = User::create([
             'identity_document' => $request->input('identity_document'),
-            'first_name' => $request->input('first_name'),
-            'middle_name' => $request->input('middle_name'),
+            'name' => $request->input('name'),
             'last_name' => $request->input('last_name'),
-            'second_last_name' => $request->input('second_last_name'),
             'email' => $request->input('email'),
             'password' => Hash::make($request->input('password')),
             'document_type_id' => $request->input('document_type_id'),

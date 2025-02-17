@@ -17,6 +17,7 @@ use App\Http\Controllers\ExcelController;
 use App\Http\Controllers\InstructorController;
 use App\Http\Controllers\JustificationController;
 use App\Http\Controllers\KnowledgeNetworkController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProgramController;
 use App\Http\Controllers\RegionalController;
 use App\Http\Controllers\SessionController;
@@ -122,7 +123,9 @@ Route::group(['middleware' => 'auth:api'], function () {
 
     Route::get('regionals', [RegionalController::class, 'index'])->withoutMiddleware(['auth:api']);
 
-    Route::post('excel', [ExcelController::class, 'excel']);
+    
+});
+Route::post('excel', [ExcelController::class, 'excel']);
 
     // Ruta instructor & Apprentice
     Route::resource('instructor', InstructorController::class);
@@ -136,4 +139,6 @@ Route::group(['middleware' => 'auth:api'], function () {
 
     //trainig center for login
     Route::resource('trainingCentersLogin', TrainingCenterController::class);
-});
+
+    //rutas de notificaciones
+    Route::post('/message', [NotificationController::class, 'store']);

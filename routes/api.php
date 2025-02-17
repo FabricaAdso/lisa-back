@@ -22,8 +22,13 @@ use App\Http\Controllers\RegionalController;
 use App\Http\Controllers\SessionController;
 use App\Http\Controllers\ShiftController;
 use App\Models\Course;
+use Illuminate\Broadcasting\BroadcastController;
+use Illuminate\Broadcasting\Broadcasters\Broadcaster;
+use Illuminate\Broadcasting\BroadcastManager;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -34,6 +39,8 @@ Route::group([], function () {
     Route::post('login', [AuthController::class, 'login']);
     Route::get('document-type', [AuthController::class, 'getDocument']);
 });
+
+Route::post('broadcasting/auth', [BroadcastController::class, 'authenticate']);
 
 Route::group(['middleware' => 'auth:api'], function () {
     Route::post('refresh', [AuthController::class, 'refresh']);
@@ -50,8 +57,6 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::get('deactivated', [UserController::class, 'deactivated']);
     Route::get('active', [UserController::class, 'active']);
 
-    Route::resource('apprentice',ApprenticeController::class);
-
     // Ruta para gestionar roles
     Route::get('/roles', [RoleController::class, 'getRoles']);
     Route::post('users/{userId}/training-centers/{trainingCenterId}/toggle-role', [RoleController::class, 'toggleRole']);
@@ -62,7 +67,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::resource('programs', ProgramController::class);
     Route::get('course', [CourseController::class, 'index']);
     Route::resource('courses', CourseController::class);
-    
+
     //instructores que tiene sesiones pendientes
     Route::get('course/Instructorsessions', [CourseController::class, 'getInstructorAndSessions']);
     //instructores con fichas que tuvo formacion
@@ -99,42 +104,36 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::get('/instructor/apprentice/assistance', [AssistanceController::class, 'getInassitanceInstructor']);
     //getAssistanceForSession
     Route::get('/assistance/{sessionId}', [AssistanceController::class, 'getAssistanceForSession']);
-    
-    
+
     Route::post('logout', [AuthController::class, 'lgout']);
-    
+
     // Ruta instructor & Apprentice
-    Route::resource('instructor',InstructorController::class);
-    Route::resource('apprentice',ApprenticeController::class);
-    
+    Route::resource('instructor', InstructorController::class);
+    Route::resource('apprentice', ApprenticeController::class);
+
     //session
     Route::post('session', [SessionController::class, 'createSession']);
     Route::put('session/update', [SessionController::class, 'updateSessions']);
-    Route::resource('sessions',SessionController::class);
-    
+    Route::resource('sessions', SessionController::class);
+
     //Ruta para red de conocimiento
     Route::resource('/knowledgeNetwork', KnowledgeNetworkController::class);
     Route::get('/knowledgeNetwork/{id}', [KnowledgeNetworkController::class, 'show']);
-    
-    Route::get('regionals',[RegionalController::class, 'index'])->withoutMiddleware(['auth:api']);
+
+    Route::get('regionals', [RegionalController::class, 'index'])->withoutMiddleware(['auth:api']);
+
+    Route::post('excel', [ExcelController::class, 'excel']);
+
+    // Ruta instructor & Apprentice
+    Route::resource('instructor', InstructorController::class);
+   //Ruta regionales
+    Route::get('regionals', [RegionalController::class, 'index']);
+
+    //Route::resource('assistance',AssistanceController::class);
+    Route::get('assistance', [AssistanceController::class, 'index']);
+    Route::put('/assistance/{assistanceId}', [AssistanceController::class, 'editAssistance']);
+    Route::get('/apprentices/{apprenticeId}/unjustified-absences', [AssistanceController::class, 'UnjustifiedAbsences']);
+
+    //trainig center for login
+    Route::resource('trainingCentersLogin', TrainingCenterController::class);
 });
-
-Route::post('excel', [ExcelController::class, 'excel']);
-
-// Ruta instructor & Apprentice
-Route::resource('instructor',InstructorController::class);
-
-//session
-
-//Ruta regionales
-Route::get('regionals',[RegionalController::class, 'index']);
-
-// Assistance
-//Route::resource('assistance',AssistanceController::class);
-Route::get('assistance',[AssistanceController::class, 'index']);
-Route::put('/assistance/{assistanceId}', [AssistanceController::class, 'editAssistance']);
-Route::get('/apprentices/{apprenticeId}/unjustified-absences', [AssistanceController::class, 'UnjustifiedAbsences']);
-
-//trainig center for login
-Route::resource('trainingCentersLogin', TrainingCenterController::class);
-

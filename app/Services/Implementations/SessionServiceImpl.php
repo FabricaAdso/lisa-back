@@ -64,7 +64,7 @@ class SessionServiceImpl implements SessionService
         $totalHours = $subject->number_hours;
 
         // Convertir las fechas y horas en objetos Carbon
-        $startDate = Carbon::parse($request->start_date); // Usamos start_date del request
+        $startDate = Carbon::parse($request->start_date); 
         $startTime = Carbon::parse($request->start_time);
         $endTime = Carbon::parse($request->end_time);
         $sessionDuration = $startTime->diffInHours($endTime);
@@ -93,15 +93,14 @@ class SessionServiceImpl implements SessionService
                 $currentDate->addDay();
             }
 
-            // Verificar si ya existe una sesión en esa fecha con el mismo instructor
-            $existingSession = Session::where('date', $currentDate->format('Y-m-d'))
-                ->where('instructor_id', $request->instructor_id)
-                ->first();
+        // Verificar si el instructor ya tiene una sesión en esta fecha con cualquier curso
+        $existingSession = Session::where('date', $currentDate->format('Y-m-d'))
+            ->where('instructor_id', $request->instructor_id)
+            ->exists();
 
-            if ($existingSession) {
-
-                $existingSessions[] = $currentDate->format('Y-m-d');
-            } else {
+        if ($existingSession) {
+            return response()->json(['message' => 'El instructor ya tiene asignadas sesiones para estas fechas']);
+        } else {
 
                 $session = Session::create([
                     'date' => $currentDate->format('Y-m-d'),

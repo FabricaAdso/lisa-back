@@ -82,4 +82,9 @@ class SessionController extends Controller
         return $this->sessionService->createSession($request);
     }
 
+    public function updateSessions(Request $request)
+    {
+        return $this->sessionService->createSession($request);
+    }
+
 }

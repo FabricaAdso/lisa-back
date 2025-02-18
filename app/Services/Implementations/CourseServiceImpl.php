@@ -16,6 +16,9 @@ class CourseServiceImpl implements CourseService
     {
       $user = User::find(Auth::id());
       $instructor = Instructor::where('user_id', $user->id)->first();
+      if(!$instructor){
+        return ['message' => 'instructor no encontrado'];
+      }
         $session = Session::where('instructor_id', $instructor->id) 
           ->where(function ($query){
             $query->where('date', '>', Carbon::now()->toDateString())
@@ -36,6 +39,9 @@ class CourseServiceImpl implements CourseService
     {
       $user = User::find(Auth::id());
       $instructor = Instructor::where('user_id', $user->id)->first();
+      if(!$instructor){
+        return ['message' => 'instructor no encontrado'];
+      }
         $session = Session::where('instructor_id', $instructor->id)
         ->where(function ($query){
             $query->where('date', '<', Carbon::now()->toDateString())
@@ -52,10 +58,14 @@ class CourseServiceImpl implements CourseService
         return $session;
     }
 
+    //sesiones del dia
     public function getCourseInstructorNow($request)
     {
       $user = User::find(Auth::id());
       $instructor = Instructor::where('user_id', $user->id)->first();
+      if(!$instructor){
+        return ['message' => 'instructor no encontrado'];
+      }
         $session = Session::where('instructor_id', $instructor->id)
         ->where(function ($query){
             $query->where('date', '=', Carbon::now()->toDateString())
@@ -68,7 +78,7 @@ class CourseServiceImpl implements CourseService
         ->included()
         ->orderBy('date')
         ->orderBy('start_time')
-        ->get();
+        ->first();
         return $session;
     }
         

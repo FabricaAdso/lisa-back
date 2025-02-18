@@ -16,7 +16,7 @@ class CourseSeeder extends Seeder
                 'date_end' => now()->addDays(rand(31, 60)), // Fecha de fin aleatoria
                 'shift' => rand(0, 1) ? 'Mañana' : 'Tarde', // Asigna turno aleatorio
                 'state' => collect(['Terminada_por_fecha', 'En_ejecucion', 'Terminada', 'Termindad_por_unificacion'])->random(), // Estado aleatorio
-                'stage' => collect(['PRACTICA', 'LECTIVA'])->random(), // Etapa aleatoria
+                'stage' => 'LECTIVA',
                 'program_id' => null, // Puedes asignar un programa si ya tienes programas creados
                 'environment_id' => null, // Puedes asignar un ambiente si ya tienes ambientes creados
             ]);

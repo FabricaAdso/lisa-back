@@ -13,6 +13,19 @@ class Apprentice extends Model
     protected $fillable = ['state','user_id','course_id'];
     protected $allowIncluded = ['course.program.trainingCenter','user'];
     protected $allowFilter = ['course_'];
+
+
+    public static function boot(){
+        parent::boot();
+        static::created(function (self $apprentice) {
+            $user = User::find($apprentice->user_id);
+            if($apprentice->course && $apprentice->course->program){
+            $user->trainingCenters()
+                ->wherePivot('training_center_id',$apprentice->course->program->training_center_id)
+                ->withPivot('role_id',3);
+            }
+        });
+    }
     
     public function user ()
     {

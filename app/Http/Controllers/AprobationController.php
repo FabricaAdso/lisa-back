@@ -46,9 +46,10 @@ class AprobationController extends Controller
         return response()->json($aprobation);
     }
 
-    public function editStateOfJustification(Request $request)
+    public function update(Request $request)
     {
         $updateAprobation = $this->aprobationService->editStateOfJustification($request);
         return response()->json($updateAprobation);
     }
+    
 }

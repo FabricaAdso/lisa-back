@@ -79,7 +79,7 @@ class JustificationServiceImpl implements JustificationService
                 'description' => $request->description,
             ]);
             $justifications = Justification::included()->findOrFail($justification->id);
-            return $justifications;
+            return response()->json($justification,202);
         }
     }
 

@@ -111,4 +111,13 @@ class AssistanceController extends Controller
             ->get();
         return response()->json([$instructor ,$session]);
     }
+
+    public function getAssistanceForSession($id)
+    {
+        $session = Session::find($id);
+        $assistance = Assistance::where('session_id', $session->id)
+            ->included()
+            ->get();
+        return response()->json($assistance);
+    }
 }

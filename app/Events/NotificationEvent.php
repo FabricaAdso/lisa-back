@@ -5,45 +5,65 @@ namespace App\Events;
 use App\Models\Notification;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Log;
 
-use function Laravel\Prompts\error;
-
+/**
+ * Evento que se dispara cuando se genera una nueva notificación.
+ * 
+ * Implementa ShouldBroadcast para transmitir la notificación en tiempo real a un canal privado.
+ */
 class NotificationEvent implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-
+    /**
+     * La notificación que se enviará al usuario.
+     * 
+     * @var Notification
+     */
     public $notification;
 
+    /**
+     * Constructor del evento.
+     * 
+     * @param Notification $notification La notificación que se transmitirá.
+     */
     public function __construct(Notification $notification)
     {
         $this->notification = $notification;
     }
 
     /**
-     * Get the channels the event should broadcast on.
-     *
+     * Define el canal privado o publico en el que se transmitirá la notificación.
+     * 
      * @return array<int, \Illuminate\Broadcasting\Channel>
      */
     public function broadcastOn()
     {
-
         return [
+            // Se envía la notificación solo al usuario específico
             new PrivateChannel('notifications.' . $this->notification->user_id),
         ];
     }
 
+    /**
+     * Nombre del evento que se transmitirá a los clientes.
+     * 
+     * @return string
+     */
     public function broadcastAs()
     {
         return 'notification.received';
     }
 
+    /**
+     * Datos adicionales que se enviarán junto con el evento.
+     * 
+     * @return array
+     */
     public function broadcastWith(): array
     {
         return [
@@ -52,8 +72,7 @@ class NotificationEvent implements ShouldBroadcast
             'message' => $this->notification->message,
             'type' => $this->notification->type,
             'data' => $this->notification->data,
-            'created_at' => $this->notification->created_at->toISOString()
+            'created_at' => $this->notification->created_at->toISOString(),
         ];
     }
-   
 }

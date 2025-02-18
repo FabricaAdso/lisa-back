@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('sessions', function (Blueprint $table) {
             $table->id();
-            $table->date('date')->nullable();
+            $table->date('date');
             $table->time('start_time');
             $table->time('end_time');
             //FK

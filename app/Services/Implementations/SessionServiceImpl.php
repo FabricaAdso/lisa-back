@@ -4,6 +4,7 @@ namespace App\Services\Implementations;
 
 use App\Models\Apprentice;
 use App\Models\Assistance;
+use App\Models\Course;
 use App\Models\Instructor;
 use App\Models\Session;
 use App\Models\Subject;
@@ -13,8 +14,10 @@ use Illuminate\Http\Request;
 
 class SessionServiceImpl implements SessionService
 
-{public function createSession(Request $request)
+{
+    public function createSession(Request $request)
     {
+
         $request->validate([
             'start_date' => 'required|date',
             'start_time' => 'required|date_format:H:i',
@@ -24,43 +27,82 @@ class SessionServiceImpl implements SessionService
             'instructor_id' => 'required|exists:instructors,id',
             'instructor2_id' => 'nullable|exists:users,id',
         ]);
-    
+
+        // Verificar si el curso está en ejecución
+        $course = Course::findOrFail($request->course_id);
+        if ($course->state !== 'En_ejecucion') {
+            return response()->json(['message' => 'El curso no está en ejecución. No se pueden crear sesiones.'], 422);
+        }
+
+        // Verificar si el instructor está activo
+        $instructor = Instructor::findOrFail($request->instructor_id);
+        if ($instructor->state !== 'Activo') {
+            return response()->json(['message' => 'El instructor no está activo. No se pueden crear sesiones.'], 422);
+        }
+
         $festivos = [
-            '2024-01-01', '2024-01-06', '2024-03-24', '2024-04-17', '2024-04-18',
-            '2024-05-01', '2024-06-02', '2024-06-23', '2024-06-30', '2024-08-07',
-            '2024-08-18', '2024-10-13', '2024-11-03', '2024-11-17', '2024-12-08', '2024-12-25'
+            '2024-01-01',
+            '2024-01-06',
+            '2024-03-24',
+            '2024-04-17',
+            '2024-04-18',
+            '2024-05-01',
+            '2024-06-02',
+            '2024-06-23',
+            '2024-06-30',
+            '2024-08-07',
+            '2024-08-18',
+            '2024-10-13',
+            '2024-11-03',
+            '2024-11-17',
+            '2024-12-08',
+            '2024-12-25'
         ];
-    
+
+        // Obtener la duración total de la competencia en horas
         $subject = Subject::findOrFail($request->subject_id);
         $totalHours = $subject->number_hours;
-    
-        $startDate = Carbon::parse($request->start_date);
+
+        // Convertir las fechas y horas en objetos Carbon
+        $startDate = Carbon::parse($request->start_date); // Usamos start_date del request
         $startTime = Carbon::parse($request->start_time);
         $endTime = Carbon::parse($request->end_time);
         $sessionDuration = $startTime->diffInHours($endTime);
-    
+
+
         if ($sessionDuration <= 0) {
             return response()->json(['message' => 'El tiempo de sesión debe ser mayor a 0 horas.'], 422);
         }
-    
+
+        $dayOfWeek = explode(',', $request->days_of_week);
+        foreach ($dayOfWeek as $day) {
+            if (!in_array($day, ['1', '2', '3', '4', '5', '6', '7'])) {
+                return response()->json(['message' => 'El campo days_of_week contiene valores inválidos.'], 422);
+            }
+        }
+
         $sessionsNeeded = ceil($totalHours / $sessionDuration);
         $sessionsCreated = [];
         $existingSessions = [];
         $currentDate = $startDate;
-    
+
+
         for ($i = 0; $i < $sessionsNeeded; $i++) {
-            while (in_array($currentDate->format('Y-m-d'), $festivos)) {
+
+            while (!in_array($currentDate->dayOfWeek, $dayOfWeek) || in_array($currentDate->format('Y-m-d'), $festivos)) {
                 $currentDate->addDay();
             }
-    
+
+            // Verificar si ya existe una sesión en esa fecha con el mismo instructor
             $existingSession = Session::where('date', $currentDate->format('Y-m-d'))
                 ->where('instructor_id', $request->instructor_id)
-                ->where('course_id', $request->course_id)
                 ->first();
-    
+
             if ($existingSession) {
+
                 $existingSessions[] = $currentDate->format('Y-m-d');
             } else {
+
                 $session = Session::create([
                     'date' => $currentDate->format('Y-m-d'),
                     'start_time' => $startTime->format('H:i'),
@@ -69,7 +111,8 @@ class SessionServiceImpl implements SessionService
                     'course_id' => $request->course_id,
                     'subject_id' => $request->subject_id,
                 ]);
-    
+
+
                 $aprendices = Apprentice::where('course_id', $request->course_id)->get();
                 foreach ($aprendices as $aprendiz) {
                     Assistance::create([
@@ -78,20 +121,20 @@ class SessionServiceImpl implements SessionService
                         'assistance' => null,
                     ]);
                 }
-    
+
                 $sessionsCreated[] = $session;
             }
-    
-            $currentDate->addDay();
+
+            $currentDate->addWeek();
         }
-    
+
+
         return response()->json([
             'message' => 'Sesiones y asistencias creadas exitosamente.',
             'sessions_created' => $sessionsCreated,
             'existing_sessions' => $existingSessions,
         ]);
     }
-    
     // public function createSession(Request $request)
     // {
     //     $request->validate([
@@ -127,9 +170,9 @@ class SessionServiceImpl implements SessionService
 
     //     while ($currentDate->lte($endDate)) {
     //         if (in_array($currentDate->dayOfWeekIso, $daysOfWeek)) {
-            
+
     //             if (!in_array($currentDate->format('Y-m-d'), $festivos)) { 
-                    
+
     //                 $existingSession = Session::where('date', $currentDate->format('Y-m-d'))
     //                     ->where('instructor_id', $request->instructor_id)
     //                     ->where('course_id', $request->course_id)
@@ -138,7 +181,7 @@ class SessionServiceImpl implements SessionService
     //                 if ($existingSession) {
     //                     $existingSessions[] = $currentDate->format('Y-m-d');
     //                 } else {
-                       
+
     //                     $session = Session::create([
     //                         'date' => $currentDate->format('Y-m-d'),
     //                         'start_time' => $request->start_time,
@@ -185,9 +228,22 @@ class SessionServiceImpl implements SessionService
         ]);
 
         $festivos = [
-            '2024-01-01', '2024-01-06', '2024-03-24', '2024-04-17', '2024-04-18',
-            '2024-05-01', '2024-06-02', '2024-06-23', '2024-06-30', '2024-08-07',
-            '2024-08-18', '2024-10-13', '2024-11-03', '2024-11-17', '2024-12-08', '2024-12-25'
+            '2024-01-01',
+            '2024-01-06',
+            '2024-03-24',
+            '2024-04-17',
+            '2024-04-18',
+            '2024-05-01',
+            '2024-06-02',
+            '2024-06-23',
+            '2024-06-30',
+            '2024-08-07',
+            '2024-08-18',
+            '2024-10-13',
+            '2024-11-03',
+            '2024-11-17',
+            '2024-12-08',
+            '2024-12-25'
         ];
 
         // Convertir los días de la semana en un arreglo
@@ -255,9 +311,9 @@ class SessionServiceImpl implements SessionService
         // Eliminar sesiones fuera del rango o no coincidentes con los días seleccionados
         $sessionsToDelete = $currentSessions->filter(function ($session) use ($request, $daysOfWeek, $sessionsToKeep) {
             $date = Carbon::parse($session->date);
-            return !in_array($session->id, $sessionsToKeep) || 
-                $date->lt(Carbon::parse($request->start_date)) || 
-                $date->gt(Carbon::parse($request->end_date)) || 
+            return !in_array($session->id, $sessionsToKeep) ||
+                $date->lt(Carbon::parse($request->start_date)) ||
+                $date->gt(Carbon::parse($request->end_date)) ||
                 !in_array($date->dayOfWeekIso, $daysOfWeek);
         });
 
@@ -274,6 +330,4 @@ class SessionServiceImpl implements SessionService
             'sessions_deleted' => $sessionsDeleted,
         ];
     }
-
-
 }

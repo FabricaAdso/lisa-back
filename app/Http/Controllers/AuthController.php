@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Services\TokenService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Hash;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -24,10 +25,8 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $request->validate([
-            'first_name' => 'required|string|max:255',
-            'middle_name' => 'nullable|string|max:255',
+            'name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
-            'second_last_name' => 'nullable|string|max:255',
             'identity_document' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:6|confirmed',
@@ -36,10 +35,8 @@ class AuthController extends Controller
         ]);
 
         $user = User::create([
-            'first_name' => $request->first_name,
-            'middle_name' => $request->middle_name,
+            'name' => $request->name,
             'last_name' => $request->last_name,
-            'second_last_name' => $request->second_last_name,
             'identity_document' => $request->identity_document,
             'email' => $request->email,
             'password' => Hash::make($request->password),
@@ -185,6 +182,18 @@ class AuthController extends Controller
         $user->trainingCenters()->detach($request->training_center_id);
 
         return response()->json(['message' => 'Centro de formación eliminado exitosamente.']);
+    }
+
+    public function broadcastAuth(Request $request)
+    {
+        $user = Auth::user(); // Obtener el usuario autenticado
+
+        if (!$user) {
+            return response('Unauthorized', 401);
+        }
+
+        // Aquí se maneja la autenticación de canales privados o de presencia
+        return Broadcast::auth($request);
     }
 
 }

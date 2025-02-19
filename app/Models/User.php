@@ -24,10 +24,8 @@ class User extends Authenticatable implements JWTSubject
      */
     protected $fillable = [
         'identity_document',
-        'first_name',
-        'middle_name',
+        'name',
         'last_name',
-        'second_last_name',
         'email',
         'password',
         'document_type_id',
@@ -54,6 +52,9 @@ class User extends Authenticatable implements JWTSubject
     public function instructors ()
     {
         return $this->hasMany(Instructor::class);
+    }
+    public function notifications(){
+        return $this->hasMany(Notification::class);
     }
 
     /**

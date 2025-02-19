@@ -119,7 +119,6 @@ class UserController extends Controller
                 return response()->json(['error' => 'Training center ID inválido'], 400);
             }
 
-            // Filtrar usuarios por el centro de formación y traer el role_id de la tabla pivote
             $users = User::whereHas('trainingCenters', function ($query) use ($trainingCenterId) {
                     $query->where('training_center_id', $trainingCenterId);
                 })

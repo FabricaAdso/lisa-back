@@ -24,22 +24,6 @@ class RoleController extends Controller
         return $roles;
     }
 
-    public function toggleRole(Request $request, $userId, $trainingCenterId)
-    {
-        $roles = $request->input('roles');
-        if (!is_array($roles)) {
-            return response()->json(['error' => 'El campo "roles" debe ser un arreglo.'], 400);
-        }
-
-        $result = $this->roleService->toggleRoles($userId, $trainingCenterId, $roles);
-
-        return response()->json([
-            'message' => 'Roles actualizados correctamente.',
-            'user' => $result['user'],
-            'roles' => $result['roles'],
-        ], 200);
-    }
-
     public function assignRoles(Request $request)
     {
         $request->validate([

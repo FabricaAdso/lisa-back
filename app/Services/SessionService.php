@@ -7,5 +7,5 @@ use Illuminate\Http\Request;
 interface SessionService
 {
     public function createSession(Request $request);
-    public function updateSessions(Request $request);
+    public function updateSessions(Request $request, $sessionIds);
 }

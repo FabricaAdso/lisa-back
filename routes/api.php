@@ -62,7 +62,9 @@ Route::group(['middleware' => 'auth:api'], function () {
     // Ruta para gestionar roles
     Route::get('/roles', [RoleController::class, 'getRoles']);
     Route::post('users/{userId}/training-centers/{trainingCenterId}/toggle-role', [RoleController::class, 'toggleRole']);
-    Route::post('/assign-role', [RoleController::class, 'assignRole']);
+    Route::get('/users-by-training-center', [UserController::class, 'getUsersByTrainingCenter']);
+    Route::post('/assign-role', [RoleController::class, 'assignRoles']);
+
 
     //  Rutas para cursos y demas
     Route::resource('educationLevel', EducationLevelController::class);
@@ -125,7 +127,7 @@ Route::group(['middleware' => 'auth:api'], function () {
 
     Route::get('regionals', [RegionalController::class, 'index'])->withoutMiddleware(['auth:api']);
 
-    
+
 });
 Route::post('excel', [ExcelController::class, 'excel']);
 

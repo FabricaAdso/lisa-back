@@ -5,9 +5,20 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use App\Services\TokenService;
+use App\Services\RoleService;
+use Exception;
 
 class UserController extends Controller
 {
+    protected $token_service;
+    protected $roleService;
+
+    public function __construct(TokenService $token_service, RoleService $roleService)
+    {
+        $this->token_service = $token_service;
+        $this->roleService = $roleService;
+    }
 
     public function index(Request $request)
     {
@@ -98,5 +109,31 @@ class UserController extends Controller
         $users = User::whereNull('deactivation_date')->get();
         return response()->json($users);
     }
+
+    public function getUsersByTrainingCenter()
+    {
+        try {
+            $trainingCenterId = $this->token_service->getTrainingCenterIdFromToken();
+
+            if (!is_numeric($trainingCenterId)) {
+                return response()->json(['error' => 'Training center ID inválido'], 400);
+            }
+
+            // Filtrar usuarios por el centro de formación y traer el role_id de la tabla pivote
+            $users = User::whereHas('trainingCenters', function ($query) use ($trainingCenterId) {
+                    $query->where('training_center_id', $trainingCenterId);
+                })
+                ->with(['trainingCenters' => function ($query) use ($trainingCenterId) {
+                    $query->where('training_center_id', $trainingCenterId)
+                        ->select('training_centers.id', 'role_training_center_user.role_id');
+                }])
+                ->get();
+
+            return response()->json($users, 200);
+        } catch (Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
 
 }

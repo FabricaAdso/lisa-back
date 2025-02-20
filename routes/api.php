@@ -72,7 +72,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::get('course', [CourseController::class, 'index']);
     Route::resource('courses', CourseController::class);
 
-    //instructores que tiene sesiones pendientes
+    //instructores que tiene sesiones pendientes    
     Route::get('course/Instructorsessions', [CourseController::class, 'getInstructorAndSessions']);
     //instructores con fichas que tuvo formacion
     Route::get('course/sessions', [CourseController::class, 'getCourseInstructor']);

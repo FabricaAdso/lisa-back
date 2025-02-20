@@ -26,6 +26,7 @@ class SessionServiceImpl implements SessionService
             'course_id' => 'required|exists:courses,id',
             'instructor_id' => 'required|exists:instructors,id',
             'instructor2_id' => 'nullable|exists:users,id',
+            'days_of_week' => 'required|string',
         ]);
 
         // Verificar si el curso está en ejecución
@@ -41,22 +42,23 @@ class SessionServiceImpl implements SessionService
         }
 
         $festivos = [
-            '2024-01-01',
-            '2024-01-06',
-            '2024-03-24',
-            '2024-04-17',
-            '2024-04-18',
-            '2024-05-01',
-            '2024-06-02',
-            '2024-06-23',
-            '2024-06-30',
-            '2024-08-07',
-            '2024-08-18',
-            '2024-10-13',
-            '2024-11-03',
-            '2024-11-17',
-            '2024-12-08',
-            '2024-12-25'
+            '2025-01-01',
+            '2025-01-06',
+            '2025-03-24',
+            '2025-04-17',
+            '2025-04-18',
+            '2025-05-01',
+            '2025-06-02',
+            '2025-06-23',
+            '2025-06-30',
+            '2025-07-20',
+            '2025-08-07',
+            '2025-08-18',
+            '2025-10-13',
+            '2025-11-03',
+            '2025-11-17',
+            '2025-12-08',
+            '2025-12-25'
         ];
 
         // Obtener la duración total de la competencia en horas
@@ -93,7 +95,6 @@ class SessionServiceImpl implements SessionService
                 $currentDate->addDay();
             }
 
-            // Verificar si el instructor ya tiene una sesión en esta fecha con cualquier curso
             $existingSession = Session::where('date', $currentDate->format('Y-m-d'))
                 ->where('instructor_id', $request->instructor_id)
                 ->exists();
@@ -111,7 +112,6 @@ class SessionServiceImpl implements SessionService
                     'subject_id' => $request->subject_id,
                 ]);
 
-
                 $aprendices = Apprentice::where('course_id', $request->course_id)->get();
                 foreach ($aprendices as $aprendiz) {
                     Assistance::create([
@@ -124,9 +124,11 @@ class SessionServiceImpl implements SessionService
                 $sessionsCreated[] = $session;
             }
 
-            $currentDate->addWeek();
+            $currentDate->addDay();
+            while (!in_array($currentDate->dayOfWeek, $dayOfWeek) || in_array($currentDate->format('Y-m-d'), $festivos)) {
+                $currentDate->addDay();
+            }
         }
-
 
         return response()->json([
             'message' => 'Sesiones y asistencias creadas exitosamente.',
@@ -335,10 +337,10 @@ class SessionServiceImpl implements SessionService
             // Si ya es un array, convertirlo a una cadena separada por comas
             $sessionIds = implode(',', $sessionIds);
         }
-    
+
         // Convertir los sessionIds de la ruta a un array
         $sessionIds = explode(',', $sessionIds);
-    
+
         // Validar los datos de entrada
         $request->validate([
             'start_date' => 'nullable|date',
@@ -349,24 +351,24 @@ class SessionServiceImpl implements SessionService
             'instructor_id' => 'nullable|exists:instructors,id',
             'instructor2_id' => 'nullable|exists:users,id',
         ]);
-    
+
         $sessionsUpdated = [];
         foreach ($sessionIds as $sessionId) {
-            
+
             $session = Session::findOrFail($sessionId);
-    
+
             // Verificar si el instructor ya tiene una sesión en la nueva fecha (si se actualiza la fecha)
             if ($request->has('start_date')) {
                 $existingSession = Session::where('date', $request->start_date)
                     ->where('instructor_id', $request->instructor_id ?? $session->instructor_id)
                     ->where('id', '!=', $sessionId) // Excluir la sesión actual
                     ->exists();
-    
+
                 if ($existingSession) {
                     return response()->json(['message' => 'El instructor ya tiene una sesión asignada para esta fecha.'], 422);
                 }
             }
-    
+
             // Actualizar los campos de la sesión
             if ($request->has('start_date')) {
                 $session->date = $request->start_date;
@@ -389,15 +391,15 @@ class SessionServiceImpl implements SessionService
             if ($request->has('instructor2_id')) {
                 $session->instructor2_id = $request->instructor2_id;
             }
-    
-        
+
+
             $session->save();
-    
+
             // Si se cambia el curso, actualizar las asistencias
             if ($request->has('course_id')) {
                 // Eliminar las asistencias existentes
                 Assistance::where('session_id', $sessionId)->delete();
-    
+
                 // Crear nuevas asistencias para los aprendices del nuevo curso
                 $aprendices = Apprentice::where('course_id', $request->course_id)->get();
                 foreach ($aprendices as $aprendiz) {
@@ -408,10 +410,10 @@ class SessionServiceImpl implements SessionService
                     ]);
                 }
             }
-    
+
             $sessionsUpdated[] = $session;
-        }  
-       
+        }
+
         return response()->json([
             'message' => 'Sesiones actualizadas exitosamente.',
             'sessions' => $sessionsUpdated,

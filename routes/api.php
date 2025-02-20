@@ -64,6 +64,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::post('users/{userId}/training-centers/{trainingCenterId}/toggle-role', [RoleController::class, 'toggleRole']);
     Route::get('/users-by-training-center', [UserController::class, 'getUsersByTrainingCenter']);
     Route::post('/assign-role', [RoleController::class, 'assignRoles']);
+    Route::get('/user/{id}/roles', [UserController::class, 'getUserRolesById']);
 
 
     //  Rutas para cursos y demas

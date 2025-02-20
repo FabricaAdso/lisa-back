@@ -110,6 +110,30 @@ class UserController extends Controller
         return response()->json($users);
     }
 
+    public function getUserRolesById($userId)
+    {
+        try {
+            $user = User::find($userId);
+
+            if (!$user) {
+                return response()->json(['error' => 'Usuario no encontrado'], 404);
+            }
+
+            $roles = $user->trainingCenters()
+                ->withPivot('role_id')
+                ->join('roles', 'role_training_center_user.role_id', '=', 'roles.id')
+                ->pluck('roles.name')
+                ->unique()
+                ->values();
+
+            return response()->json([
+                'roles' => $roles
+            ]);
+        } catch (Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
     public function getUsersByTrainingCenter()
     {
         try {

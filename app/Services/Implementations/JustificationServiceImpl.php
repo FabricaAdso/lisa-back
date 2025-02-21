@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Http\Kernel;
 use Illuminate\Validation\Rules\Can;
+use Illuminate\Support\Facades\Log;
 
 class JustificationServiceImpl implements JustificationService
 {
@@ -34,14 +35,13 @@ class JustificationServiceImpl implements JustificationService
         ];
     }
 
-    public function createJustification($request)
+    public function editJustification($request)
     {
         $request->validate([
             'assistance_id' => 'required|exists:assistances,id',
-            'file' => 'required|mimes:pdf',
+            'file' => 'required|mimes:pdf|max:2048',
             'description' => 'nullable|string',
         ]);
-
         $assistance = Assistance::included()->findOrFail($request->assistance_id);
         $justification = Justification::where('assistance_id', $request->assistance_id)->first();
 
@@ -57,7 +57,6 @@ class JustificationServiceImpl implements JustificationService
             }
         }
 
-
         $this->stateJustification($diasHabiles, $justification);
 
         $fileUrl = null;
@@ -66,11 +65,18 @@ class JustificationServiceImpl implements JustificationService
                 'message' => 'Ya existe un archivo asociado a esta justificación, no se puede cargar uno nuevo.'
             ];
         }
-        if ($request->hasFile('file')) {
-            $file = $request->file('file');
-            $fileName = "pdf_" . time() . "." . $file->guessExtension();
-            $filePath = $file->storeAs('files', $fileName, 'public');     
-            $fileUrl = url('storage/' . $filePath);
+        try {
+            if ($request->hasFile('file')) {
+                $file = $request->file('file');
+                $fileName = "pdf_" . time() . "." . $file->guessExtension();
+                $filePath = $file->storeAs('files', $fileName, 'public');     
+                $fileUrl = url('storage/' . $filePath);
+            }
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => 'Error al cargar el archivo',
+                'error' => $e->getMessage(),
+            ], 500);
         }
 
         if ($justification) {

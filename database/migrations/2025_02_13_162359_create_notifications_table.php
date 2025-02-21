@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->text('message');
-            $table->integer('user_recieved');
+            $table->integer('user_recieved')->nullable();
             $table->string('type')->default('info'); // info, success, warning, error
             $table->json('data')->nullable();
             $table->timestamp('read_at')->nullable();

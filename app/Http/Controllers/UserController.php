@@ -136,6 +136,7 @@ class UserController extends Controller
 
     public function getUsersByTrainingCenter()
     {
+        $elementos = request()->query('elementos', 10);
         try {
             $trainingCenterId = $this->token_service->getTrainingCenterIdFromToken();
 
@@ -150,7 +151,8 @@ class UserController extends Controller
                     $query->where('training_center_id', $trainingCenterId)
                         ->select('training_centers.id', 'role_training_center_user.role_id');
                 }])
-                ->get();
+                ->paginate(intval($elementos));
+
 
             return response()->json($users, 200);
         } catch (Exception $e) {

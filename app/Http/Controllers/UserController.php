@@ -5,9 +5,20 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use App\Services\TokenService;
+use App\Services\RoleService;
+use Exception;
 
 class UserController extends Controller
 {
+    protected $token_service;
+    protected $roleService;
+
+    public function __construct(TokenService $token_service, RoleService $roleService)
+    {
+        $this->token_service = $token_service;
+        $this->roleService = $roleService;
+    }
 
     public function index(Request $request)
     {
@@ -98,5 +109,56 @@ class UserController extends Controller
         $users = User::whereNull('deactivation_date')->get();
         return response()->json($users);
     }
+
+    public function getUserRolesById($userId)
+    {
+        try {
+            $user = User::find($userId);
+
+            if (!$user) {
+                return response()->json(['error' => 'Usuario no encontrado'], 404);
+            }
+
+            $roles = $user->trainingCenters()
+                ->withPivot('role_id')
+                ->join('roles', 'role_training_center_user.role_id', '=', 'roles.id')
+                ->pluck('roles.name')
+                ->unique()
+                ->values();
+
+            return response()->json([
+                'roles' => $roles
+            ]);
+        } catch (Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function getUsersByTrainingCenter()
+    {
+        $elementos = request()->query('elementos', 10);
+        $page = request()->query('page', 1); // Asegúrate de recibir el parámetro 'page'
+        try {
+            $trainingCenterId = $this->token_service->getTrainingCenterIdFromToken();
+
+            if (!is_numeric($trainingCenterId)) {
+                return response()->json(['error' => 'Training center ID inválido'], 400);
+            }
+
+            $users = User::whereHas('trainingCenters', function ($query) use ($trainingCenterId) {
+                    $query->where('training_center_id', $trainingCenterId);
+                })
+                ->with(['trainingCenters' => function ($query) use ($trainingCenterId) {
+                    $query->where('training_center_id', $trainingCenterId)
+                        ->select('training_centers.id', 'role_training_center_user.role_id');
+                }])
+                ->paginate(intval($elementos), ['*'], 'page', $page); // Usa el parámetro 'page'
+
+            return response()->json($users, 200);
+        } catch (Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
 
 }

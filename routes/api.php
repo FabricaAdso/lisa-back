@@ -62,7 +62,10 @@ Route::group(['middleware' => 'auth:api'], function () {
     // Ruta para gestionar roles
     Route::get('/roles', [RoleController::class, 'getRoles']);
     Route::post('users/{userId}/training-centers/{trainingCenterId}/toggle-role', [RoleController::class, 'toggleRole']);
-    Route::post('/assign-role', [RoleController::class, 'assignRole']);
+    Route::get('/users-by-training-center', [UserController::class, 'getUsersByTrainingCenter']);
+    Route::post('/assign-role', [RoleController::class, 'assignRoles']);
+    Route::get('/user/{id}/roles', [UserController::class, 'getUserRolesById']);
+
 
     //  Rutas para cursos y demas
     Route::get('course', [CourseController::class, 'index']);
@@ -70,7 +73,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::resource('programs', ProgramController::class);
     Route::resource('courses', CourseController::class);
 
-    //instructores que tiene sesiones pendientes
+    //instructores que tiene sesiones pendientes    
     Route::get('course/Instructorsessions', [CourseController::class, 'getInstructorAndSessions']);
     //instructores con fichas que tuvo formacion
     Route::get('course/sessions', [CourseController::class, 'getCourseInstructor']);
@@ -125,7 +128,8 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::resource('/knowledgeNetwork', KnowledgeNetworkController::class);
 
     Route::get('regionals', [RegionalController::class, 'index'])->withoutMiddleware(['auth:api']);
-    
+
+
 });
     Route::post('excel', [ExcelController::class, 'excel']);
 

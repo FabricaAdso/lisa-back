@@ -9,9 +9,9 @@ class Headquarters extends Model
 {
     //
 
-    protected $fillable = ['name', 'adress', 'opening_time', 'closing_time', 'municipality_id', 'training_center_id'];
-    protected $allowIncluded = ['trainingCenter', 'municipality'];
-    protected $allowFilter = ['training_Center', 'municipality_'];
+    protected $fillable = ['name', 'adress', 'opening_time', 'closing_time', 'municipality', 'training_center_id'];
+    protected $allowIncluded = ['trainingCenter'];
+    protected $allowFilter = ['training_Center'];
 
     public function trainingCenter()
     {
@@ -65,14 +65,9 @@ class Headquarters extends Model
                     $q->where('name', 'LIKE', '%' . $value . '%');
                 });
             }
-            if ($filter === 'municipality_') {
-                $query->whereHas('municipality', function ($q) use ($value) {
-                    $q->where('name', 'LIKE', '%' . $value . '%');
-                });
-            }
 
             //otros campos de Program si están en allowFilter
-            if ($allowFilter->contains($filter) && $filter !== 'training_Center' &&  $filter !== 'municipality_') {
+            if ($allowFilter->contains($filter) && $filter !== 'training_Center') {
                 $query->where($filter, 'LIKE', '%' . $value . '%');
             }
         }

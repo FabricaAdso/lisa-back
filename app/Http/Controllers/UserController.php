@@ -137,7 +137,7 @@ class UserController extends Controller
     public function getUsersByTrainingCenter()
     {
         $elementos = request()->query('elementos', 10);
-        $page = request()->query('page', 1); // Asegúrate de recibir el parámetro 'page'
+        $page = request()->query('page', 1);
         try {
             $trainingCenterId = $this->token_service->getTrainingCenterIdFromToken();
 
@@ -152,7 +152,7 @@ class UserController extends Controller
                     $query->where('training_center_id', $trainingCenterId)
                         ->select('training_centers.id', 'role_training_center_user.role_id');
                 }])
-                ->paginate(intval($elementos), ['*'], 'page', $page); // Usa el parámetro 'page'
+                ->paginate(intval($elementos), ['*'], 'page', $page);
 
             return response()->json($users, 200);
         } catch (Exception $e) {

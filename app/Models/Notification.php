@@ -2,12 +2,12 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
 class Notification extends Model
 {
     protected $fillable = [
-        'title',
         'user_id',
         'user_recieved',
         'message',

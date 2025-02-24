@@ -20,6 +20,20 @@ class SessionController extends Controller
     {
         $this->sessionService = $sessionService;
     }
+
+    public function index()
+    {
+        //$sessions = Session::all();
+        $user = User::find(Auth::id()); 
+        $instructor = Instructor::where('user_id', $user->id)->first();
+        if (!$instructor) {
+            // Si no se encuentra un instructor, devolver un mensaje de error
+            return response()->json();
+        }
+        $sessions = Session::where('instructor_id', $instructor->id)->included()->get();
+        return response()->json($sessions);
+
+    }
     
     public function destroy($id)
     {

@@ -46,3 +46,5 @@ class NotificationEventTest extends TestCase
             'data' => ['key' => 'value']
         ]);
         
+    }
+}

@@ -119,6 +119,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::resource('subject', SubjectController::class);
     //session
     Route::post('session', [SessionController::class, 'createSession']);
+    Route::get('session', [SessionController::class, 'index']);
     Route::put('session/update/{sessionIds}', [SessionController::class, 'updateSessions']);
     Route::delete('session/{id}', [SessionController::class, 'destroy']);
     // Route::resource('sessions', SessionController::class);

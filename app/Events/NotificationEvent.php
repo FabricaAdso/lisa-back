@@ -9,6 +9,7 @@ use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Evento que se dispara cuando se genera una nueva notificación.
@@ -34,6 +35,7 @@ class NotificationEvent implements ShouldBroadcast
     public function __construct(Notification $notification)
     {
         $this->notification = $notification;
+        Log::info("Se ha creado una nueva notificación con ID " . $notification->id);
     }
 
     /**
@@ -43,9 +45,10 @@ class NotificationEvent implements ShouldBroadcast
      */
     public function broadcastOn()
     {
+        log::info("Se ha enviado la notificación al canal notifications." . $this->notification->user_id);
         return [
             // Se envía la notificación solo al usuario específico
-            new PrivateChannel('notifications.' . $this->notification->user_id),
+            new Channel('notifications.' . $this->notification->user_id),
         ];
     }
 

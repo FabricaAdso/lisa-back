@@ -65,9 +65,9 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::post('/assign-role', [RoleController::class, 'assignRole']);
 
     //  Rutas para cursos y demas
+    Route::get('course', [CourseController::class, 'index']);
     Route::resource('educationLevel', EducationLevelController::class);
     Route::resource('programs', ProgramController::class);
-    Route::get('course', [CourseController::class, 'index']);
     Route::resource('courses', CourseController::class);
 
     //instructores que tiene sesiones pendientes
@@ -93,12 +93,12 @@ Route::group(['middleware' => 'auth:api'], function () {
     //Justification CRUD
     Route::get('justifications/apprentice', [JustificationController::class, 'indexApprentice'])->name('justifications.indexApprentice');
     Route::get('justifications/instructor', [JustificationController::class, 'getInassitanceInstructor'])->name('justifications.getInassistanceInstructor');
-    Route::put('justifications', [JustificationController::class, 'createJustification']);
+    Route::put('justifications', [JustificationController::class, 'editJustification']);
     Route::resource('justifications', JustificationController::class);
 
     //Aprobation Crud y Filtros
-    Route::resource('aprobations', AprobationController::class);
     Route::put('aprobations', [AprobationController::class, 'update']);
+    Route::resource('aprobations', AprobationController::class);
 
     //justificaciones por aprendices
     Route::get('/apprentices/assistance', [AssistanceController::class, 'getInassitanceApprentice']);
@@ -116,18 +116,18 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::resource('subject', SubjectController::class);
     //session
     Route::post('session', [SessionController::class, 'createSession']);
-    Route::put('session/update', [SessionController::class, 'updateSessions']);
-    Route::resource('sessions', SessionController::class);
+    Route::put('session/update/{sessionIds}', [SessionController::class, 'updateSessions']);
+    Route::delete('session/{id}', [SessionController::class, 'destroy']);
+    // Route::resource('sessions', SessionController::class);
 
     //Ruta para red de conocimiento
-    Route::resource('/knowledgeNetwork', KnowledgeNetworkController::class);
     Route::get('/knowledgeNetwork/{id}', [KnowledgeNetworkController::class, 'show']);
+    Route::resource('/knowledgeNetwork', KnowledgeNetworkController::class);
 
     Route::get('regionals', [RegionalController::class, 'index'])->withoutMiddleware(['auth:api']);
-
     
 });
-Route::post('excel', [ExcelController::class, 'excel']);
+    Route::post('excel', [ExcelController::class, 'excel']);
 
     // Ruta instructor & Apprentice
     Route::resource('instructor', InstructorController::class);

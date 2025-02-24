@@ -31,8 +31,7 @@ class UpdateExpiredJustificationCommand extends Command
 
     public function handle()
     {
-        $users = User::all();
-        // Obtener todas las justificaciones pendientes
+        // Obtener todas las justificaciones con estado de aprobation de pendientes
         $justifications = Justification::with('aprobation')
             ->whereHas('aprobation', function ($query) {
                 $query->where('state', 'Pendiente');
@@ -40,9 +39,6 @@ class UpdateExpiredJustificationCommand extends Command
             ->get();
 
         Log::info('Iniciando el proceso de verificación de justificaciones vencidas');
-    
-        Log::info("Total de usuarios: {$users->count()}");
-        Log::info("usuarios: {$users}");
         foreach ($justifications as $justification) {
             Log::info("Justificación: {$justification->id}");
 

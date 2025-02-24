@@ -63,11 +63,6 @@ class Environment extends Model
 
         foreach ($filters as $filter => $value) {
             // Filtrar por Area de Ambiente y Sede
-            if ($filter === 'environment_area') {
-                $query->whereHas('environmentArea', function ($q) use ($value) {
-                    $q->where('name', 'LIKE', '%' . $value . '%');
-                });
-            }
             if ($filter === 'headquarters_') {
                 $query->whereHas('headquarters', function ($q) use ($value) {
                     $q->where('name', 'LIKE', '%' . $value . '%');
@@ -75,7 +70,7 @@ class Environment extends Model
             }
 
             //otros campos de Program si están en allowFilter
-            if ($allowFilter->contains($filter) && $filter !== 'environment_area' &&  $filter !== 'headquarters_') {
+            if ($allowFilter->contains($filter) &&  $filter !== 'headquarters_') {
                 $query->where($filter, 'LIKE', '%' . $value . '%');
             }
         }

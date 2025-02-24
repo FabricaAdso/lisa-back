@@ -11,3 +11,5 @@ Artisan::command('inspire', function () {
 app(Schedule::class)->command('updateExpiredJustification:command')->daily(); //terminada de forma satisfactoria
 app(Schedule::class)->command('ApprenticeUploadJustification:command')->everySecond(); //terminada
 app(Schedule::class)->command('NotifyInstructorJustifications:command')->everySecond(); //terminada
+app(Schedule::class)->command('NotifyInstructorJustifications:command')->everySecond();// terminada
+app(Schedule::class)->command('verificar:inasistencias-frecuentes:command')->everySecond();

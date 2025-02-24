@@ -48,7 +48,7 @@ class ApprenticeUploadJustificationCommand extends Command
                     Log::info(json_encode($assistance, JSON_PRETTY_PRINT));
                     $notification = Notification::create([
                         'user_id' => $assistance->apprentice->user->id,
-                        'message' => 'Sube tu justificación para la asistencia del ',
+                        'message' => 'Sube tu justificacion para la asistencia de la fecha ' . $assistance->updated_at,
                         'type' => 'warning',
                     ]);
                     event(new NotificationEvent($notification));

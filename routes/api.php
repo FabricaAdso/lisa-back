@@ -97,11 +97,12 @@ Route::group(['middleware' => 'auth:api'], function () {
     //Justification CRUD
     Route::get('justifications/apprentice', [JustificationController::class, 'indexApprentice'])->name('justifications.indexApprentice');
     Route::get('justifications/instructor', [JustificationController::class, 'getInassitanceInstructor'])->name('justifications.getInassistanceInstructor');
+    //cargar justificaciones
     Route::put('justifications', [JustificationController::class, 'editJustification']);
     Route::resource('justifications', JustificationController::class);
 
     //Aprobation Crud y Filtros
-    Route::put('aprobations', [AprobationController::class, 'update']);
+    Route::put('aprobations', [AprobationController::class, 'update']); // editar el estado de la aprobacion
     Route::resource('aprobations', AprobationController::class);
 
     //justificaciones por aprendices

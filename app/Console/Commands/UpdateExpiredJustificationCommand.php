@@ -31,10 +31,10 @@ class UpdateExpiredJustificationCommand extends Command
 
     public function handle()
     {
-        // Obtener todas las justificaciones con estado de aprobation de pendientes
+        // Obtener todas las justificaciones con estado de aprobation de En_espera
         $justifications = Justification::with('aprobation')
             ->whereHas('aprobation', function ($query) {
-                $query->where('state', 'Pendiente');
+                $query->where('state', 'En_espera');
             })
             ->get();
 
@@ -65,7 +65,7 @@ class UpdateExpiredJustificationCommand extends Command
 
             Log::info("Días hábiles: {$diasHabiles}");
 
-            if ($diasHabiles > 3 && $justification->file_url === null) {
+            if ($diasHabiles > 3 && $justification->aprobation->state == 'En_espera') {
                 // Actualiza el estado de la aprobación a "Vencida"
                 $justification->aprobation->update(['state' => 'Vencida']);
 

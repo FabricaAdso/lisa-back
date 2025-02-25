@@ -28,11 +28,7 @@ class JustificationServiceImpl implements JustificationService
     //jobs
     public function checkAndUpdateExpiredJustifications()
     {
-        // php artisan queue:work
-        UpdateExpiredJustificationsJob::dispatch();
-        return [
-            'message' => 'Job para actualizar justificaciones vencidas despachado correctamente',
-        ];
+
     }
 
     public function editJustification($request)
@@ -60,7 +56,7 @@ class JustificationServiceImpl implements JustificationService
         $this->stateJustification($diasHabiles, $justification);
 
         $fileUrl = null;
-        if(!is_null($justification->file_url)){
+        if(!empty($justification->file_url)){
             return [
                 'message' => 'Ya existe un archivo asociado a esta justificación, no se puede cargar uno nuevo.'
             ];

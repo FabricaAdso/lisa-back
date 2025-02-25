@@ -19,6 +19,7 @@ use App\Http\Controllers\JustificationController;
 use App\Http\Controllers\KnowledgeNetworkController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProgramController;
+use App\Http\Controllers\RapController;
 use App\Http\Controllers\RegionalController;
 use App\Http\Controllers\SessionController;
 use App\Http\Controllers\ShiftController;
@@ -117,6 +118,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::resource('apprentice', ApprenticeController::class);
     // Competencia
     Route::resource('subject', SubjectController::class);
+    Route::resource('rap', RapController::class);
     //session
     Route::post('session', [SessionController::class, 'createSession']);
     Route::get('session', [SessionController::class, 'index']);

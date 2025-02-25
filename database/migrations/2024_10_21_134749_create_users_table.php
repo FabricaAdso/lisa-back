@@ -23,7 +23,7 @@ return new class extends Migration
             $table->string('password')->nullable();
 
             $table->unsignedBigInteger('document_type_id');
-            $table->foreign('document_type_id')->references('id')->on('document_types');
+            $table->foreign('document_type_id')->references('id')->on('document_types')->null;
 
             $table->rememberToken();
             $table->timestamps();

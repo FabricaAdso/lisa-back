@@ -8,8 +8,14 @@ use Illuminate\Database\Eloquent\Builder;
 
 class Session extends Model
 {
-    protected $allowIncluded = ['course.program','instructor','course.environment','assistances.apprentice.user','course'];
-    protected $fillable = ['date','start_time','end_time','instructor_id','instructor2_id','course_id'];
+    protected $allowIncluded = ['course.program','instructor','course.environment','assistances.apprentice.user','course','course.program.subjects','rap'];
+    protected $fillable = ['date','start_time','end_time','instructor_id','instructor2_id','course_id','rap_id'];
+
+    protected $allowFilter = [
+        'course_',
+        'subject_',
+        'rap_',
+    ];
 
     public function assistances()
     {
@@ -59,24 +65,35 @@ class Session extends Model
 
     public function scopeFilter(Builder $query)
     {
-        // If no allowed filters are set or no filter is requested, exit the method
         if (empty($this->allowFilter) || empty(request('filter'))) {
             return;
         }
     
-        // Get the filter parameters from the request
         $filters = request('filter');
-        
-        // Convert the allowed filters to a collection for easy checking
         $allowFilter = collect($this->allowFilter);
     
-        // Iterate through each filter in the request
         foreach ($filters as $filter => $value) {
-            // Check if the current filter is in the list of allowed filters
-            if ($allowFilter->contains($filter)) {
-                // Apply a LIKE query where the specified column contains the filter value
-                $query->where($filter, 'LIKE', '%' . $value . '%');
+            // Filtrar por course (relación con Course)
+            if ($filter === 'course_' && $allowFilter->contains($filter)) {
+                $query->whereHas('course', function ($q) use ($value) {
+                    $q->where('code', 'LIKE', '%' . $value . '%');
+                });
+            }
+    
+            // Filtrar por subject (relación encadenada Course -> Program -> Subject)
+            if ($filter === 'subject_' && $allowFilter->contains($filter)) {
+                $query->whereHas('course.program.subjects', function ($q) use ($value) {
+                    $q->where('name', 'LIKE', '%' . $value . '%');
+                });
+            }
+    
+            // Filtrar por rap (relación con Rap)
+            if ($filter === 'rap_' && $allowFilter->contains($filter)) {
+                $query->whereHas('rap', function ($q) use ($value) {
+                    $q->where('description', 'LIKE', '%' . $value . '%');
+                });
             }
         }
     }
+
 }

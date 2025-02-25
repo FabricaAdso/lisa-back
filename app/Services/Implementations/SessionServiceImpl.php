@@ -23,13 +23,13 @@ class SessionServiceImpl implements SessionService
             'start_date' => 'required|date',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
-            'rap_id' => 'required|exists:subjects,id',
+            'rap_id' => 'required|exists:raps,id',
             'course_id' => 'required|exists:courses,id',
             'instructor_id' => 'required|exists:instructors,id',
             'instructor2_id' => 'nullable|exists:users,id',
             'days_of_week' => 'required|string',
         ]);
-
+       
         // Verificar si el curso está en ejecución
         $course = Course::findOrFail($request->course_id);
         if ($course->state !== 'En_ejecucion') {
@@ -110,8 +110,9 @@ class SessionServiceImpl implements SessionService
                     'end_time' => $endTime->format('H:i'),
                     'instructor_id' => $request->instructor_id,
                     'course_id' => $request->course_id,
-                    'rap_id' => $request->subject_id,
+                    'rap_id' => $request->rap_id,
                 ]);
+             
 
                 $aprendices = Apprentice::where('course_id', $request->course_id)->get();
                 foreach ($aprendices as $aprendiz) {

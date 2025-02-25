@@ -149,3 +149,6 @@ Route::group(['middleware' => 'auth:api'], function () {
 
     //rutas de notificaciones
     Route::post('/message', [NotificationController::class, 'store']);
+
+    //rutas de notificaciones
+    Route::get('/notifications', [NotificationController::class, 'index']);

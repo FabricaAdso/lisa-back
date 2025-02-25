@@ -8,6 +8,12 @@ use Illuminate\Http\Request;
 
 class NotificationController extends Controller
 {
+
+    public function index(){
+        $notifications = Notification::included()->filter()->get();
+        return response()->json($notifications);
+    }
+
     /**
      * Almacena una nueva notificación en la base de datos y la transmite en tiempo real.
      *

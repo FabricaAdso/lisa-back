@@ -48,7 +48,7 @@ class NotificationEvent implements ShouldBroadcast
         log::info("Se ha enviado la notificación al canal notifications." . $this->notification->user_id);
         return [
             // Se envía la notificación solo al usuario específico
-            new Channel('notifications.' . $this->notification->user_id),
+            new PrivateChannel('notifications.' . $this->notification->user_id),
         ];
     }
 

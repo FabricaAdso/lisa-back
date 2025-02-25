@@ -32,7 +32,7 @@ class AprobationSeeder extends Seeder
 
         for ($i = 1; $i <= 20; $i++) {
             $aprobations[] = [
-                'state' => 'Pendiente',  // El estado es siempre "Pendiente"
+                'state' => 'En_espera',  // El estado es siempre "Pendiente"
                 'motive' => $motives[array_rand($motives)],  // Motivo aleatorio
                 'justification_id' => $justificationIds[array_rand($justificationIds)],  // Usar un ID válido de justificación
                 'created_at' => now(),

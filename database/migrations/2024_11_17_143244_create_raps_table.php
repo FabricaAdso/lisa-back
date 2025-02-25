@@ -11,12 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('aprobations', function (Blueprint $table) {
+        Schema::create('raps', function (Blueprint $table) {
             $table->id();
-            $table->enum('state',['Pendiente', 'Aprobada', 'Rechazada', 'Vencida', 'En_espera'])->nullable();
-            $table->string('motive')->nullable();
-            //FK
-            $table->foreignId('justification_id')->nullable()->constrained()->onDelete('set null');
+            $table->string('description');
+            $table->integer('number_hours');
+
+            $table->foreignId('subject_id')->nullable()->constrained()->onDelete('set null');
             $table->timestamps();
         });
     }
@@ -26,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('aprobations');
+        Schema::dropIfExists('raps');
     }
 };

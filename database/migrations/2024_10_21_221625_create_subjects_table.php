@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('subjects', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->integer('number_hours');
+            $table->integer('total_number_hours');
 
             $table->foreignId('program_id')->nullable()->constrained()->onDelete('set null');
 

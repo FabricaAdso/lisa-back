@@ -5,23 +5,21 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
-class Subject extends Model
+class Rap extends Model
 {
     //
+    protected $fillable = ['description', 'subject_id', 'number_hours'];
+    protected $allowIncluded = ['subject', 'sessions'];
 
-    protected $fillable = ['name', 'total_number_hours', 'program_id'];
-    protected $allowIncluded = ['program', 'raps'];
-    
-    public function program()
+    public function subject()
     {
-        return $this->belongsTo(Program::class);
+        return $this->belongsTo(Subject::class);
     }
 
-    public function raps ()
+    public function sessions()
     {
-        return $this->hasMany(Rap::class);
+        return $this->hasMany(Session::class);
     }
-    
 
     public function scopeIncluded(Builder $query)
     {

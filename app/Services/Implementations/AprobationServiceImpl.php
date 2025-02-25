@@ -11,7 +11,7 @@ class AprobationServiceImpl implements AprobationService
     public function editStateOfJustification($request)
     {
         $request->validate([
-            'state' => 'required|in:Aprobada,Rechazada,Pendiente,Vencida',
+            'state' => 'required|in:Aprobada,Rechazada',
             'justification_id' => 'required|exists:justifications,id',
             'motive' => 'required_if:state,Rechazada',
         ]);

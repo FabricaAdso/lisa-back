@@ -19,6 +19,7 @@ use App\Http\Controllers\JustificationController;
 use App\Http\Controllers\KnowledgeNetworkController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProgramController;
+use App\Http\Controllers\RapController;
 use App\Http\Controllers\RegionalController;
 use App\Http\Controllers\SessionController;
 use App\Http\Controllers\ShiftController;
@@ -96,11 +97,12 @@ Route::group(['middleware' => 'auth:api'], function () {
     //Justification CRUD
     Route::get('justifications/apprentice', [JustificationController::class, 'indexApprentice'])->name('justifications.indexApprentice');
     Route::get('justifications/instructor', [JustificationController::class, 'getInassitanceInstructor'])->name('justifications.getInassistanceInstructor');
+    //cargar justificaciones
     Route::put('justifications', [JustificationController::class, 'editJustification']);
     Route::resource('justifications', JustificationController::class);
 
     //Aprobation Crud y Filtros
-    Route::put('aprobations', [AprobationController::class, 'update']);
+    Route::put('aprobations', [AprobationController::class, 'update']); // editar el estado de la aprobacion
     Route::resource('aprobations', AprobationController::class);
 
     //justificaciones por aprendices
@@ -117,6 +119,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::resource('apprentice', ApprenticeController::class);
     // Competencia
     Route::resource('subject', SubjectController::class);
+    Route::resource('rap', RapController::class);
     //session
     Route::post('session', [SessionController::class, 'createSession']);
     Route::get('session', [SessionController::class, 'index']);

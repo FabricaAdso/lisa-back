@@ -39,6 +39,7 @@ class FrequentAbsencesCommand extends Command
                 ->orderBy('updated_at', 'asc');
         }])->get();
         Log::info("total aprendices con alguna falta: " . $apprentices->count());
+
         foreach ($apprentices as $apprentice) {
             $totalInasistencias = $apprentice->assistances->where('assistance', 0)->count();
             Log::info("Aprendiz ID {$apprentice->id}: Total de inasistencias: {$totalInasistencias}");
@@ -55,14 +56,12 @@ class FrequentAbsencesCommand extends Command
             $faltasConsecutivas = 1; // La primera asistencia ya cuenta
             for ($i = 1; $i < $fechas->count(); $i++) {
                 // Calcula la diferencia en días en forma absoluta
-                $diferencia = $fechas[$i]->diffInDays($fechas[$i - 1], true);
-                // Redondeamos la diferencia para evitar problemas con decimales
-
-                Log::info("Iteración {$i}: Fecha actual " . $fechas[$i]->toDateTimeString() .
-                    ", Fecha anterior " . $fechas[$i - 1]->toDateTimeString() .
-                    ", Diferencia en días: {$diferencia} (redondeado: {$diferencia})");
-
-                if ($diferencia >= 1 && $diferencia < 2) {
+                $fechaAnterior = $fechas[$i -1]->copy()->timezone('UTC')->startOfDay();
+                $fechaActuales = $fechas[$i]->copy()->timezone('UTC')->startOfDay();
+                // $diferencia = $fechas[$i]->diffInDays($fechas[$i - 1], true);
+                Log::info("Fecha anterior: {$fechaAnterior}");
+                Log::info("Fecha actual: {$fechaActuales}");
+                if ($fechaAnterior->diffInDays($fechaActuales) == 1) {
                     $faltasConsecutivas++;
                 } else {
                     $faltasConsecutivas = 1;
@@ -72,23 +71,25 @@ class FrequentAbsencesCommand extends Command
             }
 
             if ($faltasConsecutivas == 3) {
-                $this->enviarNotificacion($apprentice, $faltasConsecutivas);
+                Log::info("el aprendiz con el id {$apprentice->id} tiene 3 faltas consecutivas");
+                $notification = Notification::create([
+                    'user_id' => $apprentice->user->id,
+                    'message' => 'El aprendiz con id ' . $apprentice->id . ' tiene 3 faltas consecutivas',
+                    'type' => 'warning',
+                ]);
+                event(new NotificationEvent($notification));
+                Log::info(json_encode($notification, JSON_PRETTY_PRINT));
             }
             if ($totalInasistencias == 5) {
-                $this->enviarNotificacion($apprentice, $totalInasistencias);
+                Log::info("el aprendiz con el id {$apprentice->id} tiene 5 faltas discontinuas");
+                $notification = Notification::create([
+                    'user_id' => $apprentice->user->id,
+                    'message' => 'El aprendiz con id ' . $apprentice->id . ' tiene 5 faltas discontinuas',
+                    'type' => 'warning',
+                ]);
+                event(new NotificationEvent($notification));
+                Log::info(json_encode($notification, JSON_PRETTY_PRINT));
             }
         }
-    }
-
-    private function enviarNotificacion($apprentice, $numFaltas)
-    {
-        Log::info("el aprendiz con el id {$apprentice->id} tiene {$numFaltas} faltas consecutivas");
-        $notification = Notification::create([
-            'user_id' => $apprentice->user->id,
-            'message' => 'El aprendiz con id ' . $apprentice->id . ' tiene ' . $numFaltas . ' faltas consecutivas',
-            'type' => 'warning',
-        ]);
-        event(new NotificationEvent($notification));
-        Log::info(json_encode($notification, JSON_PRETTY_PRINT));
     }
 }

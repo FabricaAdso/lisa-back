@@ -30,9 +30,9 @@ class Session extends Model
         return $this->belongsTo(Course::class);
     }
     
-    public function subject ()
+    public function rap ()
     {
-        return $this->belongsTo(Subject::class);
+        return $this->belongsTo(Rap::class);
     }
 
     public function scopeIncluded(Builder $query)

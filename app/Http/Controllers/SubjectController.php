@@ -19,7 +19,7 @@ class SubjectController extends Controller
     {
         $request->validate([
             'name' => 'required|String|max:20',
-            'number_hours' => 'required|integer',
+            'total_number_hours' => 'required|integer',
             'program_id' => 'required|integer'
         ]);
 
@@ -37,7 +37,7 @@ class SubjectController extends Controller
     {
         $request->validate([
             'name' => 'required|String|max:20',
-            'number_hours' => 'required|integer',
+            'total_number_hours' => 'required|integer',
             'program_id' => 'required|integer'
         ]);
         

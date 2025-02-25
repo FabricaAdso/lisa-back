@@ -18,7 +18,7 @@ return new class extends Migration
             $table->time('end_time');
             //FK
             $table->foreignId('instructor_id')->nullable()->constrained()->onDelete('set null');
-            $table->foreignId('subject_id')->nullable()->constrained()->onDelete('set null');
+            $table->foreignId('rap_id')->nullable()->constrained('raps')->onDelete('set null');
             $table->foreignId('instructor2_id')->nullable()->constrained('instructors')->onDelete('set null');
             $table->foreignId('course_id')->nullable()->constrained()->onDelete('set null');
             $table->timestamps();

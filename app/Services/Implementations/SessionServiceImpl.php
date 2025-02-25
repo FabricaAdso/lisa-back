@@ -6,6 +6,7 @@ use App\Models\Apprentice;
 use App\Models\Assistance;
 use App\Models\Course;
 use App\Models\Instructor;
+use App\Models\Rap;
 use App\Models\Session;
 use App\Models\Subject;
 use App\Services\SessionService;
@@ -22,7 +23,7 @@ class SessionServiceImpl implements SessionService
             'start_date' => 'required|date',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
-            'subject_id' => 'required|exists:subjects,id',
+            'rap_id' => 'required|exists:subjects,id',
             'course_id' => 'required|exists:courses,id',
             'instructor_id' => 'required|exists:instructors,id',
             'instructor2_id' => 'nullable|exists:users,id',
@@ -62,8 +63,8 @@ class SessionServiceImpl implements SessionService
         ];
 
         // Obtener la duración total de la competencia en horas
-        $subject = Subject::findOrFail($request->subject_id);
-        $totalHours = $subject->number_hours;
+        $rap = Rap::findOrFail($request->rap_id);
+        $totalHours = $rap->number_hours;
 
         // Convertir las fechas y horas en objetos Carbon
         $startDate = Carbon::parse($request->start_date);
@@ -109,7 +110,7 @@ class SessionServiceImpl implements SessionService
                     'end_time' => $endTime->format('H:i'),
                     'instructor_id' => $request->instructor_id,
                     'course_id' => $request->course_id,
-                    'subject_id' => $request->subject_id,
+                    'rap_id' => $request->subject_id,
                 ]);
 
                 $aprendices = Apprentice::where('course_id', $request->course_id)->get();
@@ -346,7 +347,7 @@ class SessionServiceImpl implements SessionService
             'start_date' => 'nullable|date',
             'start_time' => 'nullable|date_format:H:i',
             'end_time' => 'nullable|date_format:H:i|after:start_time',
-            'subject_id' => 'nullable|exists:subjects,id',
+            'rap_id' => 'nullable|exists:subjects,id',
             'course_id' => 'nullable|exists:courses,id',
             'instructor_id' => 'nullable|exists:instructors,id',
             'instructor2_id' => 'nullable|exists:users,id',
@@ -379,8 +380,8 @@ class SessionServiceImpl implements SessionService
             if ($request->has('end_time')) {
                 $session->end_time = $request->end_time;
             }
-            if ($request->has('subject_id')) {
-                $session->subject_id = $request->subject_id;
+            if ($request->has('rap_id')) {
+                $session->rap_id = $request->rap_id;
             }
             if ($request->has('course_id')) {
                 $session->course_id = $request->course_id;

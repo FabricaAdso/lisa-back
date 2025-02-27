@@ -3,12 +3,14 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Headquarters extends Model
 {
     //
-
+    use HasFactory;
+    
     protected $fillable = ['name', 'adress', 'opening_time', 'closing_time', 'municipality', 'training_center_id'];
     protected $allowIncluded = ['trainingCenter'];
     protected $allowFilter = ['training_Center'];

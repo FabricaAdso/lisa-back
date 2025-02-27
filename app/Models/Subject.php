@@ -3,12 +3,14 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Subject extends Model
 {
     //
-
+    use HasFactory;
+    
     protected $fillable = ['name', 'total_number_hours', 'program_id'];
     protected $allowIncluded = ['program', 'raps'];
     

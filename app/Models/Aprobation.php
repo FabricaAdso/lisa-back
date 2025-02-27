@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Aprobation extends Model
 {
-    
+
 
     protected $fillable = [
         'state',
@@ -22,7 +22,7 @@ class Aprobation extends Model
     ];
 
     //
-    public function justification ()
+    public function justification()
     {
         return $this->belongsTo(Justification::class);
     }
@@ -53,7 +53,7 @@ class Aprobation extends Model
 
 
     }
-    
+
     public function scopeFilter(Builder $query)
     {
         if (empty($this->allowFilter) || empty(request('filter'))) {
@@ -70,7 +70,6 @@ class Aprobation extends Model
             }
         }
     }
-
 }
 class State
 {

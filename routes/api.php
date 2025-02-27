@@ -121,27 +121,27 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::resource('rap', RapController::class);
     //session
     Route::post('session', [SessionController::class, 'createSession']);
-    Route::get('session', [SessionController::class, 'index']);
     Route::put('session/update/{sessionIds}', [SessionController::class, 'updateSessions']);
     Route::delete('session/{id}', [SessionController::class, 'destroy']);
     // Route::resource('sessions', SessionController::class);
-
+    
     //Ruta para red de conocimiento
     Route::get('/knowledgeNetwork/{id}', [KnowledgeNetworkController::class, 'show']);
     Route::resource('/knowledgeNetwork', KnowledgeNetworkController::class);
 
     Route::get('regionals', [RegionalController::class, 'index'])->withoutMiddleware(['auth:api']);
-
-
+    
+    
 });
-    Route::post('excel', [ExcelController::class, 'excel']);
+Route::post('excel', [ExcelController::class, 'excel']);
 
-    // Ruta instructor & Apprentice
-    Route::resource('instructor', InstructorController::class);
-   //Ruta regionales
-    Route::get('regionals', [RegionalController::class, 'index']);
+Route::get('session', [SessionController::class, 'index']);
+// Ruta instructor & Apprentice
+Route::resource('instructor', InstructorController::class);
+//Ruta regionales
+Route::get('regionals', [RegionalController::class, 'index']);
 
-    //Route::resource('assistance',AssistanceController::class);
+//Route::resource('assistance',AssistanceController::class);
     Route::get('assistance', [AssistanceController::class, 'index']);
     Route::put('/assistance/{assistanceId}', [AssistanceController::class, 'editAssistance']);
     Route::get('/apprentices/{apprenticeId}/unjustified-absences', [AssistanceController::class, 'UnjustifiedAbsences']);

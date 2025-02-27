@@ -1,54 +1,60 @@
 <?php
 
 namespace App\Models;
+
 use App\Services\Implementations\TokenServiceImpl;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+
 class Instructor extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'user_id',
         'training_center_id',
         'state',
-        'knowledge_network_id' 
+        'knowledge_network_id'
     ];
 
-    protected $allowIncluded = ['user','trainingCenter','knowledgeNetwork','aprobations','sessions','courses'];
+    protected $allowIncluded = ['user', 'trainingCenter', 'knowledgeNetwork', 'aprobations', 'sessions', 'courses'];
 
     protected $allowFilter = ['knowledge_network_id'];
 
 
-    public static function boot(){
+    public static function boot()
+    {
         parent::boot();
         static::created(function (self $instructor) {
             $user = User::find($instructor->user_id);
             $user->trainingCenters()
-                ->wherePivot('training_center_id',$instructor->training_center_id)
-                ->withPivot('role_id',3);
+                ->wherePivot('training_center_id', $instructor->training_center_id)
+                ->withPivot('role_id', 3);
         });
     }
 
-    public function aprobations ()
+    public function aprobations()
     {
         return $this->hasMany(Aprobation::class);
     }
 
-    public function sessions ()
+    public function sessions()
     {
         return $this->hasMany(Session::class, 'instructor_id');
     }
 
-    public function knowledgeNetwork ()
+    public function knowledgeNetwork()
     {
-        return $this->belongsTo(KnowledgeNetwork::class,'knowledge_network_id');
+        return $this->belongsTo(KnowledgeNetwork::class, 'knowledge_network_id');
     }
 
-    public function user ()
+    public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-    public function trainingCenter ()
+    public function trainingCenter()
     {
         return $this->belongsTo(TrainingCenter::class);
     }
@@ -84,40 +90,39 @@ class Instructor extends Model
     public function scopeByTrainingCenter(Builder $query)
     {
         $token_service = new TokenServiceImpl();
-        $training_center_id = $token_service->getTrainingCenterIdFromToken();   
-        
+        $training_center_id = $token_service->getTrainingCenterIdFromToken();
+
         return $query->where('training_center_id', $training_center_id);
     }
 
     public function scopeFilter(Builder $query)
     {
-    
+
         if (empty($this->allowFilter) || !is_array($this->allowFilter) || !is_array(request('filter'))) {
             return $query;
         }
-    
+
         $filters = request('filter');
         $allowFilter = collect($this->allowFilter);
-    
+
         foreach ($filters as $filter => $value) {
             if (empty($value)) {
-                continue; 
+                continue;
             }
-    
+
             if ($filter === 'name' && $allowFilter->contains('name')) {
                 $query->where('name', 'LIKE', '%' . $value . '%');
                 continue;
             }
-    
+
             if ($allowFilter->contains($filter)) {
                 $query->where($filter, 'LIKE', '%' . $value . '%');
             }
-            if($filter === 'knowledge_network_id' && $allowFilter->contains('knowledge_network_id')){
-                $query->where('knowledge_network_id', $value  );
-            } 
+            if ($filter === 'knowledge_network_id' && $allowFilter->contains('knowledge_network_id')) {
+                $query->where('knowledge_network_id', $value);
+            }
         }
-    
+
         return $query;
     }
-    
 }

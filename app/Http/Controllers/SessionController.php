@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Services\SessionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class SessionController extends Controller
 {
@@ -23,18 +24,20 @@ class SessionController extends Controller
 
     public function index()
     {
-      //  $sessions = Session::included()->filter()->get();
         $user = User::find(Auth::id());
-        $instructor = Instructor::where('user_id', $user->id)->first();
-        if (!$instructor) {
-            // Si no se encuentra un instructor, devolver un mensaje de error
-            return response()->json();
-        }
-        $sessions = Session::where('instructor_id', $instructor->id)->included()->filter()->get();
-        return response()->json($sessions);
-
-    }
+        $instructor = Instructor::where('user_id', 1)->first();
     
+        if (!$instructor) {
+            return response()->json([], 404); // Devuelve código 404 en lugar de una respuesta vacía
+        }
+    
+        $sessions = Session::where('instructor_id', $instructor->id)->included()->filter()->get();
+        
+        Log::info("Sesiones encontradas: " . $sessions->count());
+    
+        return response()->json($sessions);
+    }
+
     public function destroy($id)
     {
         $session =  Session::find($id);

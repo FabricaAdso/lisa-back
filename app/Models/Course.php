@@ -3,10 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Course extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'code',
         'date_start',
@@ -29,7 +32,6 @@ class Course extends Model
     protected $allowFilter = [
         'program_q'
     ];
-    ////
 
     public function apprentices()
     {
@@ -56,7 +58,7 @@ class Course extends Model
         return $this->belongsTo(Instructor::class);
     }
 
-    
+
     ////
     public function scopeIncluded(Builder $query)
     {

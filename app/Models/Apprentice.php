@@ -10,34 +10,35 @@ use Illuminate\Database\Eloquent\Model;
 class Apprentice extends Model
 {
     //
-    protected $fillable = ['state','user_id','course_id'];
-    protected $allowIncluded = ['course.program.trainingCenter','user'];
+    protected $fillable = ['state', 'user_id', 'course_id'];
+    protected $allowIncluded = ['course.program.trainingCenter', 'user'];
     protected $allowFilter = ['course_'];
 
 
-    public static function boot(){
+    public static function boot()
+    {
         parent::boot();
         static::created(function (self $apprentice) {
             $user = User::find($apprentice->user_id);
-            if($apprentice->course && $apprentice->course->program){
-            $user->trainingCenters()
-                ->wherePivot('training_center_id',$apprentice->course->program->training_center_id)
-                ->withPivot('role_id',3);
+            if ($apprentice->course && $apprentice->course->program) {
+                $user->trainingCenters()
+                    ->wherePivot('training_center_id', $apprentice->course->program->training_center_id)
+                    ->withPivot('role_id', 3);
             }
         });
     }
-    
-    public function user ()
+
+    public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-    public function course ()
+    public function course()
     {
         return $this->belongsTo(Course::class);
     }
 
-    public function assistances ()
+    public function assistances()
     {
         return $this->hasMany(Assistance::class);
     }
@@ -63,12 +64,12 @@ class Apprentice extends Model
     }
 
 
-   public function scopeByTrainingCenter(Builder $query)
+    public function scopeByTrainingCenter(Builder $query)
     {
         $token_service = new TokenServiceImpl();
-        $training_center_id = $token_service->getTrainingCenterIdFromToken();   
-        
-        return $query->whereHas('course.program', function($query) use ($training_center_id) {
+        $training_center_id = $token_service->getTrainingCenterIdFromToken();
+
+        return $query->whereHas('course.program', function ($query) use ($training_center_id) {
             return $query->whereHas('trainingCenter', function ($query) use ($training_center_id) {
                 $query->where('training_center_id', $training_center_id);
             });
@@ -78,32 +79,29 @@ class Apprentice extends Model
 
     public function scopeFilter(Builder $query)
     {
-     
+
         if (empty($this->allowFilter) || empty(request('filter'))) {
             return $query;
         }
-    
+
         $filters = request('filter');
         $allowFilter = collect($this->allowFilter);
-    
+
         foreach ($filters as $filter => $value) {
-            
+
             if (empty($value)) {
                 continue;
             }
-         
+
             if ($filter === 'course_' && $allowFilter->contains($filter)) {
                 $query->whereHas('course', function ($q) use ($value) {
                     $q->where('code', 'LIKE', '%' . $value . '%'); // Ajusta 'name' según el campo del modelo Course
                 });
-            }
-
-            elseif ($allowFilter->contains($filter)) {
+            } elseif ($allowFilter->contains($filter)) {
                 $query->where($filter, 'LIKE', '%' . $value . '%');
             }
         }
-    
+
         return $query;
     }
-    
 }

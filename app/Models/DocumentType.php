@@ -18,6 +18,4 @@ class DocumentType extends Model
     {
         return $this->hasMany(User::class);
     }
-
-
 }

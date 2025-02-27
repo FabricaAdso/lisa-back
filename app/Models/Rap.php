@@ -3,11 +3,14 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Rap extends Model
 {
     //
+    use HasFactory;
+    
     protected $fillable = ['description', 'subject_id', 'number_hours'];
     protected $allowIncluded = ['subject', 'sessions'];
 

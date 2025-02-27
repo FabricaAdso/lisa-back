@@ -75,6 +75,8 @@ class ApprenticeUploadJustificationCommand extends Command
 
     protected function sendNotifications(User $user, Assistance $assistance) {
         // Crear notificación
+        //consultar el como trae las notificaciones el websocket para saber si es prudente el enviarlo por lotes ala base de datos ya que el even se guarda en cache
+        //
         $notifications = [];
         $notification = Notification::create([
             'user_id' => $user->id,

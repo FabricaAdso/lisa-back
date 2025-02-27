@@ -38,39 +38,54 @@ class ApprenticeUploadJustificationCommand extends Command
     {
         Log::info("Comando para notificar al aprendiz que suba su justificación");
         // Lógica del comando
-        $assistances = Assistance::where('assistance', 0)
+        // $assistances = Assistance::where('assistance', 0)
+        //     ->where('updated_at', '>=', Carbon::now()->subDays(4))
+        //     ->whereHas('justifications', function ($query) {
+        //         $query->whereNull('file_url')->orWhere('file_url', ''); // Filtra solo justificaciones sin archivo
+        //     })
+        //     ->with(['apprentice.user', 'justifications' => function ($query) {
+        //         $query->whereNull('file_url')->orWhere('file_url', ''); // Carga solo justificaciones sin archivo
+        //     }])
+        //     ->get();
+
+        Assistance::where('assistance', 0)
             ->where('updated_at', '>=', Carbon::now()->subDays(4))
-            ->whereHas('justifications', function ($query) {
-                $query->whereNull('file_url')->orWhere('file_url', ''); // Filtra solo justificaciones sin archivo
-            })
-            ->with(['apprentice.user', 'justifications' => function ($query) {
-                $query->whereNull('file_url')->orWhere('file_url', ''); // Carga solo justificaciones sin archivo
-            }])
-            ->get();
-        foreach ($assistances as $assistance) {
-            if (!$assistance->apprentice || !$assistance->apprentice->user) {
-                Log::warning("Asistencia ID {$assistance->id} no tiene un aprendiz o usuario asociado.");
-                continue;
-            }
+            ->whereHas('justifications', function ($q) {
+                $q->whereNull('file_url')->orWhere('file_url', '');
+            })->with(['apprentice.user','justifications' => function ($q) {
+                $q->whereNull('file_url')->orWhere('file_url', '');
+            }])->chunk(200, function ($assistances) {
+                foreach ($assistances as $assistance) {
+                    if (!$assistance->apprentice || !$assistance->apprentice->user) {
+                        Log::warning("Asistencia ID {$assistance->id} no tiene un aprendiz o usuario asociado.");
+                        continue;
+                    }
+        
+                    $user = $assistance->apprentice->user;
+                    Log::info(json_encode($user, JSON_PRETTY_PRINT));
+                    // Crear notificaciónes
+                    $this->sendNotifications($user, $assistance);
+                    // Enviar correo electrónico
+                    $this->sendEmails($user, $assistance);
+        
+                    Log::info("Comando ejecutado correctamente.");
+                }
+            });
+    }
 
-            $user = $assistance->apprentice->user;
-            Log::info(json_encode($user, JSON_PRETTY_PRINT));
-            // Crear notificación
-            $notification = Notification::create([
-                'user_id' => $user->id,
-                'message' => 'Sube tu justificación para la asistencia del ' . $assistance->updated_at->format('d/m/Y'),
-                'type' => 'warning',
-            ]);
+    protected function sendNotifications(User $user, Assistance $assistance) {
+        // Crear notificación
+        $notifications = [];
+        $notification = Notification::create([
+            'user_id' => $user->id,
+            'message' => 'Sube tu justificación para la asistencia del ' . $assistance->updated_at->format('d/m/Y'),
+            'type' => 'warning',
+        ]);
+        event(new NotificationEvent($notification));
+    }
 
-            event(new NotificationEvent($notification));
-
-            // Enviar correo electrónico
-            Mail::to($user->email)
-                ->queue(new JustificationReminter($user, $assistance));
-
-            Log::info("Notificación y correo enviados al aprendiz {$user->name} (ID: {$user->id}).");
-        }
-
-        Log::info("Comando ejecutado correctamente.");
+    protected function sendEmails(User $user, Assistance $assistance) {
+        $response = Mail::to($user->email)->send(new JustificationReminter($user, $assistance));
+        Log::info("Correo electrónico enviado a {$user->email} con respuesta: " . json_encode($response, JSON_PRETTY_PRINT));
     }
 }

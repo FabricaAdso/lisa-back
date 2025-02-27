@@ -13,15 +13,15 @@ class JustificationReminter extends Mailable
 {
     use Queueable, SerializesModels;
     public $user;
-    public $assistance;
+    public $asisstance;
 
     /**
      * Create a new message instance.
      */
-    public function __construct($user, $assistance)
+    public function __construct($user, $asisstance)
     {
         $this->user = $user;
-        $this->assistance = $assistance;
+        $this->asisstance = $asisstance;
     }
 
     /**
@@ -42,8 +42,8 @@ class JustificationReminter extends Mailable
         return new Content(
             view: 'emails.justification',
             with:[
-                'nombreAprendiz' => $this->user->name,
-                'fechaInasistencia' => $this->assistance->updated_at,
+                $user = $this->user,
+                $asisstance = $this->asisstance
             ]
         );
     }

@@ -5,12 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Session extends Model
 {
-    use HasFactory;
-    
     protected $allowIncluded = ['course.program','instructor','course.environment','assistances.apprentice.user','course','course.program.subjects','rap'];
     protected $fillable = ['date','start_time','end_time','instructor_id','instructor2_id','course_id','rap_id'];
 
@@ -18,6 +15,8 @@ class Session extends Model
         'course_',
         'subject_',
         'rap_',
+        'pending',
+        'past'
     ];
 
     public function assistances()
@@ -38,7 +37,7 @@ class Session extends Model
     {
         return $this->belongsTo(Course::class);
     }
-    
+
     public function rap ()
     {
         return $this->belongsTo(Rap::class);
@@ -71,10 +70,10 @@ class Session extends Model
         if (empty($this->allowFilter) || empty(request('filter'))) {
             return;
         }
-    
+
         $filters = request('filter');
         $allowFilter = collect($this->allowFilter);
-    
+
         foreach ($filters as $filter => $value) {
             // Filtrar por course (relación con Course)
             if ($filter === 'course_' && $allowFilter->contains($filter)) {
@@ -82,20 +81,35 @@ class Session extends Model
                     $q->where('code', 'LIKE', '%' . $value . '%');
                 });
             }
-    
+
             // Filtrar por subject (relación encadenada Course -> Program -> Subject)
             if ($filter === 'subject_' && $allowFilter->contains($filter)) {
                 $query->whereHas('course.program.subjects', function ($q) use ($value) {
                     $q->where('name', 'LIKE', '%' . $value . '%');
                 });
             }
-    
+
             // Filtrar por rap (relación con Rap)
             if ($filter === 'rap_' && $allowFilter->contains($filter)) {
                 $query->whereHas('rap', function ($q) use ($value) {
                     $q->where('description', 'LIKE', '%' . $value . '%');
                 });
             }
+
+            $filters = request('filter');
+            if (!$filters) {
+                return $query;
+            }
+
+            if (isset($filters['pending']) && $filters['pending'] === 'true') {
+                $query->where('date', '>=', now());
+            }
+
+            // Si llega filter[past], filtra por date < hoy
+            if (isset($filters['past']) && $filters['past'] === 'true') {
+                $query->where('date', '<', now());
+            }
+
         }
     }
 

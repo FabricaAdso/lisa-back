@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Apprentice;
 use App\Models\Assistance;
+use App\Models\Course;
 use App\Models\Instructor;
 use App\Models\Session;
 use App\Models\User;
@@ -25,17 +26,15 @@ class SessionController extends Controller
     public function index()
     {
         $user = User::find(Auth::id());
-        $instructor = Instructor::where('user_id', 1)->first();
-    
+        $leader = Course::where('course_leader_id', $user->id)->first();
+        $instructor = Instructor::where('user_id', $leader->id)->first();
         if (!$instructor) {
-            return response()->json([], 404); // Devuelve código 404 en lugar de una respuesta vacía
+            // Si no se encuentra un instructor, devolver un mensaje de error
+            return response()->json();
         }
-    
         $sessions = Session::where('instructor_id', $instructor->id)->included()->filter()->get();
-        
-        Log::info("Sesiones encontradas: " . $sessions->count());
-    
         return response()->json($sessions);
+
     }
 
     public function destroy($id)

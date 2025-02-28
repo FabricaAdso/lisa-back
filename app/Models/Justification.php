@@ -37,7 +37,6 @@ class Justification extends Model
         $allowFilter = collect($this->allowFilter);
 
         foreach ($filters as $filter => $value) {
-            // Filtrar por el nombre del programa relacionado
             if ($filter === 'aprobationState') {
                 $query->whereHas('aprobation', function ($q) use ($value) {
                     $q->where('state', 'LIKE', '%' . $value . '%');

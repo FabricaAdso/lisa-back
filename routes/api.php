@@ -41,6 +41,11 @@ Route::group([], function () {
     Route::post('register', [AuthController::class, 'register']);
     Route::post('login', [AuthController::class, 'login']);
     Route::get('document-type', [AuthController::class, 'getDocument']);
+
+    Route::post('password/email', [AuthController::class, 'sendResetLink'])->name('password.email');
+    Route::get('password/reset/{token}', [AuthController::class, 'showResetForm'])->name('password.reset');
+    Route::post('password/reset', [AuthController::class, 'resetPassword'])->name('password.update');
+
 });
 
 Route::post('broadcasting/auth', [BroadcastController::class, 'authenticate']);
@@ -55,7 +60,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::get('users/{id}', [UserController::class, 'show']);
     Route::put('usersUpdate/{id}', [UserController::class, 'update']);
 
-    //Activar y desactivar usuarios. ver usuarios activos e inactivoa
+    //Activar y desactivar usuarios. ver usuarios activos e inactivos
     Route::post('users/{id}/deactivate', [UserController::class, 'deactivate']);
     Route::get('deactivated', [UserController::class, 'deactivated']);
     Route::get('active', [UserController::class, 'active']);

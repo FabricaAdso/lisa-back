@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Events\NotificationEvent;
+use App\Mail\JustificationReminter;
 use App\Models\Apprentice;
 use App\Models\Aprobation;
 use App\Models\Assistance;
@@ -12,6 +13,7 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class ApprenticeUploadJustificationCommand extends Command
 {
@@ -36,25 +38,53 @@ class ApprenticeUploadJustificationCommand extends Command
     {
         Log::info("Comando para notificar al aprendiz que suba su justificación");
         // Lógica del comando
-        $assistances = Assistance::where('assistance', 0)
+        // $assistances = Assistance::where('assistance', 0)
+        //     ->where('updated_at', '>=', Carbon::now()->subDays(4))
+        //     ->whereHas('justifications', function ($query) {
+        //         $query->whereNull('file_url')->orWhere('file_url', ''); // Filtra solo justificaciones sin archivo
+        //     })
+        //     ->with(['apprentice.user', 'justifications' => function ($query) {
+        //         $query->whereNull('file_url')->orWhere('file_url', ''); // Carga solo justificaciones sin archivo
+        //     }])
+        //     ->get();
+
+        $assistances =  Assistance::where('assistance', 0)
             ->where('updated_at', '>=', Carbon::now()->subDays(4))
-            ->with(['apprentice.user', 'justifications'])
-            ->get();
+            ->whereHas('justifications', function ($q) {
+                $q->whereNull('file_url')->orWhere('file_url', '');
+            })->with(['apprentice.user', 'justifications' => function ($q) {
+                $q->whereNull('file_url')->orWhere('file_url', '')->orWhere('file_url', null);
+            }])->get();
         foreach ($assistances as $assistance) {
-            foreach ($assistance->justifications as $justification) {
-                //validar si file_ulr es diferente de null o vacio
-                if (empty($justification->file_url)) {
-                    Log::info("La justificación para la asistencia con ID " . $assistance->id . " no tiene archivo.");
-                    Log::info(json_encode($assistance, JSON_PRETTY_PRINT));
-                    $notification = Notification::create([
-                        'user_id' => $assistance->apprentice->user->id,
-                        'message' => 'Sube tu justificacion para la asistencia de la fecha ' . $assistance->updated_at,
-                        'type' => 'warning',
-                    ]);
-                    event(new NotificationEvent($notification));
-                    Log::info(json_encode($notification, JSON_PRETTY_PRINT));
-                }
+            if (!$assistance->apprentice || !$assistance->apprentice->user) {
+                Log::warning("Asistencia ID {$assistance->id} no tiene un aprendiz o usuario asociado.");
+                continue;
             }
+
+            $user = $assistance->apprentice->user;
+            Log::info(json_encode($user, JSON_PRETTY_PRINT));
+            // Crear notificaciónes
+            $this->sendNotifications($user, $assistance);
+            // Enviar correo electrónico
+            $this->sendEmails($user, $assistance);
+
+            Log::info("Comando ejecutado correctamente.");
         }
+    }
+
+    protected function sendNotifications(User $user, Assistance $assistance)
+    {
+        $notification = Notification::create([
+            'user_id' => $user->id,
+            'message' => 'Sube tu justificación para la asistencia del ' . $assistance->updated_at->format('d/m/Y'),
+            'type' => 'warning',
+        ]);
+        event(new NotificationEvent($notification));
+    }
+
+    protected function sendEmails(User $user, Assistance $assistance)
+    {
+        $response = Mail::to($user->email)->send(new JustificationReminter($user, $assistance));
+        Log::info("Correo electrónico enviado a {$user->email} con respuesta: " . json_encode($response, JSON_PRETTY_PRINT));
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\DocumentType;
+use App\Models\PasswordReset;
 use App\Models\User;
 use App\Services\TokenService;
 use Illuminate\Support\Facades\Auth;
@@ -10,8 +11,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Tymon\JWTAuth\Facades\JWTAuth;
-
+use Illuminate\Support\Str;
 class AuthController extends Controller
 {
 
@@ -194,6 +196,60 @@ class AuthController extends Controller
 
         // Aquí se maneja la autenticación de canales privados o de presencia
         return Broadcast::auth($request);
+    }
+
+    public function showResetForm(Request $request)
+    {
+        return view('auth.reset')->with(['token' => $request->token]);
+    }
+
+    public function sendResetLink(Request $request)
+    {
+        $request->validate(['email' => 'required|email']);
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            return response()->json(['error' => 'No se encontró un usuario con este correo electrónico.'], 404);
+        }
+
+        $token = Str::random(60);
+        PasswordReset::create([
+            'email' => $request->email,
+            'token' => $token,
+            'created_at' => now(),
+        ]);
+
+        Mail::send('emails.reset', ['user' => $user, 'token' => $token], function ($message) use ($request) {
+            $message->to($request->email);
+            $message->subject('Restablecer Contraseña');
+        });
+
+        return response()->json(['message' => 'Se ha enviado el enlace de restablecimiento de contraseña.']);
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'token' => 'required',
+            'password' => 'required|confirmed|min:6',
+        ]);
+
+        $passwordReset = PasswordReset::where('token', $request->token)
+            ->where('created_at', '>=', now()->subMinutes(30))
+            ->first();
+
+        if (!$passwordReset) {
+            return response()->json(['error' => 'Este token es inválido o ha expirado.'], 400);
+        }
+
+        $user = User::where('email', $passwordReset->email)->first();
+        $user->password = bcrypt($request->password);
+        $user->save();
+
+        $passwordReset->delete();
+
+        return response()->json(['message' => 'Contraseña restablecida correctamente.']);
     }
 
 }

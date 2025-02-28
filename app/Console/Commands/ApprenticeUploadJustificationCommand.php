@@ -48,36 +48,32 @@ class ApprenticeUploadJustificationCommand extends Command
         //     }])
         //     ->get();
 
-        Assistance::where('assistance', 0)
+        $assistances =  Assistance::where('assistance', 0)
             ->where('updated_at', '>=', Carbon::now()->subDays(4))
             ->whereHas('justifications', function ($q) {
                 $q->whereNull('file_url')->orWhere('file_url', '');
-            })->with(['apprentice.user','justifications' => function ($q) {
-                $q->whereNull('file_url')->orWhere('file_url', '');
-            }])->chunk(200, function ($assistances) {
-                foreach ($assistances as $assistance) {
-                    if (!$assistance->apprentice || !$assistance->apprentice->user) {
-                        Log::warning("Asistencia ID {$assistance->id} no tiene un aprendiz o usuario asociado.");
-                        continue;
-                    }
-        
-                    $user = $assistance->apprentice->user;
-                    Log::info(json_encode($user, JSON_PRETTY_PRINT));
-                    // Crear notificaciónes
-                    $this->sendNotifications($user, $assistance);
-                    // Enviar correo electrónico
-                    $this->sendEmails($user, $assistance);
-        
-                    Log::info("Comando ejecutado correctamente.");
-                }
-            });
+            })->with(['apprentice.user', 'justifications' => function ($q) {
+                $q->whereNull('file_url')->orWhere('file_url', '')->orWhere('file_url', null);
+            }])->get();
+        foreach ($assistances as $assistance) {
+            if (!$assistance->apprentice || !$assistance->apprentice->user) {
+                Log::warning("Asistencia ID {$assistance->id} no tiene un aprendiz o usuario asociado.");
+                continue;
+            }
+
+            $user = $assistance->apprentice->user;
+            Log::info(json_encode($user, JSON_PRETTY_PRINT));
+            // Crear notificaciónes
+            $this->sendNotifications($user, $assistance);
+            // Enviar correo electrónico
+            $this->sendEmails($user, $assistance);
+
+            Log::info("Comando ejecutado correctamente.");
+        }
     }
 
-    protected function sendNotifications(User $user, Assistance $assistance) {
-        // Crear notificación
-        //consultar el como trae las notificaciones el websocket para saber si es prudente el enviarlo por lotes ala base de datos ya que el even se guarda en cache
-        //
-        $notifications = [];
+    protected function sendNotifications(User $user, Assistance $assistance)
+    {
         $notification = Notification::create([
             'user_id' => $user->id,
             'message' => 'Sube tu justificación para la asistencia del ' . $assistance->updated_at->format('d/m/Y'),
@@ -86,7 +82,8 @@ class ApprenticeUploadJustificationCommand extends Command
         event(new NotificationEvent($notification));
     }
 
-    protected function sendEmails(User $user, Assistance $assistance) {
+    protected function sendEmails(User $user, Assistance $assistance)
+    {
         $response = Mail::to($user->email)->send(new JustificationReminter($user, $assistance));
         Log::info("Correo electrónico enviado a {$user->email} con respuesta: " . json_encode($response, JSON_PRETTY_PRINT));
     }

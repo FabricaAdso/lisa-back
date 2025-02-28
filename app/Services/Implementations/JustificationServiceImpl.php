@@ -35,7 +35,7 @@ class JustificationServiceImpl implements JustificationService
             'file' => 'required|mimes:pdf|max:2048',
             'description' => 'nullable|string',
         ]);
-        $assistance = Assistance::included()->findOrFail($request->assistance_id);
+        $assistance = Assistance::findOrFail($request->assistance_id);
         $justification = Justification::where('assistance_id', $request->assistance_id)->first();
 
         $assistanceDate = $assistance->updated_at;

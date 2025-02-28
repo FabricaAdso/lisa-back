@@ -18,6 +18,8 @@ class DatabaseSeeder extends Seeder
             KnowledgeNetworkSeeder::class,
             ProgramSeeder::class, 
             CourseSeeder::class,
+            SubjectSeeder::class,
+            RapSeeder::class,
         ]);
 
         // Luego, se crean los usuarios

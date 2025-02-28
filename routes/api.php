@@ -127,6 +127,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::resource('rap', RapController::class);
     //session
     Route::post('session', [SessionController::class, 'createSession']);
+    Route::get('session', [SessionController::class, 'index']);
     Route::put('session/update/{sessionIds}', [SessionController::class, 'updateSessions']);
     Route::delete('session/{id}', [SessionController::class, 'destroy']);
     // Route::resource('sessions', SessionController::class);
@@ -141,7 +142,6 @@ Route::group(['middleware' => 'auth:api'], function () {
 });
 Route::post('excel', [ExcelController::class, 'excel']);
 
-Route::get('session', [SessionController::class, 'index']);
 // Ruta instructor & Apprentice
 Route::resource('instructor', InstructorController::class);
 //Ruta regionales

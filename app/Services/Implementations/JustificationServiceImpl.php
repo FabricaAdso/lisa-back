@@ -36,7 +36,7 @@ class JustificationServiceImpl implements JustificationService
             'description' => 'nullable|string',
         ]);
         $assistance = Assistance::findOrFail($request->assistance_id);
-        $justification = Justification::where('assistance_id', $request->assistance_id)->first();
+        $justification = Justification::where('assistance_id', $assistance->id)->first();
 
         $assistanceDate = $assistance->updated_at;
         $startJustificationDate = Carbon::parse($assistanceDate);
@@ -78,7 +78,7 @@ class JustificationServiceImpl implements JustificationService
                 'description' => $request->description,
             ]);
             $justifications = Justification::included()->findOrFail($justification->id);
-            return response()->json($justification, 202);
+            return response()->json($justifications, 202);
         }
     }
 

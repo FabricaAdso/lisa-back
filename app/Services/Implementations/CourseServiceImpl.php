@@ -61,25 +61,13 @@ class CourseServiceImpl implements CourseService
     //sesiones del dia
     public function getCourseInstructorNow($request)
     {
-      $user = User::find(Auth::id());
-      $instructor = Instructor::where('user_id', $user->id)->first();
-      if(!$instructor){
-        return ['message' => 'instructor no encontrado'];
-      }
-        $session = Session::where('instructor_id', $instructor->id)
-        ->where(function ($query){
-            $query->where('date', '=', Carbon::now()->toDateString())
-                  ->orWhere(function ($query){
-                    $query->where('date','=',Carbon::now()->toDateString())
-                    ->where('start_time','<=',Carbon::now()->toTimeString())
-                    ->where('end_time','>=',Carbon::now()->toTimeString());
-                  });
-        })
-        ->included()
-        ->orderBy('date')
-        ->orderBy('start_time')
-        ->first();
-        return $session;
+      $request->validate([
+        'course_code' => 'required|exists:courses,code',
+        'session_id' => 'required|exists:sessions,id',
+      ]);
+      $course = Course::where('code', $request->course_code)->first();
+      $session = Session::where('course_id', $course->id)->where('id', $request->session_id)->included()->get();
+      return $session;
     }
         
 }

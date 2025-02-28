@@ -132,7 +132,9 @@ Route::group(['middleware' => 'auth:api'], function () {
 
 });
     Route::post('excel', [ExcelController::class, 'excel']);
-    Route::post('/upload-excel', [ExcelController::class, 'upload']);
+    Route::post('/import-courses', [ExcelController::class, 'importCourses']);
+    Route::post('/import-apprentices', [ExcelController::class, 'importUsers']);
+    // Route::post('/import-instructors', [ExcelController::class, 'importUsers']);
 
     // Ruta instructor & Apprentice
     Route::resource('instructor', InstructorController::class);

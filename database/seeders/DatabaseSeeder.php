@@ -18,7 +18,6 @@ class DatabaseSeeder extends Seeder
             KnowledgeNetworkSeeder::class,
             ProgramSeeder::class,
             CourseSeeder::class,
-            ExcelImportSeeder::class,
         ]);
 
         // Luego, se crean los usuarios

@@ -10,7 +10,7 @@ class RapController extends Controller
     //
     public function index()
     {
-        $raps = Rap::all();
+        $raps = Rap::included()->filter()->get();
 
         return response()->json($raps);
     }

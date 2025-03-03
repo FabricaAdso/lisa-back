@@ -43,7 +43,7 @@ Route::group([], function () {
     Route::get('document-type', [AuthController::class, 'getDocument']);
 
     Route::post('password/email', [AuthController::class, 'sendResetLink'])->name('password.email');
-    Route::get('password/reset/{token}', [AuthController::class, 'showResetForm'])->name('password.reset');
+    // Route::get('password/reset/{token}', [AuthController::class, 'showResetForm'])->name('password.reset');
     Route::post('password/reset', [AuthController::class, 'resetPassword'])->name('password.update');
 
 });

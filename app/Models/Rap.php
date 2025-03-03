@@ -46,4 +46,6 @@ class Rap extends Model
         }
         $query->with($relations);
     }
+
+    
 }

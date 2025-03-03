@@ -3,12 +3,16 @@ import mysql.connector
 from datetime import datetime
 import os
 import sys
+import signal
+
+signal.signal(signal.SIGALRM, lambda signum, frame: print("Tiempo de ejecución excedido"))
+signal.alarm(600)  # 600 segundos (10 minutos)
 
 # Configuración de la base de datos
 db_config = {
     'host': 'localhost',
     'user': 'root',  # Cambia por tu usuario de MySQL
-    'password': 'antonio123',  # Cambia por tu contraseña de MySQL
+    'password': 'fabrica123',  # Cambia por tu contraseña de MySQL
     'database': 'lisa_back'  # Cambia por el nombre de tu base de datos
 }
 

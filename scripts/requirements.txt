@@ -8,8 +8,7 @@ openpyxl
 # chmod +x /ruta/al/proyecto/scripts/import_courses.py
 
 
-
-# python
+# python - extension pack
 # # Verificar la instalación de Python
 # python3 --version
 
@@ -17,7 +16,11 @@ openpyxl
 # pip install virtualenv
 
 # # Crear el entorno virtual en la carpeta .venv
+# python3 -m venv .venv - windows
+# sudo apt install python3.12-venv - linux
+
 # python3 -m venv .venv
 
 # # activa el entorno virtual
-# .venv\Scripts\activate
+# .venv\Scripts\activate - windows
+# source .venv/bin/activate - linux

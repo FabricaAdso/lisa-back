@@ -18,12 +18,12 @@ return new class extends Migration
             $table->string('last_name');
             $table->timestamp('deactivation_date')->nullable();
             $table->boolean('is_superuser')->default(false);
-            $table->string('email')->unique();
+            $table->string('email')->unique()->nullable();
             $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
+            $table->string('password')->nullable();
 
             $table->unsignedBigInteger('document_type_id');
-            $table->foreign('document_type_id')->references('id')->on('document_types');
+            $table->foreign('document_type_id')->references('id')->on('document_types')->null;
 
             $table->rememberToken();
             $table->timestamps();

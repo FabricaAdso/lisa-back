@@ -11,12 +11,12 @@ class DatabaseSeeder extends Seeder
     {
         // Primero, se crean los registros básicos que no dependen de otros seeders
         $this->call([
-            RolesSeeder::class, 
+            RolesSeeder::class,
             DocumentTypeSeeder::class,
             RegionalSeeder::class,
             TrainingCenterSeeder::class,
             KnowledgeNetworkSeeder::class,
-            ProgramSeeder::class, 
+            ProgramSeeder::class,
             CourseSeeder::class,
             SubjectSeeder::class,
             RapSeeder::class,

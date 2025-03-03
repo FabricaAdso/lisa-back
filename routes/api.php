@@ -79,7 +79,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::resource('programs', ProgramController::class);
     Route::resource('courses', CourseController::class);
 
-    //instructores que tiene sesiones pendientes    
+    //instructores que tiene sesiones pendientes
     Route::get('course/Instructorsessions', [CourseController::class, 'getInstructorAndSessions']);
     //instructores con fichas que tuvo formacion
     Route::get('course/sessions', [CourseController::class, 'getCourseInstructor']);
@@ -138,10 +138,12 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::resource('/knowledgeNetwork', KnowledgeNetworkController::class);
 
     Route::get('regionals', [RegionalController::class, 'index'])->withoutMiddleware(['auth:api']);
-    
-    
+
+
 });
-Route::post('excel', [ExcelController::class, 'excel']);
+    Route::post('/import-courses', [ExcelController::class, 'importCourses']);
+    Route::post('/import-apprentices', [ExcelController::class, 'importApprentices']);
+    Route::post('/import-instructors', [ExcelController::class, 'importInstructors']);
 
 // Ruta instructor & Apprentice
 Route::resource('instructor', InstructorController::class);

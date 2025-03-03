@@ -10,7 +10,7 @@ class Rap extends Model
 {
     //
     use HasFactory;
-    
+
     protected $fillable = ['description', 'subject_id', 'number_hours'];
     protected $allowIncluded = ['subject', 'sessions'];
     protected $allowFilter = ['subject_id', 'number_hours'];
@@ -54,13 +54,14 @@ class Rap extends Model
         if (empty($this->allowFilter) || empty(request('filter'))) {
             return;
         }
-    
+
         // Get the filter parameters from the request
         $filters = request('filter');
-        
+
         // Convert the allowed filters to a collection for easy checking
         $allowFilter = collect($this->allowFilter);
-    
+        
+
         // Iterate through each filter in the request
         foreach ($filters as $filter => $value) {
             // Check if the current filter is in the list of allowed filters
@@ -75,5 +76,5 @@ class Rap extends Model
         }
     }
 
-    
+
 }

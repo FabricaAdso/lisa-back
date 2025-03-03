@@ -8,11 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 class Session extends Model
 {
-<<<<<<< HEAD
-    protected $allowIncluded = ['course.program','instructor','course.environment','assistances.apprentice.user','course','course.program.subjects','rap'];
-=======
-    protected $allowIncluded = ['course.program','instructor','course.environment','assistances.apprentice.user', 'instructor.user', 'course','course.program.subjects','rap', 'course.subject'];
->>>>>>> 745bffd484deff2ad0332938b2b6d47ad3361ab2
+    protected $allowIncluded = ['course.program','instructor','course.environment','assistances.apprentice.user', 'instructor.user', 'course','course.program.subjects','rap', 'course.subject', 'rap.subject'];
     protected $fillable = ['date','start_time','end_time','instructor_id','instructor2_id','course_id','rap_id'];
 
     protected $allowFilter = [

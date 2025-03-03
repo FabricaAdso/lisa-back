@@ -63,23 +63,43 @@ class CourseServiceImpl implements CourseService
     {
       $user = User::find(Auth::id());
       $instructor = Instructor::where('user_id', $user->id)->first();
-      if(!$instructor){
-        return ['message' => 'instructor no encontrado'];
+      
+      $fichas = Course::whereHas('sessions', function ($q) use ($instructor) {
+        $q->where('instructor_id', $instructor->id);
+      })->get();
+
+      $sesionesCercanas = [];
+      foreach ($fichas as $ficha) {
+        $sesionesCercana = Session::where('instructor_id', $instructor->id)
+          ->where('course_id', $ficha->id)
+          ->where('date', '>=', Carbon::now()->toDateString())
+          ->orderBy('created_at', 'asc')
+          ->included()
+          ->first();
+
+        if ($sesionesCercana) {
+          $sesionesCercanas[] = $sesionesCercana;
+        }
       }
-        $session = Session::where('instructor_id', $instructor->id)
-        ->where(function ($query){
-            $query->where('date', '=', Carbon::now()->toDateString())
-                  ->orWhere(function ($query){
-                    $query->where('date','=',Carbon::now()->toDateString())
-                    ->where('start_time','<=',Carbon::now()->toTimeString())
-                    ->where('end_time','>=',Carbon::now()->toTimeString());
-                  });
-        })
-        ->included()
-        ->orderBy('date')
-        ->orderBy('start_time')
-        ->first();
-        return $session;
+      return $sesionesCercanas;
+      
+      // if(!$instructor){
+      //   return ['message' => 'instructor no encontrado'];
+      // }
+      //   $session = Session::where('instructor_id', $instructor->id)
+      //   ->where(function ($query){
+      //       $query->where('date', '=', Carbon::now()->toDateString())
+      //             ->orWhere(function ($query){
+      //               $query->where('date','=',Carbon::now()->toDateString())
+      //               ->where('start_time','<=',Carbon::now()->toTimeString())
+      //               ->where('end_time','>=',Carbon::now()->toTimeString());
+      //             });
+      //   })
+      //   ->included()
+      //   ->orderBy('date')
+      //   ->orderBy('start_time')
+      //   ->first();
+      //   return $session;
     }
         
 }

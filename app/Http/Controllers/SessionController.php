@@ -58,7 +58,7 @@ class SessionController extends Controller
     }
 
     public function show($id) {
-        $session = Session::find($id)->included()->first();
+        $session = Session::included()->find($id);
         return response()->json($session);
     }
 

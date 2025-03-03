@@ -3,8 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Course;
+use App\Models\Instructor;
+use App\Models\Session;
+use App\Models\User;
 use App\Services\CourseService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 
 class CourseController extends Controller
@@ -103,9 +108,4 @@ class CourseController extends Controller
         return response()->json($courseIntructor);
     }
 
-    public function getCourseInstructorNow(Request $request)
-    {
-        $courseIntructor = $this->courseService->getCourseInstructorNow($request);
-        return response()->json( $courseIntructor);
-    }
 }

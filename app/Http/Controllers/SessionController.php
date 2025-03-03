@@ -10,6 +10,7 @@ use App\Models\Session;
 use App\Models\User;
 use App\Services\SessionService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
@@ -54,6 +55,16 @@ class SessionController extends Controller
     public function updateSessions(Request $request, ...$sessionIds)
     {
         return $this->sessionService->updateSessions($request, $sessionIds);
+    }
+
+    public function show() {
+        $user = User::find(Auth::id());
+        $instructor = Instructor::where('user_id', $user->id)->first();
+        $sessions = Session::where('instructor_id', $instructor->id)
+        ->where(function ($query){
+            $query->where('date', '>', Carbon::now()->toDateString());
+        })->included()->get();
+        return response()->json($sessions);
     }
 
 }

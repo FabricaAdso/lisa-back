@@ -83,9 +83,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::get('course/Instructorsessions', [CourseController::class, 'getInstructorAndSessions']);
     //instructores con fichas que tuvo formacion
     Route::get('course/sessions', [CourseController::class, 'getCourseInstructor']);
-    //sesiones del dia
-    Route::get('course/sessionsNow', [CourseController::class, 'getCourseInstructorNow']);
-
+    
     // Centros de formacion, ambientes y sedes
     Route::apiResource('headquarters', HeadquartersController::class);
     Route::apiresource('environments', EnvironmentController::class);
@@ -128,6 +126,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     //session
     Route::post('session', [SessionController::class, 'createSession']);
     Route::get('session', [SessionController::class, 'index']);
+    Route::get('session', [SessionController::class, 'show']);
     Route::put('session/update/{sessionIds}', [SessionController::class, 'updateSessions']);
     Route::delete('session/{id}', [SessionController::class, 'destroy']);
     // Route::resource('sessions', SessionController::class);

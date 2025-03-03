@@ -102,9 +102,9 @@ class CourseController extends Controller
         );
     }
 
-    public function getCourseInstructor(Request $request)
+    public function getCourseInstructorNow(Request $request)
     {
-        $courseIntructor = $this->courseService->getCourseInstructor($request);
+        $courseIntructor = $this->courseService->getCourseInstructorNow($request);
         return response()->json($courseIntructor);
     }
 

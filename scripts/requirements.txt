@@ -1,0 +1,23 @@
+pandas
+mysql-connector-python
+openpyxl
+
+# # se debe ejecutar esto en el servidor o donde se clone para que funcione.
+# pip install -r scripts/requirements.txt
+# # para asegurarnos que tenga permisos de ejecucion:
+# chmod +x /ruta/al/proyecto/scripts/import_courses.py
+
+
+
+# python
+# # Verificar la instalación de Python
+# python3 --version
+
+# # Instalar virtualenv (si no está instalado)
+# pip install virtualenv
+
+# # Crear el entorno virtual en la carpeta .venv
+# python3 -m venv .venv
+
+# # activa el entorno virtual
+# .venv\Scripts\activate

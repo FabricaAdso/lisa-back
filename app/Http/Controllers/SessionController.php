@@ -57,14 +57,9 @@ class SessionController extends Controller
         return $this->sessionService->updateSessions($request, $sessionIds);
     }
 
-    public function show() {
-        $user = User::find(Auth::id());
-        $instructor = Instructor::where('user_id', $user->id)->first();
-        $sessions = Session::where('instructor_id', $instructor->id)
-        ->where(function ($query){
-            $query->where('date', '>', Carbon::now()->toDateString());
-        })->included()->get();
-        return response()->json($sessions);
+    public function show($id) {
+        $session = Session::find($id)->included()->first();
+        return response()->json($session);
     }
 
 }

@@ -126,7 +126,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     //session
     Route::post('session', [SessionController::class, 'createSession']);
     Route::get('session', [SessionController::class, 'index']);
-    Route::get('session', [SessionController::class, 'show']);
+    Route::get('session/{id}', [SessionController::class, 'show']);
     Route::put('session/update/{sessionIds}', [SessionController::class, 'updateSessions']);
     Route::delete('session/{id}', [SessionController::class, 'destroy']);
     // Route::resource('sessions', SessionController::class);

@@ -27,11 +27,18 @@ class SessionController extends Controller
     public function index()
     {
         $user = User::find(Auth::id());
-        $leader = Course::where('course_leader_id', $user->id)->first();
-        $instructor = Instructor::where('user_id', $leader->id)->first();
+        // Busque el instructor asociado al usuario
+        $instructor = Instructor::where('user_id', $user->id)->first();
         if (!$instructor) {
-            // Si no se encuentra un instructor, devolver un mensaje de error
-            return response()->json();
+            return response()->json(['error' => 'El usuario no es un instructor'], 404);
+        }
+
+        // Busque todos los cursos en los que el instructor es líder
+        $courseIds = Course::where('course_leader_id', $instructor->id)
+                           ->pluck('id');  // Obtiene un array de IDs de cursos
+
+        if ($courseIds->isEmpty()) {
+            return response()->json(['error' => 'El instructor no es líder de ningún curso'], 404);
         }
         $sessions = Session::where('instructor_id', $instructor->id)->included()->filter()->get();
         return response()->json($sessions);

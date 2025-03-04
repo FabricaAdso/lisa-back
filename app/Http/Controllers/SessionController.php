@@ -27,8 +27,8 @@ class SessionController extends Controller
     public function index()
     {
         $user = User::find(Auth::id());
-        $leader = Course::where('course_leader_id', $user->id)->first();
-        $instructor = Instructor::where('user_id', $leader->id)->first();
+        $instructor = Instructor::where('user_id', $user->id  )->first();
+    
         if (!$instructor) {
             // Si no se encuentra un instructor, devolver un mensaje de error
             return response()->json();

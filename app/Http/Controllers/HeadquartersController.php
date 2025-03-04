@@ -11,8 +11,8 @@ class HeadquartersController extends Controller
     public function index()
     {
 
-        //   $headquarter = Headquarters::all();
-        $headquarter = Headquarters::included()->get();
+        //$headquarter = Headquarters::all();
+        // $headquarter = Headquarters::included()->get();
         $headquarter = Headquarters::included()->filter()->get();
 
         return response()->json($headquarter);
@@ -33,15 +33,7 @@ class HeadquartersController extends Controller
             'opening_time' => 'required|date_format:H:i',
             'closing_time' => 'required|date_format:H:i|after: opening_time ',
             'municipality' => 'required|max:100',
-
-        ]);
-        // Convertir el formato de 12 horas a 24 horas
-        $start_time_24 = \Carbon\Carbon::createFromFormat('H:i', $request->opening_time)->format('H:i:s');
-        $end_time_24 = \Carbon\Carbon::createFromFormat('H:i', $request->closing_time)->format('H:i:s');
-
-        $request->merge([
-            'opening_time' => $start_time_24,
-            'closing_time' => $end_time_24,
+            'training_center_id' => 'required|exists:training_centers,id'
         ]);
 
         $headquarter = Headquarters::create($request->all());
@@ -74,16 +66,9 @@ class HeadquartersController extends Controller
             'name' => 'required|max:100',
             'adress' => 'required|max:100',
             'opening_time' => 'required|date_format:H:i',
-            'closing_time' => 'required|date_format:H:i|after: opening_time',
+            'closing_time' => 'required|date_format:H:i|after: opening_time ',
             'municipality' => 'required|max:100',
-
-        ]);
-        $start_time_24 = \Carbon\Carbon::createFromFormat('H:i', $request->opening_time)->format('H:i:s');
-        $end_time_24 = \Carbon\Carbon::createFromFormat('H:i', $request->closing_time)->format('H:i:s');
-
-        $request->merge([
-            'opening_time' => $start_time_24,
-            'closing_time' => $end_time_24,
+            'training_center_id' => 'required|exists:training_centers,id'
         ]);
 
         $headquarter = Headquarters::find($id);

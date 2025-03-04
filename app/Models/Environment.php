@@ -10,9 +10,9 @@ class Environment extends Model
 {
     //
     use HasFactory;
-    
-    protected $fillable = ['name', 'capacity'];
-    protected $allowIncluded = ['headquarters'];
+
+    protected $fillable = ['name', 'capacity', 'headquarters_id', 'knowledge_network_id'];
+    protected $allowIncluded = ['headquarters','knowledgeNetwork'];
     protected $allowFilter = ['headquarters_'];
 
 
@@ -21,12 +21,12 @@ class Environment extends Model
         return $this->belongsTo(Headquarters::class);
     }
 
-    public function knowledgeNetwork ()
+    public function knowledgeNetwork()
     {
         return $this->belongsTo(KnowledgeNetwork::class);
     }
-    
-    public function courses ()
+
+    public function courses()
     {
         return $this->hasMany(Course::class);
     }

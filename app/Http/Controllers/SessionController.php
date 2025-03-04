@@ -10,6 +10,7 @@ use App\Models\Session;
 use App\Models\User;
 use App\Services\SessionService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
@@ -54,6 +55,11 @@ class SessionController extends Controller
     public function updateSessions(Request $request, ...$sessionIds)
     {
         return $this->sessionService->updateSessions($request, $sessionIds);
+    }
+
+    public function show($id) {
+        $session = Session::included()->find($id);
+        return response()->json($session);
     }
 
 }

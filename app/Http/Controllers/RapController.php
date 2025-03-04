@@ -10,7 +10,7 @@ class RapController extends Controller
     //
     public function index()
     {
-        $raps = Rap::all();
+        $raps = Rap::included()->filter()->get();
 
         return response()->json($raps);
     }
@@ -18,8 +18,8 @@ class RapController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'description' => 'required|String|max:20',
-            'subject_id' => 'required|integer',
+            'description' => 'required|String',
+            'subject_id' => 'required|exists:subjects,id',
             'number_hours' => 'required|integer'
         ]);
 
@@ -36,8 +36,8 @@ class RapController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'description' => 'required|String|max:20',
-            'subject_id' => 'required|integer',
+            'description' => 'required|String',
+            'subject_id' => 'required|exists:subjects,id',
             'number_hours' => 'required|integer'
         ]);
         

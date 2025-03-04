@@ -11,7 +11,7 @@ class Session extends Model
 {
     use HasFactory;
     
-    protected $allowIncluded = ['course.program','instructor','course.environment','assistances.apprentice.user','course','course.program.subjects','rap'];
+    protected $allowIncluded = ['course.program','instructor','instructor.user','course.environment.headquarters','course.environment','assistances.apprentice.user','course','course.program.subjects','rap'];
     protected $fillable = ['date','start_time','end_time','instructor_id','instructor2_id','course_id','rap_id'];
 
     protected $allowFilter = [

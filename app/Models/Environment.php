@@ -9,8 +9,8 @@ class Environment extends Model
 {
     //
 
-    protected $fillable = ['name', 'capacity'];
-    protected $allowIncluded = ['headquarters'];
+    protected $fillable = ['name', 'capacity','headquarters_id','knowledge_network_id'];
+    protected $allowIncluded = ['headquarters','knowledgeNetwork'];
     protected $allowFilter = ['headquarters_'];
 
 

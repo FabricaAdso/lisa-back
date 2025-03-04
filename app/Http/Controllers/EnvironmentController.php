@@ -29,6 +29,7 @@ class EnvironmentController extends Controller
             'name' => 'required|max:100',
             'capacity' => 'required|max:100',
             'headquarters_id' => 'required|max:100',
+            'knowledge_network_id'=>'required|max:100'
         ]);
 
         $environments = Environment::create($request->all());

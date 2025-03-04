@@ -25,7 +25,7 @@ class SessionController extends Controller
     public function index()
     {
         $user = User::find(Auth::id());
-        $instructor = Instructor::where('user_id', 1)->first();
+        $instructor = Instructor::where('user_id', $user->id  )->first();
     
         if (!$instructor) {
             return response()->json([], 404); // Devuelve código 404 en lugar de una respuesta vacía

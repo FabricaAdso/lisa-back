@@ -65,6 +65,8 @@ class SessionServiceImpl implements SessionService
         // Obtener la duración total de la competencia en horas
         $rap = Rap::findOrFail($request->rap_id);
         $totalHours = $rap->number_hours;
+        $percentage = $rap->subject->percentage;
+        $hours = $totalHours * $percentage / 100;
 
         // Convertir las fechas y horas en objetos Carbon
         $startDate = Carbon::parse($request->start_date);
@@ -84,7 +86,7 @@ class SessionServiceImpl implements SessionService
             }
         }
 
-        $sessionsNeeded = ceil($totalHours / $sessionDuration);
+        $sessionsNeeded = ceil($hours / $sessionDuration);
         $sessionsCreated = [];
         $existingSessions = [];
         $currentDate = $startDate;

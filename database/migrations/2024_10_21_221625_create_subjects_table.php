@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->integer('total_number_hours');
+            $table->integer('percentage')->nullable();
 
             $table->foreignId('program_id')->nullable()->constrained()->onDelete('set null');
 

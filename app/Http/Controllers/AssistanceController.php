@@ -84,7 +84,7 @@ class AssistanceController extends Controller
             Aprobation::firstOrCreate([
                 'justification_id' => $Justification->id,
             ],[
-                'state' => null,
+                'state' => 'En_espera',
                 'motive' => null,
             ]);
         }

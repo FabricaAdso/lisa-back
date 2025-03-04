@@ -19,6 +19,7 @@ use App\Http\Controllers\JustificationController;
 use App\Http\Controllers\KnowledgeNetworkController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProgramController;
+use App\Http\Controllers\RapController;
 use App\Http\Controllers\RegionalController;
 use App\Http\Controllers\SessionController;
 use App\Http\Controllers\ShiftController;
@@ -40,6 +41,11 @@ Route::group([], function () {
     Route::post('register', [AuthController::class, 'register']);
     Route::post('login', [AuthController::class, 'login']);
     Route::get('document-type', [AuthController::class, 'getDocument']);
+
+    Route::post('password/email', [AuthController::class, 'sendResetLink'])->name('password.email');
+    // Route::get('password/reset/{token}', [AuthController::class, 'showResetForm'])->name('password.reset');
+    Route::post('password/reset', [AuthController::class, 'resetPassword'])->name('password.update');
+
 });
 
 Route::post('broadcasting/auth', [BroadcastController::class, 'authenticate']);
@@ -54,7 +60,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::get('users/{id}', [UserController::class, 'show']);
     Route::put('usersUpdate/{id}', [UserController::class, 'update']);
 
-    //Activar y desactivar usuarios. ver usuarios activos e inactivoa
+    //Activar y desactivar usuarios. ver usuarios activos e inactivos
     Route::post('users/{id}/deactivate', [UserController::class, 'deactivate']);
     Route::get('deactivated', [UserController::class, 'deactivated']);
     Route::get('active', [UserController::class, 'active']);
@@ -62,12 +68,15 @@ Route::group(['middleware' => 'auth:api'], function () {
     // Ruta para gestionar roles
     Route::get('/roles', [RoleController::class, 'getRoles']);
     Route::post('users/{userId}/training-centers/{trainingCenterId}/toggle-role', [RoleController::class, 'toggleRole']);
-    Route::post('/assign-role', [RoleController::class, 'assignRole']);
+    Route::get('/users-by-training-center', [UserController::class, 'getUsersByTrainingCenter']);
+    Route::post('/assign-role', [RoleController::class, 'assignRoles']);
+    Route::get('/user/{id}/roles', [UserController::class, 'getUserRolesById']);
+
 
     //  Rutas para cursos y demas
+    Route::get('course', [CourseController::class, 'index']);
     Route::resource('educationLevel', EducationLevelController::class);
     Route::resource('programs', ProgramController::class);
-    Route::get('course', [CourseController::class, 'index']);
     Route::resource('courses', CourseController::class);
 
     //instructores que tiene sesiones pendientes
@@ -76,7 +85,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::get('course/sessions', [CourseController::class, 'getCourseInstructor']);
     //sesiones del dia
     Route::get('course/sessionsNow', [CourseController::class, 'getCourseInstructorNow']);
-
+    
     // Centros de formacion, ambientes y sedes
     Route::apiResource('headquarters', HeadquartersController::class);
     Route::apiresource('environments', EnvironmentController::class);
@@ -93,12 +102,13 @@ Route::group(['middleware' => 'auth:api'], function () {
     //Justification CRUD
     Route::get('justifications/apprentice', [JustificationController::class, 'indexApprentice'])->name('justifications.indexApprentice');
     Route::get('justifications/instructor', [JustificationController::class, 'getInassitanceInstructor'])->name('justifications.getInassistanceInstructor');
-    Route::put('justifications', [JustificationController::class, 'createJustification']);
+    //cargar justificaciones
+    Route::put('justifications/edit', [JustificationController::class, 'editJustification']);
     Route::resource('justifications', JustificationController::class);
 
     //Aprobation Crud y Filtros
+    Route::put('aprobations', [AprobationController::class, 'update']); // editar el estado de la aprobacion
     Route::resource('aprobations', AprobationController::class);
-    Route::put('aprobations', [AprobationController::class, 'update']);
 
     //justificaciones por aprendices
     Route::get('/apprentices/assistance', [AssistanceController::class, 'getInassitanceApprentice']);
@@ -114,27 +124,33 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::resource('apprentice', ApprenticeController::class);
     // Competencia
     Route::resource('subject', SubjectController::class);
+    Route::resource('rap', RapController::class);
     //session
     Route::post('session', [SessionController::class, 'createSession']);
-    Route::put('session/update', [SessionController::class, 'updateSessions']);
-    Route::resource('sessions', SessionController::class);
-
+    Route::get('session', [SessionController::class, 'index']);
+    Route::get('session/{id}', [SessionController::class, 'show']);//traer los detalles de la sesion
+    Route::put('session/update/{sessionIds}', [SessionController::class, 'updateSessions']);
+    Route::delete('session/{id}', [SessionController::class, 'destroy']);
+    // Route::resource('sessions', SessionController::class);
+    
     //Ruta para red de conocimiento
-    Route::resource('/knowledgeNetwork', KnowledgeNetworkController::class);
     Route::get('/knowledgeNetwork/{id}', [KnowledgeNetworkController::class, 'show']);
+    Route::resource('/knowledgeNetwork', KnowledgeNetworkController::class);
 
     Route::get('regionals', [RegionalController::class, 'index'])->withoutMiddleware(['auth:api']);
 
-    
+
 });
-Route::post('excel', [ExcelController::class, 'excel']);
+    Route::post('/import-courses', [ExcelController::class, 'importCourses']);
+    Route::post('/import-apprentices', [ExcelController::class, 'importApprentices']);
+    Route::post('/import-instructors', [ExcelController::class, 'importInstructors']);
 
-    // Ruta instructor & Apprentice
-    Route::resource('instructor', InstructorController::class);
-   //Ruta regionales
-    Route::get('regionals', [RegionalController::class, 'index']);
+// Ruta instructor & Apprentice
+Route::resource('instructor', InstructorController::class);
+//Ruta regionales
+Route::get('regionals', [RegionalController::class, 'index']);
 
-    //Route::resource('assistance',AssistanceController::class);
+//Route::resource('assistance',AssistanceController::class);
     Route::get('assistance', [AssistanceController::class, 'index']);
     Route::put('/assistance/{assistanceId}', [AssistanceController::class, 'editAssistance']);
     Route::get('/apprentices/{apprenticeId}/unjustified-absences', [AssistanceController::class, 'UnjustifiedAbsences']);
@@ -144,3 +160,6 @@ Route::post('excel', [ExcelController::class, 'excel']);
 
     //rutas de notificaciones
     Route::post('/message', [NotificationController::class, 'store']);
+
+    //rutas de notificaciones
+    Route::get('/message', [NotificationController::class, 'index']);

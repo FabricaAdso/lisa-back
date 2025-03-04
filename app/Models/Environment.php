@@ -3,13 +3,15 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Environment extends Model
 {
     //
+    use HasFactory;
 
-    protected $fillable = ['name', 'capacity','headquarters_id','knowledge_network_id'];
+    protected $fillable = ['name', 'capacity', 'headquarters_id', 'knowledge_network_id'];
     protected $allowIncluded = ['headquarters','knowledgeNetwork'];
     protected $allowFilter = ['headquarters_'];
 
@@ -19,12 +21,12 @@ class Environment extends Model
         return $this->belongsTo(Headquarters::class);
     }
 
-    public function knowledgeNetwork ()
+    public function knowledgeNetwork()
     {
         return $this->belongsTo(KnowledgeNetwork::class);
     }
-    
-    public function courses ()
+
+    public function courses()
     {
         return $this->hasMany(Course::class);
     }
@@ -63,11 +65,6 @@ class Environment extends Model
 
         foreach ($filters as $filter => $value) {
             // Filtrar por Area de Ambiente y Sede
-            if ($filter === 'environment_area') {
-                $query->whereHas('environmentArea', function ($q) use ($value) {
-                    $q->where('name', 'LIKE', '%' . $value . '%');
-                });
-            }
             if ($filter === 'headquarters_') {
                 $query->whereHas('headquarters', function ($q) use ($value) {
                     $q->where('name', 'LIKE', '%' . $value . '%');
@@ -75,7 +72,7 @@ class Environment extends Model
             }
 
             //otros campos de Program si están en allowFilter
-            if ($allowFilter->contains($filter) && $filter !== 'environment_area' &&  $filter !== 'headquarters_') {
+            if ($allowFilter->contains($filter) &&  $filter !== 'headquarters_') {
                 $query->where($filter, 'LIKE', '%' . $value . '%');
             }
         }

@@ -55,6 +55,6 @@ class ProgramController extends Controller
     {
         $Program =  Program::find($id);
         $Program->delete();
-        return response()->json(['message' => 'Education level deleted successfully']);
+        return response()->json(['message' => 'Programa deleted successfully']);
     }
 }

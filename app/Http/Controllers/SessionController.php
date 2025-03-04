@@ -4,12 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Models\Apprentice;
 use App\Models\Assistance;
+use App\Models\Course;
 use App\Models\Instructor;
 use App\Models\Session;
 use App\Models\User;
 use App\Services\SessionService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class SessionController extends Controller
 {
@@ -20,54 +23,21 @@ class SessionController extends Controller
     {
         $this->sessionService = $sessionService;
     }
-    
 
     public function index()
     {
-        //$sessions = Session::all();
-        $user = User::find(Auth::id()); 
-        $instructor = Instructor::where('user_id', $user->id)->first();
+        $user = User::find(Auth::id());
+        $leader = Course::where('course_leader_id', $user->id)->first();
+        $instructor = Instructor::where('user_id', $leader->id)->first();
         if (!$instructor) {
             // Si no se encuentra un instructor, devolver un mensaje de error
             return response()->json();
         }
-        $sessions = Session::where('instructor_id', $instructor->id)->included()->get();
+        $sessions = Session::where('instructor_id', $instructor->id)->included()->filter()->get();
         return response()->json($sessions);
 
     }
 
-
-    public function show($id)
-    {
-        $session = Session::find($id);
-        return response()->json($session);
-    }
-
-
-    public function update(Request $request, $id)
-    {
-        $request->validate([
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date',
-            'days_of_week' => 'required|string', 
-            'start_time' => 'required|date_format:H:i',
-            'end_time' => 'required|date_format:H:i|after:start_time',
-            'course_id' => 'required|exists:courses,id',
-            'instructor_id' => 'required|exists:instructors,id',
-            'instructor2_id' => 'nullable|exists:users,id',
-        ]);
-    
-        $session = Session::find($id);
-    
-        if (!$session->date || now()->gt($session->date)) {
-            return response()->json(['error' => 'La sesión ya ha pasado'], 400);
-        }
-    
-        $session->update($request->all());
-    
-        return response()->json($session);
-    }
-    
     public function destroy($id)
     {
         $session =  Session::find($id);
@@ -82,9 +52,14 @@ class SessionController extends Controller
         return $this->sessionService->createSession($request);
     }
 
-    public function updateSessions(Request $request)
+    public function updateSessions(Request $request, ...$sessionIds)
     {
-        return $this->sessionService->createSession($request);
+        return $this->sessionService->updateSessions($request, $sessionIds);
+    }
+
+    public function show($id) {
+        $session = Session::included()->find($id);
+        return response()->json($session);
     }
 
 }

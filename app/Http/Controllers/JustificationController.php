@@ -27,7 +27,8 @@ class JustificationController extends Controller
 
     public function indexApprentice()
     {
-        $user = User::find(Auth::id());        
+        $user = User::find(Auth::id());    
+        $elements = request()->query('elements', 10);    
         $apprentice = Apprentice::where('user_id', $user->id)->first();   
         if (!$apprentice) {
             return response()->json(['message' => 'Apprentice not found'], 404);
@@ -38,7 +39,7 @@ class JustificationController extends Controller
             $query->select('id')
                 ->from('assistances')
                 ->where('apprentice_id', $apprentice->id);
-        })->included()->filter()->get();
+        })->included()->filter()->paginate(intval($elements));
         return response()->json($justifications);
     }
     
@@ -68,7 +69,7 @@ class JustificationController extends Controller
 
     public function index()
     {
-        $justifications = Justification::all();
+        $justifications = Justification::included()->get();
         return response()->json($justifications);
     }
 
@@ -79,9 +80,9 @@ class JustificationController extends Controller
         return response()->json($justification);
     }
 
-    public function createJustification(Request $request)
+    public function editJustification(Request $request)
     {
-        $justification = $this->justificationService->createJustification($request);
+        $justification = $this->justificationService->editJustification($request);
         return response()->json($justification);
     }
 

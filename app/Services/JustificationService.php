@@ -5,6 +5,6 @@ namespace App\Services;
 
 interface JustificationService
 {
-    public function createJustification($request);
+    public function editJustification($request);
     public function checkAndUpdateExpiredJustifications();
 }

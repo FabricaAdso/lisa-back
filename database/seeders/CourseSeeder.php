@@ -17,7 +17,7 @@ class CourseSeeder extends Seeder
                 'shift' => rand(0, 1) ? 'Mañana' : 'Tarde', // Asigna turno aleatorio
                 'state' => collect(['Terminada_por_fecha', 'En_ejecucion', 'Terminada', 'Termindad_por_unificacion'])->random(), // Estado aleatorio
                 'stage' => 'LECTIVA',
-                'program_id' => null, // Puedes asignar un programa si ya tienes programas creados
+                'program_id' => 1, // Puedes asignar un programa si ya tienes programas creados
                 'environment_id' => null, // Puedes asignar un ambiente si ya tienes ambientes creados
             ]);
         }

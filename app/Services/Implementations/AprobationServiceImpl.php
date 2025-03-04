@@ -11,7 +11,7 @@ class AprobationServiceImpl implements AprobationService
     public function editStateOfJustification($request)
     {
         $request->validate([
-            'state' => 'required|in:Aprobada,Rechazada,Pendiente,Vencida',
+            'state' => 'required|in:Aprobada,Rechazada',
             'justification_id' => 'required|exists:justifications,id',
             'motive' => 'required_if:state,Rechazada',
         ]);
@@ -26,6 +26,11 @@ class AprobationServiceImpl implements AprobationService
                 'message' => "El estado de la justificación es 'Vencida' y no se puede cambiar.",
             ];
         }
+        if ($estadoActual === 'En_espera') {
+            return [
+                'message' => "El estado de la justificación es 'En espera' y debe estar en estado Pendiente.",
+            ];
+        }
 
         if (is_null($estadoActual) || $estadoActual === 'Pendiente') {
             if ($nuevoEstado === 'Rechazada') {
@@ -34,22 +39,15 @@ class AprobationServiceImpl implements AprobationService
                     'state' => $nuevoEstado,
                     'motive' => $motive
                 ]);
-                return [
-                    'message' => "La justificación ha sido rechazada",
-                    'motive' => $motive
-                ];
+                $justifications = Justification::included()->findOrfail($request->justification_id);
+                return $justifications;
             }
 
             if ($nuevoEstado === 'Aprobada') {
                 $aprobationState->update(['state' => $nuevoEstado]);
-                return [
-                    'message' => "La justificación ha sido aprobada",
-                ];
+                $justifications = Justification::included()->findOrfail($request->justification_id);
+                return $justifications;
             }
         }
-
-        return [
-            'message' => "El estado de la justificación es: $estadoActual y no se puede cambiar a $nuevoEstado",
-        ];
     }
 }

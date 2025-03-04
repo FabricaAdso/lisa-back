@@ -8,6 +8,7 @@ use App\Models\Assistance;
 use App\Models\Instructor;
 use App\Models\User;
 use App\Services\AprobationService;
+use Illuminate\Contracts\Queue\Queue;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;

@@ -32,28 +32,37 @@ class SessionServiceImpl implements SessionService
             'days_of_week' => 'required|string',
             'percentage' => 'required|integer',
         ]);
+        
+        // Verificar competencia por programa
+        $rapCompetencia = Rap::findOrFail($request->rap_id);
+        $course = Course::findOrFail($request->course_id);
+
+        if ($rapCompetencia->subject->program->id !== $course->program_id) {
+            return response()->json(['message' => 'La competencia no pertenece al curso seleccionado.'], 422);
+        }
+        
+        // Verificar si el curso está en ejecución
+        if ($course->state !== 'En_ejecucion') {
+            return response()->json(['message' => 'El curso no está en ejecución. No se pueden crear sesiones.'], 422);
+        }
+        
+        // Verificar si el instructor está activo
+        $instructor = Instructor::findOrFail($request->instructor_id);
+        if ($instructor->state !== 'Activo') {
+            return response()->json(['message' => 'El instructor no está activo. No se pueden crear sesiones.'], 422);
+        }
+        
         // registro de cambio del porcentaje por usuario
         $user = User::find(Auth::id());
         $rapForUser = Rap::find($request->rap_id);
         $subject = Subject::find($rapForUser->subject_id);
+        
         $subject->update([
             'user_id' => $user->id,
             'percentage' => $request->percentage,
             'updated_porcentage' => Carbon::now()
         ]);
 
-       
-        // Verificar si el curso está en ejecución
-        $course = Course::findOrFail($request->course_id);
-        if ($course->state !== 'En_ejecucion') {
-            return response()->json(['message' => 'El curso no está en ejecución. No se pueden crear sesiones.'], 422);
-        }
-
-        // Verificar si el instructor está activo
-        $instructor = Instructor::findOrFail($request->instructor_id);
-        if ($instructor->state !== 'Activo') {
-            return response()->json(['message' => 'El instructor no está activo. No se pueden crear sesiones.'], 422);
-        }
 
         $festivos = [
             '2025-01-01',

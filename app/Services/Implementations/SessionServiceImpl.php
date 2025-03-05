@@ -9,9 +9,11 @@ use App\Models\Instructor;
 use App\Models\Rap;
 use App\Models\Session;
 use App\Models\Subject;
+use App\Models\User;
 use App\Services\SessionService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class SessionServiceImpl implements SessionService
 
@@ -28,19 +30,39 @@ class SessionServiceImpl implements SessionService
             'instructor_id' => 'required|exists:instructors,id',
             'instructor2_id' => 'nullable|exists:users,id',
             'days_of_week' => 'required|string',
+            'percentage' => 'required|integer',
         ]);
-       
-        // Verificar si el curso está en ejecución
+        
+        // Verificar competencia por programa
+        $rapCompetencia = Rap::findOrFail($request->rap_id);
         $course = Course::findOrFail($request->course_id);
+
+        if ($rapCompetencia->subject->program->id !== $course->program_id) {
+            return response()->json(['message' => 'La competencia no pertenece al curso seleccionado.'], 422);
+        }
+        
+        // Verificar si el curso está en ejecución
         if ($course->state !== 'En_ejecucion') {
             return response()->json(['message' => 'El curso no está en ejecución. No se pueden crear sesiones.'], 422);
         }
-
+        
         // Verificar si el instructor está activo
         $instructor = Instructor::findOrFail($request->instructor_id);
         if ($instructor->state !== 'Activo') {
             return response()->json(['message' => 'El instructor no está activo. No se pueden crear sesiones.'], 422);
         }
+        
+        // registro de cambio del porcentaje por usuario
+        $user = User::find(Auth::id());
+        $rapForUser = Rap::find($request->rap_id);
+        $subject = Subject::find($rapForUser->subject_id);
+
+        $subject->update([
+            'user_id' => $user->id,
+            'percentage' => $request->percentage,
+            'updated_porcentage' => Carbon::now()
+        ]);
+
 
         $festivos = [
             '2025-01-01',
@@ -65,6 +87,8 @@ class SessionServiceImpl implements SessionService
         // Obtener la duración total de la competencia en horas
         $rap = Rap::findOrFail($request->rap_id);
         $totalHours = $rap->number_hours;
+        $percentage = $rap->subject->percentage;
+        $hours = $totalHours * $percentage / 100;
 
         // Convertir las fechas y horas en objetos Carbon
         $startDate = Carbon::parse($request->start_date);
@@ -84,7 +108,7 @@ class SessionServiceImpl implements SessionService
             }
         }
 
-        $sessionsNeeded = ceil($totalHours / $sessionDuration);
+        $sessionsNeeded = ceil($hours / $sessionDuration);
         $sessionsCreated = [];
         $existingSessions = [];
         $currentDate = $startDate;
@@ -138,200 +162,8 @@ class SessionServiceImpl implements SessionService
             'existing_sessions' => $existingSessions,
         ]);
     }
-    // public function createSession(Request $request)
-    // {
-    //     $request->validate([
-    //         'start_date' => 'required|date',
-    //         'end_date' => 'required|date|after_or_equal:start_date',
-    //         'days_of_week' => 'required|string', 
-    //         'start_time' => 'required|date_format:H:i',
-    //         'end_time' => 'required|date_format:H:i|after:start_time',
-    //         'course_id' => 'required|exists:courses,id',
-    //         'instructor_id' => 'required|exists:instructors,id',
-    //         'instructor2_id' => 'nullable|exists:users,id',
-    //     ]);
-
-    //     $festivos = [
-    //         '2024-01-01', '2024-01-06', '2024-03-24', '2024-04-17', '2024-04-18',
-    //         '2024-05-01', '2024-06-02', '2024-06-23', '2024-06-30', '2024-08-07',
-    //         '2024-08-18', '2024-10-13', '2024-11-03', '2024-11-17', '2024-12-08', '2024-12-25'
-    //     ];
-
-    //     // Convertir los días de la semana en un arreglo
-    //     $daysOfWeek = explode(',', $request->days_of_week);
-
-    //     foreach ($daysOfWeek as $day) {
-    //         if (!in_array($day, ['1', '2', '3', '4', '5', '6', '7'])) {
-    //             return response()->json(['message' => 'El campo days_of_week contiene valores inválidos.'], 422);
-    //         }
-    //     }
-
-    //     $sessionsCreated = [];
-    //     $existingSessions = [];
-    //     $currentDate = Carbon::parse($request->start_date);
-    //     $endDate = Carbon::parse($request->end_date);
-
-    //     while ($currentDate->lte($endDate)) {
-    //         if (in_array($currentDate->dayOfWeekIso, $daysOfWeek)) {
-
-    //             if (!in_array($currentDate->format('Y-m-d'), $festivos)) { 
-
-    //                 $existingSession = Session::where('date', $currentDate->format('Y-m-d'))
-    //                     ->where('instructor_id', $request->instructor_id)
-    //                     ->where('course_id', $request->course_id)
-    //                     ->first();
-
-    //                 if ($existingSession) {
-    //                     $existingSessions[] = $currentDate->format('Y-m-d');
-    //                 } else {
-
-    //                     $session = Session::create([
-    //                         'date' => $currentDate->format('Y-m-d'),
-    //                         'start_time' => $request->start_time,
-    //                         'end_time' => $request->end_time,
-    //                         'instructor_id' => $request->instructor_id,
-    //                         'course_id' => $request->course_id,
-    //                     ]);
-
-    //                     $aprendices = Apprentice::where('course_id', $request->course_id)->get();
-
-    //                     foreach ($aprendices as $aprendiz) {
-    //                         Assistance::create([
-    //                             'apprentice_id' => $aprendiz->id,
-    //                             'session_id' => $session->id,
-    //                             'assistance' => null,
-    //                         ]);
-    //                     }
-
-    //                     $sessionsCreated[] = $session;
-    //                 }
-    //             }
-    //         }
-
-    //         $currentDate->addDay();
-    //     }
-
-    //     return response()->json([
-    //         'message' => 'Sesiones y asistencias creadas exitosamente.',
-    //         'sessions_created' => $sessionsCreated,
-    //         'existing_sessions' => $existingSessions,
-    //     ]);
-    // }
-
-    // public function updateSessions(Request $request)
-    // {
-    //     $request->validate([
-    //         'start_date' => 'required|date',
-    //         'days_of_week' => 'required|string',
-    //         'start_time' => 'required|date_format:H:i',
-    //         'end_time' => 'required|date_format:H:i|after:start_time',
-    //         'course_id' => 'required|exists:courses,id',
-    //         'instructor_id' => 'required|exists:instructors,id',
-    //     ]);
-
-    //     $festivos = [
-    //         '2024-01-01',
-    //         '2024-01-06',
-    //         '2024-03-24',
-    //         '2024-04-17',
-    //         '2024-04-18',
-    //         '2024-05-01',
-    //         '2024-06-02',
-    //         '2024-06-23',
-    //         '2024-06-30',
-    //         '2024-08-07',
-    //         '2024-08-18',
-    //         '2024-10-13',
-    //         '2024-11-03',
-    //         '2024-11-17',
-    //         '2024-12-08',
-    //         '2024-12-25'
-    //     ];
-
-    //     // Convertir los días de la semana en un arreglo
-    //     $daysOfWeek = explode(',', $request->days_of_week);
-
-    //     foreach ($daysOfWeek as $day) {
-    //         if (!in_array($day, ['1', '2', '3', '4', '5', '6', '7'])) {
-    //             return response()->json(['message' => 'El campo days_of_week contiene valores inválidos.'], 422);
-    //         }
-    //     }
-
-    //     $currentSessions = Session::where('course_id', $request->course_id)
-    //         ->where('instructor_id', $request->instructor_id)
-    //         ->get();
-
-    //     $sessionsToKeep = [];
-    //     $sessionsCreated = [];
-    //     $sessionsUpdated = [];
-    //     $sessionsDeleted = [];
-
-    //     $currentDate = Carbon::parse($request->start_date);
-    //     $endDate = Carbon::parse($request->end_date);
-
-    //     while ($currentDate->lte($endDate)) {
-    //         if (in_array($currentDate->dayOfWeekIso, $daysOfWeek) && !in_array($currentDate->format('Y-m-d'), $festivos)) {
-
-    //             $existingSession = $currentSessions->firstWhere('date', $currentDate->format('Y-m-d'));
-
-    //             if ($existingSession) {
-    //                 // Actualizar sesión existente si los tiempos han cambiado
-    //                 $existingSession->update([
-    //                     'start_time' => $request->start_time,
-    //                     'end_time' => $request->end_time,
-    //                 ]);
-    //                 $sessionsToKeep[] = $existingSession->id;
-    //                 $sessionsUpdated[] = $existingSession;
-    //             } else {
-    //                 // Crear nueva sesión si no existe
-    //                 $session = Session::create([
-    //                     'date' => $currentDate->format('Y-m-d'),
-    //                     'start_time' => $request->start_time,
-    //                     'end_time' => $request->end_time,
-    //                     'instructor_id' => $request->instructor_id,
-    //                     'course_id' => $request->course_id,
-    //                 ]);
-
-    //                 $aprendices = Apprentice::where('course_id', $request->course_id)->get();
-
-    //                 foreach ($aprendices as $aprendiz) {
-    //                     Assistance::create([
-    //                         'apprentice_id' => $aprendiz->id,
-    //                         'session_id' => $session->id,
-    //                         'assistance' => null,
-    //                     ]);
-    //                 }
-
-    //                 $sessionsCreated[] = $session;
-    //                 $sessionsToKeep[] = $session->id;
-    //             }
-    //         }
-
-    //         $currentDate->addDay();
-    //     }
-
-    //     // Eliminar sesiones fuera del rango o no coincidentes con los días seleccionados
-    //     $sessionsToDelete = $currentSessions->filter(function ($session) use ($request, $daysOfWeek, $sessionsToKeep) {
-    //         $date = Carbon::parse($session->date);
-    //         return !in_array($session->id, $sessionsToKeep) ||
-    //             $date->lt(Carbon::parse($request->start_date)) ||
-    //             $date->gt(Carbon::parse($request->end_date)) ||
-    //             !in_array($date->dayOfWeekIso, $daysOfWeek);
-    //     });
-
-    //     foreach ($sessionsToDelete as $sessionToDelete) {
-    //         $sessionToDelete->assistances()->delete();
-    //         $sessionToDelete->delete();
-    //         $sessionsDeleted[] = $sessionToDelete;
-    //     }
-
-    //     return [
-    //         'message' => 'Sesiones actualizadas exitosamente.',
-    //         'sessions_created' => $sessionsCreated,
-    //         'sessions_updated' => $sessionsUpdated,
-    //         'sessions_deleted' => $sessionsDeleted,
-    //     ];
-    // }
+    
+    
     public function updateSessions(Request $request, $sessionIds)
     {
         // Verificar si $sessionIds es un array y convertirlo a una cadena si es necesario

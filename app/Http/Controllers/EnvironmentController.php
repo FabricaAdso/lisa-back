@@ -29,6 +29,7 @@ class EnvironmentController extends Controller
             'name' => 'required|max:100',
             'capacity' => 'required|max:100',
             'headquarters_id' => 'required|max:100',
+            'knowledge_network_id' => 'required|exists:knowledge_networks,id'
         ]);
 
         $environments = Environment::create($request->all());
@@ -62,11 +63,12 @@ class EnvironmentController extends Controller
             'name' => 'required|max:100',
             'capacity' => 'required|max:100',
             'headquarters_id' => 'required|max:100',
+            'knowledge_network_id' => 'required|exists:knowledge_networks,id'
         ]);
         $environments = Environment::find($id);
         $environments->update($request->all());
         $environments->load($environments->included()->getEagerLoads());
-   
+
         return response()->json($environments);
     }
 

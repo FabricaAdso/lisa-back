@@ -11,8 +11,8 @@ class Subject extends Model
     //
     use HasFactory;
     
-    protected $fillable = ['name', 'total_number_hours', 'program_id'];
-    protected $allowIncluded = ['program', 'raps'];
+    protected $fillable = ['name', 'total_number_hours', 'program_id','user_id','updated_porcentage','percentage'];
+    protected $allowIncluded = ['program', 'raps','user'];
     
     public function program()
     {
@@ -22,6 +22,10 @@ class Subject extends Model
     public function raps ()
     {
         return $this->hasMany(Rap::class);
+    }
+
+    public function user(){
+        return $this->belongsTo(User::class);
     }
     
 

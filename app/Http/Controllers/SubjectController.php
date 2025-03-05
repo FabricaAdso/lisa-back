@@ -10,8 +10,7 @@ class SubjectController extends Controller
     //
     public function index()
     {
-        $subjects = Subject::all();
-
+        $subjects = Subject::included()->get();
         return response()->json($subjects);
     }
 

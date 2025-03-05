@@ -99,15 +99,11 @@ class Course extends Model
 
         foreach ($filters as $filter => $value) {
             // Filtrar por el nombre del programa relacionado
-            if ($filter === 'program_q') {
-                $query->whereHas('program', function ($q) use ($value) {
-                    $q->where('name', 'LIKE', '%' . $value . '%');
+            // Filtrar por course code (relación con Course a través de Program)
+            if ($filter === 'subjectForCourse' && $allowFilter->contains($filter)) {
+                $query->whereHas('program.courses', function ($q) use ($value) {
+                    $q->where('code', 'LIKE', '%' . $value . '%');
                 });
-            }
-
-            //filtros para la tabla de cursos
-            if ($allowFilter->contains($filter) && $filter !== 'program_q') {
-                $query->where($filter, 'LIKE', '%' . $value . '%');
             }
         }
     }

@@ -12,7 +12,10 @@ class Subject extends Model
     use HasFactory;
     
     protected $fillable = ['name', 'total_number_hours', 'program_id','user_id','updated_porcentage','percentage'];
-    protected $allowIncluded = ['program', 'raps','user'];
+    protected $allowIncluded = ['program', 'raps','user','program.courses'];
+    protected $allowFilter = [
+        'subjectForCourse'
+    ];
     
     public function program()
     {
@@ -50,5 +53,24 @@ class Subject extends Model
             }
         }
         $query->with($relations);
+    }
+
+    public function scopeFilter(Builder $query)
+    {
+        if (empty($this->allowFilter) || empty(request('filter'))) {
+            return;
+        }
+    
+        $filters = request('filter');
+        $allowFilter = collect($this->allowFilter);
+    
+        foreach ($filters as $filter => $value) {
+            // Filtrar por course (relación con Course)
+            if ($filter === 'subjectForCourse' && $allowFilter->contains($filter)) {
+                $query->whereHas('program.courses', function ($q) use ($value) {
+                    $q->where('code', 'LIKE', '%' . $value . '%');
+                });
+            }
+        }
     }
 }

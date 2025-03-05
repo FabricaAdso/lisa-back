@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 class Program extends Model
 {
     use HasFactory;
-    
+
     protected $fillable = [
         'code',
         'version',
@@ -19,7 +19,8 @@ class Program extends Model
     ];
     protected $allowIncluded = [
         'educationLevel',
-        'trainingCenter'
+        'trainingCenter',
+        'subjects'
     ];
     protected $allowFilter = [
         'name',
@@ -42,7 +43,7 @@ class Program extends Model
     {
         return $this->belongsTo(TrainingCenter::class);
     }
-    
+
     public function courses()
     {
         return $this->hasMany(Course::class);
@@ -53,24 +54,24 @@ class Program extends Model
 
     public function scopeIncluded(Builder $query)
     {
-       
+
         if(empty($this->allowIncluded)||empty(request('included'))){
             return;
         }
 
-        
-        $relations = explode(',', request('included')); 
+
+        $relations = explode(',', request('included'));
 
         //return $relations;
 
-        $allowIncluded = collect($this->allowIncluded); 
+        $allowIncluded = collect($this->allowIncluded);
 
-        foreach ($relations as $key => $relationship) { 
+        foreach ($relations as $key => $relationship) {
             if (!$allowIncluded->contains($relationship)) {
                 unset($relations[$key]);
             }
         }
-        $query->with($relations); 
+        $query->with($relations);
     }
 
     ////////////
@@ -80,10 +81,10 @@ class Program extends Model
         if (empty($this->allowFilter) || empty(request('filter'))) {
             return;
         }
-    
+
         $filters = request('filter');
         $allowFilter = collect($this->allowFilter);
-    
+
         foreach ($filters as $filter => $value) {
             // Filtrar por nivel de educación (relación)
             if ($filter === 'training_Center') {
@@ -91,13 +92,13 @@ class Program extends Model
                     $q->where('name', 'LIKE', '%' . $value . '%');
                 });
             }
-    
+
             //otros campos de Program si están en allowFilter
             if ($allowFilter->contains($filter) && $filter !== 'education_level') {
                 $query->where($filter, 'LIKE', '%' . $value . '%');
             }
         }
     }
-    
+
 
 }

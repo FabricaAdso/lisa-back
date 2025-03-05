@@ -16,7 +16,8 @@ class Session extends Model
         'subject_',
         'rap_',
         'pending',
-        'past'
+        'past',
+        'course.program.subjects.id'
     ];
 
     public function assistances()
@@ -68,49 +69,48 @@ class Session extends Model
     public function scopeFilter(Builder $query)
     {
         if (empty($this->allowFilter) || empty(request('filter'))) {
-            return;
+            return $query;
         }
 
         $filters = request('filter');
-        $allowFilter = collect($this->allowFilter);
+    $allowFilter = collect($this->allowFilter);
 
-        foreach ($filters as $filter => $value) {
-            // Filtrar por course (relación con Course)
-            if ($filter === 'course_' && $allowFilter->contains($filter)) {
-                $query->whereHas('course', function ($q) use ($value) {
-                    $q->where('code', 'LIKE', '%' . $value . '%');
+    foreach ($filters as $filter => $value) {
+        // verificar que el filtro este permitido
+        if (!$allowFilter->contains($filter)) {
+            continue;
+        }
+
+        // si la clave contiene un punto, se trata de relaciones anidadas
+        if (strpos($filter, '.') !== false) {
+            $parts = explode('.', $filter);
+            $property = array_pop($parts);
+            $relations = implode('.', $parts);
+
+            // si es id y el valor es numerico, hacemos comparación exacta
+            if ($property === 'id' && is_numeric($value)) {
+                $query->whereHas($relations, function ($q) use ($property, $value) {
+                    $q->where($property, $value);
+                });
+            } else {
+                $query->whereHas($relations, function ($q) use ($property, $value) {
+                    $q->where($property, 'LIKE', '%' . $value . '%');
                 });
             }
-
-            // Filtrar por subject (relación encadenada Course -> Program -> Subject)
-            if ($filter === 'subject_' && $allowFilter->contains($filter)) {
-                $query->whereHas('course.program.subjects', function ($q) use ($value) {
-                    $q->where('name', 'LIKE', '%' . $value . '%');
-                });
-            }
-
-            // Filtrar por rap (relación con Rap)
-            if ($filter === 'rap_' && $allowFilter->contains($filter)) {
-                $query->whereHas('rap', function ($q) use ($value) {
-                    $q->where('description', 'LIKE', '%' . $value . '%');
-                });
-            }
-
-            $filters = request('filter');
-            if (!$filters) {
-                return $query;
-            }
-
-            if (isset($filters['pending']) && $filters['pending'] === 'true') {
-                $query->where('date', '>=', now());
-            }
-
-            // Si llega filter[past], filtra por date < hoy
-            if (isset($filters['past']) && $filters['past'] === 'true') {
-                $query->where('date', '<', now());
-            }
-
+        } else {
+            // Filtro directo en la columna
+            $query->where($filter, $value);
         }
     }
 
+    // Filtros especiales para 'pending' y 'past'
+    if (isset($filters['pending']) && $filters['pending'] === 'true') {
+        $query->where('date', '>=', now());
+    }
+    if (isset($filters['past']) && $filters['past'] === 'true') {
+        $query->where('date', '<', now());
+    }
+
+    return $query;
+    }
 }

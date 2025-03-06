@@ -27,15 +27,18 @@ class SessionController extends Controller
     public function index()
     {
         $user = User::find(Auth::id());
-        $instructor = Instructor::where('user_id', $user->id  )->first();
-    
+        $instructor = Instructor::where('user_id', $user->id)->first();
+
         if (!$instructor) {
             // Si no se encuentra un instructor, devolver un mensaje de error
-            return response()->json();
+            return response()->json(['error' => 'Instructor no encontrado'], 404);
         }
-        $sessions = Session::where('instructor_id', $instructor->id)->included()->filter()->get();
-        return response()->json($sessions);
 
+        $sessions = Session::whereHas('course', function ($query) use ($instructor) {
+            $query->where('course_leader_id', $instructor->id);
+        })->included()->filter()->get();
+
+        return response()->json($sessions);
     }
 
     public function destroy($id)
@@ -57,9 +60,9 @@ class SessionController extends Controller
         return $this->sessionService->updateSessions($request, $sessionIds);
     }
 
-    public function show($id) {
+    public function show($id)
+    {
         $session = Session::included()->find($id);
         return response()->json($session);
     }
-
 }

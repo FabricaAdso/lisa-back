@@ -79,6 +79,7 @@ class Session extends Model
             // Filtrar por course (relación con Course)
             if ($filter === 'course_' && $allowFilter->contains($filter)) {
                 $query->whereHas('course', function ($q) use ($value) {
+                    $q->where('state','En_ejecucion');
                     $q->where('code', 'LIKE', '%' . $value . '%');
                 });
             }

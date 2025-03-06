@@ -9,12 +9,14 @@ class EnvironmentController extends Controller
 {
     //
     public function index()
-    {
+{
+    $environments = Environment::byTrainingCenter()
+                               ->included()
+                               ->filter()
+                               ->get();
 
-        // $environments = Environment::all();
-        $environments = Environment::included()->filter()->get();
-        return response()->json($environments);
-    }
+    return response()->json($environments);
+}
 
     /**
      * Store a newly created resource in storage.

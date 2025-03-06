@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\Implementations\TokenServiceImpl;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -12,7 +13,7 @@ class Environment extends Model
     use HasFactory;
 
     protected $fillable = ['name', 'capacity', 'headquarters_id', 'knowledge_network_id'];
-    protected $allowIncluded = ['headquarters','knowledgeNetwork'];
+    protected $allowIncluded = ['headquarters', 'knowledgeNetwork'];
     protected $allowFilter = ['headquarters_'];
 
 
@@ -76,5 +77,17 @@ class Environment extends Model
                 $query->where($filter, 'LIKE', '%' . $value . '%');
             }
         }
+    }
+
+    public function scopeByTrainingCenter($query)
+    {
+        $token_service = new TokenServiceImpl();
+        $training_center_id = $token_service->getTrainingCenterIdFromToken();
+
+        return $query->whereHas('headquarters', function ($query) use ($training_center_id) {
+            $query->whereHas('trainingCenter', function ($query) use ($training_center_id) {
+                $query->where('training_center_id', $training_center_id);
+            });
+        });
     }
 }

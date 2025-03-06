@@ -10,13 +10,13 @@ class Subject extends Model
 {
     //
     use HasFactory;
-    
+
     protected $fillable = ['name', 'total_number_hours', 'program_id','user_id','updated_porcentage','percentage'];
     protected $allowIncluded = ['program', 'raps','user','program.courses'];
     protected $allowFilter = [
         'subjectForCourse'
     ];
-    
+
     public function program()
     {
         return $this->belongsTo(Program::class);
@@ -30,7 +30,7 @@ class Subject extends Model
     public function user(){
         return $this->belongsTo(User::class);
     }
-    
+
 
     public function scopeIncluded(Builder $query)
     {
@@ -60,10 +60,10 @@ class Subject extends Model
         if (empty($this->allowFilter) || empty(request('filter'))) {
             return;
         }
-    
+
         $filters = request('filter');
         $allowFilter = collect($this->allowFilter);
-    
+
         foreach ($filters as $filter => $value) {
             // Filtrar por course (relación con Course)
             if ($filter === 'subjectForCourse' && $allowFilter->contains($filter)) {

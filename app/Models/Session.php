@@ -17,7 +17,8 @@ class Session extends Model
         'rap_',
         'pending',
         'past',
-        'course.program.subjects.id'
+        'course.program.subjects.id',
+        'instructor_'
     ];
 
     public function assistances()
@@ -65,29 +66,59 @@ class Session extends Model
         }
         $query->with($relations);
     }
-
     public function scopeFilter(Builder $query)
-    {
-        if (empty($this->allowFilter) || empty(request('filter'))) {
-            return $query;
-        }
+{
+    if (empty($this->allowFilter) || empty(request('filter'))) {
+        return $query;
+    }
 
-        $filters = request('filter');
+    $filters = request('filter');
     $allowFilter = collect($this->allowFilter);
 
+    // filtro para curso por código utilizando la clave 'course_'
+    if (isset($filters['course_']) && $allowFilter->contains('course_')) {
+        $query->whereHas('course', function ($q) use ($filters) {
+            $q->where('code', 'LIKE', '%' . $filters['course_'] . '%');
+        });
+    }
+
+    // filtro para instructor utilizando la clave 'instructor_'
+    if (isset($filters['instructor_']) && $allowFilter->contains('instructor_')) {
+        $query->whereHas('instructor.user', function ($q) use ($filters) {
+            // nombre del instructor es el campo a filtrar.
+            $q->where('name', 'LIKE', '%' . $filters['instructor_'] . '%');
+        });
+    }
+
+    // filtro para rap utilizando la clave 'rap_'
+    if (isset($filters['rap_']) && $allowFilter->contains('rap_')) {
+        $query->whereHas('rap', function ($q) use ($filters) {
+            // descripción del rap es el campo a filtrar.
+            $q->where('description', 'LIKE', '%' . $filters['rap_'] . '%');
+        });
+    }
+
+    // filtro para competencia (subject) utilizando la clave 'subject_'
+    if (isset($filters['subject_']) && $allowFilter->contains('subject_')) {
+        $query->whereHas('course.program.subjects', function ($q) use ($filters) {
+            // filtra por el nombre de la competencia
+            $q->where('name', 'LIKE', '%' . $filters['subject_'] . '%');
+        });
+    }
+
+    // procesar otros filtros que tengan puntos en la clave
     foreach ($filters as $filter => $value) {
-        // verificar que el filtro este permitido
+        // ignorar los filtros ya procesados
+        if (in_array($filter, ['course_', 'pending', 'past', 'instructor_', 'rap_', 'subject_'])) {
+            continue;
+        }
         if (!$allowFilter->contains($filter)) {
             continue;
         }
-
-        // si la clave contiene un punto, se trata de relaciones anidadas
         if (strpos($filter, '.') !== false) {
             $parts = explode('.', $filter);
             $property = array_pop($parts);
             $relations = implode('.', $parts);
-
-            // si es id y el valor es numerico, hacemos comparación exacta
             if ($property === 'id' && is_numeric($value)) {
                 $query->whereHas($relations, function ($q) use ($property, $value) {
                     $q->where($property, $value);
@@ -98,12 +129,11 @@ class Session extends Model
                 });
             }
         } else {
-            // Filtro directo en la columna
             $query->where($filter, $value);
         }
     }
 
-    // Filtros especiales para 'pending' y 'past'
+    // filtros especiales para el estado de la sesión (basados en la fecha)
     if (isset($filters['pending']) && $filters['pending'] === 'true') {
         $query->where('date', '>=', now());
     }
@@ -112,5 +142,10 @@ class Session extends Model
     }
 
     return $query;
-    }
+}
+
+
+
+
+
 }

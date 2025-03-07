@@ -74,6 +74,7 @@ Route::group(['middleware' => 'auth:api'], function () {
 
     //  Rutas para cursos y demas
     Route::get('course', [CourseController::class, 'index']);
+    Route::get('course/leader', [CourseController::class, 'courseByCourseLeader']);
     Route::resource('educationLevel', EducationLevelController::class);
     Route::resource('programs', ProgramController::class);
     Route::resource('courses', CourseController::class);

@@ -38,6 +38,7 @@ class SessionController extends Controller
             $query->where('course_leader_id', $instructor->id);
         })->included()->filter()->get();
 
+        Log::info(json_encode($sessions, JSON_PRETTY_PRINT));
         return response()->json($sessions);
     }
 

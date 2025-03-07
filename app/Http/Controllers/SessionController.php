@@ -40,7 +40,12 @@ class SessionController extends Controller
         if ($courseIds->isEmpty()) {
             return response()->json(['error' => 'El instructor no es líder de ningún curso'], 404);
         }
-        $sessions = Session::where('instructor_id', $instructor->id)->included()->filter()->get();
+
+        $sessions = Session::whereHas('course', function ($query) use ($instructor) {
+            $query->where('course_leader_id', $instructor->id);
+        })->included()->filter()->get();
+
+        Log::info(json_encode($sessions, JSON_PRETTY_PRINT));
         return response()->json($sessions);
 
     }

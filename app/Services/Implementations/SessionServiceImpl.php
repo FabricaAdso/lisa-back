@@ -32,7 +32,7 @@ class SessionServiceImpl implements SessionService
             'days_of_week' => 'required|string',
             'percentage' => 'required|integer',
         ]);
-        
+
         // Verificar competencia por programa
         $rapCompetencia = Rap::findOrFail($request->rap_id);
         $course = Course::findOrFail($request->course_id);
@@ -40,18 +40,26 @@ class SessionServiceImpl implements SessionService
         if ($rapCompetencia->subject->program->id !== $course->program_id) {
             return response()->json(['message' => 'La competencia no pertenece al curso seleccionado.'], 422);
         }
-        
+
         // Verificar si el curso está en ejecución
         if ($course->state !== 'En_ejecucion') {
             return response()->json(['message' => 'El curso no está en ejecución. No se pueden crear sesiones.'], 422);
         }
-        
+
         // Verificar si el instructor está activo
         $instructor = Instructor::findOrFail($request->instructor_id);
         if ($instructor->state !== 'Activo') {
             return response()->json(['message' => 'El instructor no está activo. No se pueden crear sesiones.'], 422);
         }
-        
+        // Verificar si ya existen sesiones creadas con este RAP en el curso seleccionado
+        $existingSessionWithRap = Session::where('rap_id', $request->rap_id)
+            ->where('course_id', $request->course_id)
+            ->exists();
+
+        if ($existingSessionWithRap) {
+            return response()->json(['message' => 'Ya existen sesiones creadas con este RAP en el curso seleccionado.'], 422);
+        }
+
         // registro de cambio del porcentaje por usuario
         $user = User::find(Auth::id());
         $rapForUser = Rap::find($request->rap_id);
@@ -136,7 +144,7 @@ class SessionServiceImpl implements SessionService
                     'course_id' => $request->course_id,
                     'rap_id' => $request->rap_id,
                 ]);
-             
+
 
                 $aprendices = Apprentice::where('course_id', $request->course_id)->get();
                 foreach ($aprendices as $aprendiz) {
@@ -162,8 +170,8 @@ class SessionServiceImpl implements SessionService
             'existing_sessions' => $existingSessions,
         ]);
     }
-    
-    
+
+
     public function updateSessions(Request $request, $sessionIds)
     {
         // Verificar si $sessionIds es un array y convertirlo a una cadena si es necesario

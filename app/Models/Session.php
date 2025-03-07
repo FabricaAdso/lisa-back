@@ -18,7 +18,9 @@ class Session extends Model
         'pending',
         'past',
         'course.program.subjects.id',
-        'instructor_'
+        'instructor_',
+        'date_from',
+        'date_to'
     ];
 
     public function assistances()
@@ -105,6 +107,16 @@ class Session extends Model
             $q->where('name', 'LIKE', '%' . $filters['subject_'] . '%');
         });
     }
+
+    if (isset($filters['date_from']) && $allowFilter->contains('date_from')) {
+        $query->where('date', '>=', $filters['date_from']);
+    }
+
+    // Nuevo: Filtro por fecha "hasta"
+    if (isset($filters['date_to']) && $allowFilter->contains('date_to')) {
+        $query->where('date', '<=', $filters['date_to']);
+    }
+
 
     // procesar otros filtros que tengan puntos en la clave
     foreach ($filters as $filter => $value) {

@@ -27,28 +27,35 @@ class SessionController extends Controller
     public function index()
     {
         $user = User::find(Auth::id());
-        $instructor = Instructor::where('user_id', $user->id  )->first();
+        $instructor = Instructor::where('user_id', $user->id)->first();
 
         if (!$instructor) {
             return response()->json(['error' => 'El usuario no es un instructor'], 404);
         }
 
-        // Busque todos los cursos en los que el instructor es líder
-        $courseIds = Course::where('course_leader_id', $instructor->id)
-                           ->pluck('id');  // Obtiene un array de IDs de cursos
-
+        // Verificar cursos en los que el instructor es líder
+        $courseIds = Course::where('course_leader_id', $instructor->id)->pluck('id');
         if ($courseIds->isEmpty()) {
             return response()->json(['error' => 'El instructor no es líder de ningún curso'], 404);
         }
 
+        // Tomar 'elements' de la query, por defecto 10
+
+        $elements = request()->query('elements', 10);
+
+        // Aplicar included(), filter() y paginar
         $sessions = Session::whereHas('course', function ($query) use ($instructor) {
             $query->where('course_leader_id', $instructor->id);
-        })->included()->filter()->get();
+        })
+        ->included()
+        ->filter()
+        ->paginate(intval($elements));
 
-        Log::info(json_encode($sessions, JSON_PRETTY_PRINT));
+        // Log::info(json_encode($sessions, JSON_PRETTY_PRINT));
+
         return response()->json($sessions);
-
     }
+
 
     public function destroy($id)
     {

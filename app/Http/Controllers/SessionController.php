@@ -34,9 +34,7 @@ class SessionController extends Controller
             return response()->json(['error' => 'Instructor no encontrado'], 404);
         }
 
-        $sessions = Session::whereHas('course', function ($query) use ($instructor) {
-            $query->where('course_leader_id', $instructor->id);
-        })->included()->filter()->get();
+        $sessions = Session::where('instructor_id', $instructor->id)->included()->filter()->get();
 
         Log::info(json_encode($sessions, JSON_PRETTY_PRINT));
         return response()->json($sessions);

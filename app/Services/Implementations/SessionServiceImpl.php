@@ -174,21 +174,12 @@ class SessionServiceImpl implements SessionService
 
     public function updateSessions(Request $request, $sessionIds)
     {
-        // Verificar si $sessionIds es un array y convertirlo a una cadena si es necesario
-        if (is_array($sessionIds)) {
-            // Si ya es un array, convertirlo a una cadena separada por comas
-            $sessionIds = implode(',', $sessionIds);
-        }
-
-        // Convertir los sessionIds de la ruta a un array
-        $sessionIds = explode(',', $sessionIds);
-
         // Validar los datos de entrada
         $request->validate([
             'start_date' => 'nullable|date',
             'start_time' => 'nullable|date_format:H:i',
             'end_time' => 'nullable|date_format:H:i|after:start_time',
-            'rap_id' => 'nullable|exists:subjects,id',
+            'rap_id' => 'nullable|exists:raps,id',
             'course_id' => 'nullable|exists:courses,id',
             'instructor_id' => 'nullable|exists:instructors,id',
             'instructor2_id' => 'nullable|exists:users,id',
@@ -210,6 +201,19 @@ class SessionServiceImpl implements SessionService
                     return response()->json(['message' => 'El instructor ya tiene una sesión asignada para esta fecha.'], 422);
                 }
             }
+            // Verificar competencia por programa
+            $rapCompetencia = Rap::findOrFail($request->rap_id);
+            $course = Course::findOrFail($request->course_id);
+
+            if ($rapCompetencia->subject->program->id !== $course->program_id) {
+                return response()->json(['message' => 'La competencia no pertenece al curso seleccionado.'], 422);
+            }
+
+            // Verificar si el curso está en ejecución
+            if ($course->state !== 'En_ejecucion') {
+                return response()->json(['message' => 'El curso no está en ejecución. No se pueden crear sesiones.'], 422);
+            }
+
 
             // Actualizar los campos de la sesión
             if ($request->has('start_date')) {

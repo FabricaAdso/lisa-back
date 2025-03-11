@@ -9,9 +9,11 @@ use App\Models\Instructor;
 use App\Models\Rap;
 use App\Models\Session;
 use App\Models\Subject;
+use App\Models\User;
 use App\Services\SessionService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class SessionServiceImpl implements SessionService
 
@@ -28,7 +30,18 @@ class SessionServiceImpl implements SessionService
             'instructor_id' => 'required|exists:instructors,id',
             'instructor2_id' => 'nullable|exists:users,id',
             'days_of_week' => 'required|string',
+            'percentage' => 'required|integer',
         ]);
+        // registro de cambio del porcentaje por usuario
+        $user = User::find(Auth::id());
+        $rapForUser = Rap::find($request->rap_id);
+        $subject = Subject::find($rapForUser->subject_id);
+        $subject->update([
+            'user_id' => $user->id,
+            'percentage' => $request->percentage,
+            'updated_porcentage' => Carbon::now()
+        ]);
+
        
         // Verificar si el curso está en ejecución
         $course = Course::findOrFail($request->course_id);
@@ -65,6 +78,8 @@ class SessionServiceImpl implements SessionService
         // Obtener la duración total de la competencia en horas
         $rap = Rap::findOrFail($request->rap_id);
         $totalHours = $rap->number_hours;
+        $percentage = $rap->subject->percentage;
+        $hours = $totalHours * $percentage / 100;
 
         // Convertir las fechas y horas en objetos Carbon
         $startDate = Carbon::parse($request->start_date);
@@ -84,7 +99,7 @@ class SessionServiceImpl implements SessionService
             }
         }
 
-        $sessionsNeeded = ceil($totalHours / $sessionDuration);
+        $sessionsNeeded = ceil($hours / $sessionDuration);
         $sessionsCreated = [];
         $existingSessions = [];
         $currentDate = $startDate;

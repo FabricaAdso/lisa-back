@@ -45,7 +45,6 @@ Route::group([], function () {
     Route::post('password/email', [AuthController::class, 'sendResetLink'])->name('password.email');
     // Route::get('password/reset/{token}', [AuthController::class, 'showResetForm'])->name('password.reset');
     Route::post('password/reset', [AuthController::class, 'resetPassword'])->name('password.update');
-
 });
 
 Route::post('broadcasting/auth', [BroadcastController::class, 'authenticate']);
@@ -75,6 +74,7 @@ Route::group(['middleware' => 'auth:api'], function () {
 
     //  Rutas para cursos y demas
     Route::get('course', [CourseController::class, 'index']);
+    Route::get('course/leader', [CourseController::class, 'courseByCourseLeader']);
     Route::resource('educationLevel', EducationLevelController::class);
     Route::resource('programs', ProgramController::class);
     Route::resource('courses', CourseController::class);
@@ -84,10 +84,11 @@ Route::group(['middleware' => 'auth:api'], function () {
     //instructores con fichas que tuvo formacion
     Route::get('course/sessions', [CourseController::class, 'getCourseInstructor']);
     //sesiones del dia
-    Route::get('course/sessionsNow', [CourseController::class, 'getCourseInstructorNow']);
-    
+    Route::post('course/sessionsNow', [CourseController::class, 'getCourseInstructorNow']);
+
     // Centros de formacion, ambientes y sedes
     Route::apiResource('headquarters', HeadquartersController::class);
+    Route::get('environments', [EnvironmentController::class, 'index']);
     Route::apiresource('environments', EnvironmentController::class);
     Route::apiresource('trainingCenters', TrainingCenterController::class);
 
@@ -128,22 +129,20 @@ Route::group(['middleware' => 'auth:api'], function () {
     //session
     Route::post('session', [SessionController::class, 'createSession']);
     Route::get('session', [SessionController::class, 'index']);
-    Route::get('session/{id}', [SessionController::class, 'show']);//traer los detalles de la sesion
+    Route::get('session/{id}', [SessionController::class, 'show']); //traer los detalles de la sesion
     Route::put('session/update/{sessionIds}', [SessionController::class, 'updateSessions']);
     Route::delete('session/{id}', [SessionController::class, 'destroy']);
     // Route::resource('sessions', SessionController::class);
-    
+
     //Ruta para red de conocimiento
     Route::get('/knowledgeNetwork/{id}', [KnowledgeNetworkController::class, 'show']);
     Route::resource('/knowledgeNetwork', KnowledgeNetworkController::class);
 
     Route::get('regionals', [RegionalController::class, 'index'])->withoutMiddleware(['auth:api']);
-
-
 });
-    Route::post('/import-courses', [ExcelController::class, 'importCourses']);
-    Route::post('/import-apprentices', [ExcelController::class, 'importApprentices']);
-    Route::post('/import-instructors', [ExcelController::class, 'importInstructors']);
+Route::post('/import-courses', [ExcelController::class, 'importCourses']);
+Route::post('/import-apprentices', [ExcelController::class, 'importApprentices']);
+Route::post('/import-instructors', [ExcelController::class, 'importInstructors']);
 
 // Ruta instructor & Apprentice
 Route::resource('instructor', InstructorController::class);
@@ -151,15 +150,15 @@ Route::resource('instructor', InstructorController::class);
 Route::get('regionals', [RegionalController::class, 'index']);
 
 //Route::resource('assistance',AssistanceController::class);
-    Route::get('assistance', [AssistanceController::class, 'index']);
-    Route::put('/assistance/{assistanceId}', [AssistanceController::class, 'editAssistance']);
-    Route::get('/apprentices/{apprenticeId}/unjustified-absences', [AssistanceController::class, 'UnjustifiedAbsences']);
+Route::get('assistance', [AssistanceController::class, 'index']);
+Route::put('/assistance/{assistanceId}', [AssistanceController::class, 'editAssistance']);
+Route::get('/apprentices/{apprenticeId}/unjustified-absences', [AssistanceController::class, 'UnjustifiedAbsences']);
 
-    //trainig center for login
-    Route::resource('trainingCentersLogin', TrainingCenterController::class);
+//trainig center for login
+Route::resource('trainingCentersLogin', TrainingCenterController::class);
 
-    //rutas de notificaciones
-    Route::post('/message', [NotificationController::class, 'store']);
+//rutas de notificaciones
+Route::post('/message', [NotificationController::class, 'store']);
 
-    //rutas de notificaciones
-    Route::get('/message', [NotificationController::class, 'index']);
+//rutas de notificaciones
+Route::get('/message', [NotificationController::class, 'index']);

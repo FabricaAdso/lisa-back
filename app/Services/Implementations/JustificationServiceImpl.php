@@ -20,11 +20,6 @@ class JustificationServiceImpl implements JustificationService
 {
     protected $festivos;
 
-    public function __construct()
-    {
-        $this->festivos = $this->calcularFestivos(Carbon::now()->year);
-    }
-
     //jobs
     public function checkAndUpdateExpiredJustifications() {}
 
@@ -38,19 +33,6 @@ class JustificationServiceImpl implements JustificationService
         $assistance = Assistance::findOrFail($request->assistance_id);
         $justification = Justification::where('assistance_id', $assistance->id)->first();
 
-        $assistanceDate = $assistance->updated_at;
-        $startJustificationDate = Carbon::parse($assistanceDate);
-        $endJustificationDate = Carbon::now();
-
-        $diasHabiles = 0;
-        $periodo = CarbonPeriod::create($startJustificationDate, $endJustificationDate);
-        foreach ($periodo as $date) {
-            if (!$date->isSunday() && !$this->isHoliday($date)) {
-                $diasHabiles++;
-            }
-        }
-
-        $this->stateJustification($justification);
 
         $fileUrl = null;
         if (!empty($justification->file_url)) {
@@ -77,6 +59,7 @@ class JustificationServiceImpl implements JustificationService
                 'file_url' => $fileUrl ?? $justification->file_url,
                 'description' => $request->description,
             ]);
+            $this->stateJustification($justification);
             $justifications = Justification::included()->findOrFail($justification->id);
             return $justifications;
         }
@@ -84,70 +67,19 @@ class JustificationServiceImpl implements JustificationService
 
     public function stateJustification($justification)
     {
-        if ($justification->file_url !== null) {
-            if ($justification->aprobation) {
-                if ($justification->aprobation->state === 'Aprobada') {
-                    return [
-                        'message' => 'Justificación Aprobada'
-                    ];
-                } elseif ($justification->aprobation->state === 'Rechazada') {
-                    return [
-                        'message' => 'Justificación Rechazada'
-                    ];
-                } else {
-                    $justification->aprobation->update(['state' => 'Pendiente']);
-                    return [
-                        'message' => 'Ya subiste una justificación, no puedes subir otra',
-                    ];
-                }
-            } else {
-                return [
-                    'message' => 'No se ha cargado ninguna justificación'
-                ];
+        if ($justification->aprobation) {
+            if ($justification->aprobation->state === 'Aprobada') {
+                return ['message' => 'Justificación Aprobada'];
+            } elseif ($justification->aprobation->state === 'Rechazada') {
+                return ['message' => 'Justificación Rechazada'];
+            } else if ($justification->aprobation->state === 'En_espera') {
+                $justification->aprobation()->update(['state' => 'Pendiente']);
+            } else if ($justification->aprobation->state === 'Vencida') {
+                return ['message' => 'Justificación Vencida'];
+            } else if ($justification->aprobation->state === 'Pendiente') {
+                return ['message' => 'Justificación Pendiente'];
             }
-
-
-            return null;
         }
-    }
-
-    private function isHoliday(Carbon $date): bool
-    {
-        return in_array($date->toDateString(), $this->festivos);
-    }
-
-    ///Festivos
-    private function calcularFestivos($year): array
-    {
-        // Festivos fijos
-        $festivosFijos = [
-            Carbon::create($year, 1, 1)->toDateString(),   // Año Nuevo
-            Carbon::create($year, 5, 1)->toDateString(),   // Día del Trabajo
-            Carbon::create($year, 7, 20)->toDateString(),  // Independencia de Colombia
-            Carbon::create($year, 8, 7)->toDateString(),   // Batalla de Boyacá
-            Carbon::create($year, 12, 25)->toDateString(), // Navidad
-        ];
-
-        // Festivos móviles
-        $festivosMoviles = [
-            $this->calcularFestivoMovil($year, 1, 6),   // Reyes Magos
-            $this->calcularFestivoMovil($year, 3, 19),  // Día de San José
-            $this->calcularFestivoMovil($year, 6, 29),  // San Pedro y San Pablo
-            $this->calcularFestivoMovil($year, 8, 15),  // Asunción de la Virgen
-            $this->calcularFestivoMovil($year, 10, 12), // Día de la Diversidad Étnica y Cultural
-            $this->calcularFestivoMovil($year, 11, 1),  // Todos los Santos
-            $this->calcularFestivoMovil($year, 11, 11), // Independencia de Cartagena
-        ];
-
-        return array_merge($festivosFijos, $festivosMoviles);
-    }
-
-    private function calcularFestivoMovil($year, $mont, $day): string
-    {
-        $fecha = Carbon::create($year, $mont, $day);
-        if ($fecha->isSunday()) {
-            return $fecha->toDateString();
-        }
-        return $fecha->next(Carbon::MONDAY)->toDateString();
+        return null;
     }
 }

@@ -30,7 +30,7 @@ class SessionServiceImpl implements SessionService
             'instructor_id' => 'required|exists:instructors,id',
             'instructor2_id' => 'nullable|exists:users,id',
             'days_of_week' => 'required|string',
-            'percentage' => 'required|integer',
+            'percentage' => 'required|integer|min:40|max:100',
         ]);
 
         // Verificar competencia por programa

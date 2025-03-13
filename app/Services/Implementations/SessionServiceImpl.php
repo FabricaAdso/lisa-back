@@ -128,13 +128,33 @@ class SessionServiceImpl implements SessionService
                 $currentDate->addDay();
             }
 
-            $existingSession = Session::where('date', $currentDate->format('Y-m-d'))
+            $existingSession = Session::where('date', $currentDate->format('Y-m-d')) // Usar currentDate
                 ->where('instructor_id', $request->instructor_id)
+                ->where(function ($query) use ($startTime, $endTime) {
+                    $query->whereBetween('start_time', [$startTime->format('H:i'), $endTime->format('H:i')])
+                        ->orWhereBetween('end_time', [$startTime->format('H:i'), $endTime->format('H:i')]);
+                })
+                ->get(); // Usar exists()
+
+            if ($existingSession == false) {
+                return response()->json(['message' => 'El instructor ya tiene asignadas sesiones para estas fechas', $existingSession]);
+            } else {
+
+                // Verificar si otro instructor tiene una sesión en el mismo día y curso
+                $existingSessionForCourse = Session::where('date', $currentDate->format('Y-m-d'))
+                ->where('course_id', $request->course_id)
+                ->where(function ($query) use ($startTime, $endTime) {
+                    $query->where(function ($q) use ($startTime, $endTime) {
+                        // Verifica si el nuevo horario se solapa con algún horario existente
+                        $q->where('start_time', '<', $endTime->format('H:i'))
+                          ->where('end_time', '>', $startTime->format('H:i'));
+                    });
+                })
                 ->exists();
 
-            if ($existingSession) {
-                return response()->json(['message' => 'El instructor ya tiene asignadas sesiones para estas fechas']);
-            } else {
+                if ($existingSessionForCourse = '') {
+                    return response()->json(['message' => 'Otro instructor ya tiene una sesión en el mismo día y curso.', $existingSessionForCourse], 422);
+                }
 
                 $session = Session::create([
                     'date' => $currentDate->format('Y-m-d'),
@@ -183,6 +203,7 @@ class SessionServiceImpl implements SessionService
             'course_id' => 'nullable|exists:courses,id',
             'instructor_id' => 'nullable|exists:instructors,id',
             'instructor2_id' => 'nullable|exists:users,id',
+            'confirmed' => 'sometimes|boolean',
         ]);
 
         $sessionsUpdated = [];
@@ -195,23 +216,11 @@ class SessionServiceImpl implements SessionService
                 $existingSession = Session::where('date', $request->start_date)
                     ->where('instructor_id', $request->instructor_id ?? $session->instructor_id)
                     ->where('id', '!=', $sessionId) // Excluir la sesión actual
-                    ->exists();
+                    ->get();
 
                 if ($existingSession) {
-                    return response()->json(['message' => 'El instructor ya tiene una sesión asignada para esta fecha.'], 422);
+                    return response()->json(['message' => 'El instructor ya tiene una sesión asignada para esta fecha.', $existingSession], 422);
                 }
-            }
-            // Verificar competencia por programa
-            $rapCompetencia = Rap::findOrFail($request->rap_id);
-            $course = Course::findOrFail($request->course_id);
-
-            if ($rapCompetencia->subject->program->id !== $course->program_id) {
-                return response()->json(['message' => 'La competencia no pertenece al curso seleccionado.'], 422);
-            }
-
-            // Verificar si el curso está en ejecución
-            if ($course->state !== 'En_ejecucion') {
-                return response()->json(['message' => 'El curso no está en ejecución. No se pueden crear sesiones.'], 422);
             }
 
 

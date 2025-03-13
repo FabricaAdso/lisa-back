@@ -7,7 +7,7 @@ use App\Imports\UserImport;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\DB;
-
+use Illuminate\Support\Facades\Log;
 
 class ExcelController extends Controller
 {
@@ -23,13 +23,11 @@ class ExcelController extends Controller
         $filePath = $request->file('file')->store('', 'private_temp');
         $fullPath = storage_path("app/private/temp/{$filePath}");
 
-        // Depuración: Imprimir la ruta del archivo
-        echo "Ruta del archivo temporal: {$fullPath}";
+        // Depuración con logs en Laravel (en lugar de echo)
+        Log::info("Ruta del archivo temporal: {$fullPath}");
 
         // Ruta al intérprete de Python del entorno virtual
         $pythonPath = base_path('.venv/bin/python3');
-
-        // Ruta al script de Python
         $scriptPath = base_path('scripts/import_courses.py');
 
         // Ejecutar el script de Python
@@ -40,9 +38,9 @@ class ExcelController extends Controller
         // Eliminar el archivo temporal (si existe)
         if (file_exists($fullPath)) {
             unlink($fullPath);
-            echo "Archivo temporal eliminado: {$fullPath}";
+            Log::info("Archivo temporal eliminado: {$fullPath}");
         } else {
-            echo "El archivo no existe: {$fullPath}";
+            Log::warning("El archivo no existe: {$fullPath}");
         }
 
         if ($returnVar === 0) {
@@ -64,8 +62,8 @@ class ExcelController extends Controller
         $filePath = $request->file('file')->store('', 'private_temp');
         $fullPath = storage_path("app/private/temp/{$filePath}");
 
-        // Depuración: Imprimir la ruta del archivo
-        echo "Ruta del archivo temporal: {$fullPath}";
+        // Depuración con logs en Laravel (en lugar de echo)
+        Log::info("Ruta del archivo temporal: {$fullPath}");
 
         // Ruta al intérprete de Python del entorno virtual
         $pythonPath = base_path('.venv/bin/python3');
@@ -81,9 +79,9 @@ class ExcelController extends Controller
         // Eliminar el archivo temporal (si existe)
         if (file_exists($fullPath)) {
             unlink($fullPath);
-            echo "Archivo temporal eliminado: {$fullPath}";
+            Log::info("Archivo temporal eliminado: {$fullPath}");
         } else {
-            echo "El archivo no existe: {$fullPath}";
+            Log::warning("El archivo no existe: {$fullPath}");
         }
 
         if ($returnVar === 0) {
@@ -105,8 +103,8 @@ class ExcelController extends Controller
         $filePath = $request->file('file')->store('', 'private_temp');
         $fullPath = storage_path("app/private/temp/{$filePath}");
 
-        // Depuración: Imprimir la ruta del archivo
-        echo "Ruta del archivo temporal: {$fullPath}\n";
+        // Depuración con logs en Laravel (en lugar de echo)
+        Log::info("Ruta del archivo temporal: {$fullPath}");
 
         // Ruta al intérprete de Python del entorno virtual
         $pythonPath = base_path('.venv/bin/python3');
@@ -122,17 +120,14 @@ class ExcelController extends Controller
         // Eliminar el archivo temporal (si existe)
         if (file_exists($fullPath)) {
             unlink($fullPath);
-            echo "Archivo temporal eliminado: {$fullPath}\n";
+            Log::info("Archivo temporal eliminado: {$fullPath}");
         } else {
-            echo "El archivo no existe: {$fullPath}\n";
+            Log::warning("El archivo no existe: {$fullPath}");
         }
-
         if ($returnVar === 0) {
             return response()->json(['message' => 'Archivo importado correctamente'], 200);
         } else {
             return response()->json(['message' => 'Error al importar el archivo', 'error' => implode("\n", $output)], 500);
         }
     }
-
-
 }

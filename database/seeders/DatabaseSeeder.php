@@ -14,21 +14,8 @@ class DatabaseSeeder extends Seeder
         // Primero, se crean los registros básicos que no dependen de otros seeders
         $this->call([
             RolesSeeder::class,
-            DocumentTypeSeeder::class,
-            RegionalSeeder::class,
-            TrainingCenterSeeder::class,
-            KnowledgeNetworkSeeder::class,
-            ProgramSeeder::class,
-            CourseSeeder::class,
-            SubjectSeeder::class,
-            RapSeeder::class,
-         ]);
-
-        //  Session::factory(5)->create();
-        // Luego, se crean los usuarios
-        // $this->call([
-        //     RolesSeeder::class,
-        //     ]);
+            ]);
+            //     UserRegisterSeeder::class, // Los usuarios
 
         // Llamada a seeders que dependen de los anteriores
         $this->call([

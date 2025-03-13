@@ -39,17 +39,7 @@ class SessionController extends Controller
             return response()->json(['error' => 'El instructor no es líder de ningún curso'], 404);
         }
 
-        // Tomar 'elements' de la query, por defecto 10
-
-        $elements = request()->query('elements', 10);
-
-        // Aplicar included(), filter() y paginar
-        $sessions = Session::whereHas('course', function ($query) use ($instructor) {
-            $query->where('course_leader_id', $instructor->id);
-        })
-        ->included()
-        ->filter()
-        ->paginate(intval($elements));
+        $sessions = Session::where('instructor_id', $instructor->id)->included()->filter()->get();
 
         // Log::info(json_encode($sessions, JSON_PRETTY_PRINT));
 

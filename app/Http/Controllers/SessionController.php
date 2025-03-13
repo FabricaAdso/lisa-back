@@ -38,6 +38,11 @@ class SessionController extends Controller
 
     }
 
+    public function sessionRap() {
+        $sessions = Session::included()->filter()->get();
+        return response()->json($sessions);
+    }
+
     public function destroy($id)
     {
         $session =  Session::find($id);

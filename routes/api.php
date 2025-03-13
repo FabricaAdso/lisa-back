@@ -88,6 +88,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     // Centros de formacion, ambientes y sedes
     Route::apiResource('headquarters', HeadquartersController::class);
     Route::get('environments', [EnvironmentController::class, 'index']);
+    Route::get('sessions', [SessionController::class, 'sessionRap']);
     Route::apiresource('environments', EnvironmentController::class);
     Route::apiresource('trainingCenters', TrainingCenterController::class);
 

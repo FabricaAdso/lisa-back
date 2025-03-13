@@ -128,31 +128,28 @@ class SessionServiceImpl implements SessionService
                 $currentDate->addDay();
             }
 
-            $existingSession = Session::where('date', $currentDate->format('Y-m-d')) // Usar currentDate
+            // Verificar si el instructor ya tiene una sesión en la misma fecha y horario
+            $existingSession = Session::where('date', $currentDate->format('Y-m-d'))
                 ->where('instructor_id', $request->instructor_id)
-                ->where(function ($query) use ($startTime, $endTime) {
-                    $query->whereBetween('start_time', [$startTime->format('H:i'), $endTime->format('H:i')])
-                        ->orWhereBetween('end_time', [$startTime->format('H:i'), $endTime->format('H:i')]);
-                })
-                ->get(); // Usar exists()
+                ->where(function ($q) use ($startTime, $endTime) {
+                    $q->where('start_time', '<=', $endTime->format('H:i'))
+                        ->where('end_time', '>=', $startTime->format('H:i'));
+                })->get();
 
-            if ($existingSession == false) {
+            if ($existingSession->isNotEmpty()) {
                 return response()->json(['message' => 'El instructor ya tiene asignadas sesiones para estas fechas', $existingSession]);
             } else {
 
                 // Verificar si otro instructor tiene una sesión en el mismo día y curso
                 $existingSessionForCourse = Session::where('date', $currentDate->format('Y-m-d'))
-                ->where('course_id', $request->course_id)
-                ->where(function ($query) use ($startTime, $endTime) {
-                    $query->where(function ($q) use ($startTime, $endTime) {
+                    ->where('course_id', $request->course_id)
+                    ->where(function ($query) use ($startTime, $endTime) {
                         // Verifica si el nuevo horario se solapa con algún horario existente
-                        $q->where('start_time', '<', $endTime->format('H:i'))
-                          ->where('end_time', '>', $startTime->format('H:i'));
-                    });
-                })
-                ->exists();
+                        $query->where('start_time', '<=', $endTime->format('H:i'))
+                            ->where('end_time', '>=', $startTime->format('H:i'));
+                    })->get();
 
-                if ($existingSessionForCourse = '') {
+                if ($existingSessionForCourse->isNotEmpty()) {
                     return response()->json(['message' => 'Otro instructor ya tiene una sesión en el mismo día y curso.', $existingSessionForCourse], 422);
                 }
 

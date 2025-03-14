@@ -33,35 +33,12 @@ class SessionServiceImpl implements SessionService
             'percentage' => 'required|integer|min:40|max:100',
         ]);
 
-        // Verificar competencia por programa
-        $rapCompetencia = Rap::findOrFail($request->rap_id);
-        $course = Course::findOrFail($request->course_id);
-
-        if ($rapCompetencia->subject->program->id !== $course->program_id) {
-            return response()->json(['message' => 'La competencia no pertenece al curso seleccionado.'], 422);
-        }
-
-        // Verificar si el curso está en ejecución
-        if ($course->state !== 'En_ejecucion') {
-            return response()->json(['message' => 'El curso no está en ejecución. No se pueden crear sesiones.'], 422);
-        }
-
-        // Verificar si el instructor está activo
-        $instructor = Instructor::findOrFail($request->instructor_id);
-        if ($instructor->state !== 'Activo') {
-            return response()->json(['message' => 'El instructor no está activo. No se pueden crear sesiones.'], 422);
-        }
-        // Verificar si ya existen sesiones creadas con este RAP en el curso seleccionado
-        $existingSessionWithRap = Session::where('rap_id', $request->rap_id)
-            ->where('course_id', $request->course_id)
-            ->exists();
-
-        if ($existingSessionWithRap) {
-            return response()->json(['message' => 'Ya existen sesiones creadas con este RAP en el curso seleccionado.'], 422);
-        }
-
-        // registro de cambio del porcentaje por usuario
         $user = User::find(Auth::id());
+        $isValid = $this->validateForCreateSessions($request, $user);
+        if ($isValid != null) {
+            return $isValid;
+        }
+        // registro de cambio del porcentaje por usuario
         $rapForUser = Rap::find($request->rap_id);
         $subject = Subject::find($rapForUser->subject_id);
 
@@ -132,8 +109,8 @@ class SessionServiceImpl implements SessionService
             $existingSession = Session::where('date', $currentDate->format('Y-m-d'))
                 ->where('instructor_id', $request->instructor_id)
                 ->where(function ($q) use ($startTime, $endTime) {
-                    $q->where('start_time', '<=', $endTime->format('H:i'))
-                        ->where('end_time', '>=', $startTime->format('H:i'));
+                    $q->where('start_time', '<', $endTime->format('H:i'))
+                        ->where('end_time', '>', $startTime->format('H:i'));
                 })->get();
 
             if ($existingSession->isNotEmpty()) {
@@ -145,8 +122,8 @@ class SessionServiceImpl implements SessionService
                     ->where('course_id', $request->course_id)
                     ->where(function ($query) use ($startTime, $endTime) {
                         // Verifica si el nuevo horario se solapa con algún horario existente
-                        $query->where('start_time', '<=', $endTime->format('H:i'))
-                            ->where('end_time', '>=', $startTime->format('H:i'));
+                        $query->where('start_time', '<', $endTime->format('H:i'))
+                            ->where('end_time', '>', $startTime->format('H:i'));
                     })->get();
 
                 if ($existingSessionForCourse->isNotEmpty()) {
@@ -186,6 +163,50 @@ class SessionServiceImpl implements SessionService
             'sessions_created' => $sessionsCreated,
             'existing_sessions' => $existingSessions,
         ]);
+    }
+
+
+    public function validateForCreateSessions($request, $user)
+    {
+        // Verificar competencia por programa
+        $rapCompetencia = Rap::findOrFail($request->rap_id);
+        $course = Course::findOrFail($request->course_id);
+        if ($rapCompetencia->subject->program->id !== $course->program_id) {
+            return response()->json(['message' => 'La competencia no pertenece al curso seleccionado.'], 422);
+        }
+
+        // Verificar si el curso está en ejecución
+        if ($course->state !== 'En_ejecucion') {
+            return response()->json(['message' => 'El curso no está en ejecución. No se pueden crear sesiones.'], 422);
+        }
+
+        // Verificar si el instructor está activo
+        $instructor = Instructor::findOrFail($request->instructor_id);
+        if ($instructor->state !== 'Activo') {
+            return response()->json(['message' => 'El instructor no está activo. No se pueden crear sesiones.'], 422);
+        }
+
+        // Verificar si el usuario es el líder del curso
+        $leader_course = Instructor::where('user_id', $user->id)->first();
+        if (!$leader_course) {
+            return response()->json([
+                'message' => 'No estás registrado como instructor.'
+            ], 403);
+        }
+        if ($course->course_leader_id != $leader_course->id) {
+            return response()->json([
+                'message' => 'No eres el líder de esta ficha.',
+            ], 403);
+        }
+
+        // Verificar si ya existen sesiones creadas con este RAP en el curso seleccionado
+        // $existingSessionWithRap = Session::where('rap_id', $request->rap_id)
+        //     ->where('course_id', $request->course_id)
+        //     ->exists();
+
+        // if ($existingSessionWithRap) {
+        //     return response()->json(['message' => 'Ya existen sesiones creadas con este RAP en el curso seleccionado.'], 422);
+        // }
     }
 
 

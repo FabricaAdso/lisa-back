@@ -16,6 +16,15 @@ class TrainingCenterController extends Controller
 
         return response()->json($trainingCenter);
     }
+    public function trainingCenter()
+    {
+
+        // $trainingCenter = TrainingCenter::all();
+        $elements = request()->query('elements', 10);
+        $trainingCenter = TrainingCenter::included()->filter()->paginate(intval($elements));
+
+        return response()->json($trainingCenter);
+    }
 
     /**
      * Store a newly created resource in storage.

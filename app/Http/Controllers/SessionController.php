@@ -38,8 +38,11 @@ class SessionController extends Controller
         if ($courseIds->isEmpty()) {
             return response()->json(['error' => 'El instructor no es líder de ningún curso'], 404);
         }
+        $elements = request()->query('elements', 10);
 
-        $sessions = Session::where('instructor_id', $instructor->id)->included()->filter()->get();
+        $sessions = Session::where('instructor_id', $instructor->id)->included()
+        ->filter()
+        ->paginate(intval($elements));
 
         // Log::info(json_encode($sessions, JSON_PRETTY_PRINT));
 

@@ -88,9 +88,10 @@ Route::group(['middleware' => 'auth:api'], function () {
     // Centros de formacion, ambientes y sedes
     Route::apiResource('headquarters', HeadquartersController::class);
     Route::get('environments', [EnvironmentController::class, 'index']);
+    Route::get('sessions/mount', [SessionController::class, 'getInassitanceInstructor']);
     Route::get('sessions', [SessionController::class, 'sessionRap']);
     Route::apiresource('environments', EnvironmentController::class);
-    Route::get('trainingCenters', [TrainingCenterController::class, 'trainingCenter']);
+    Route::get('trainingCenters/page', [TrainingCenterController::class, 'trainingCenter']);
     Route::apiresource('trainingCenters', TrainingCenterController::class);
 
     // Centros de formacion del USUARIO

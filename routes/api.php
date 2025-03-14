@@ -90,7 +90,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::get('environments', [EnvironmentController::class, 'index']);
     Route::get('sessions', [SessionController::class, 'sessionRap']);
     Route::apiresource('environments', EnvironmentController::class);
-    Route::get('trainingCenters', [TrainingCenterController::class, 'trainingCenter']);
+    Route::get('trainingCenters/page', [TrainingCenterController::class, 'trainingCenter']);
     Route::apiresource('trainingCenters', TrainingCenterController::class);
 
     // Centros de formacion del USUARIO

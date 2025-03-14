@@ -12,7 +12,8 @@ class TrainingCenterController extends Controller
     {
 
         // $trainingCenter = TrainingCenter::all();
-        $trainingCenter = TrainingCenter::included()->filter()->get();
+        $elements = request()->query('elements', 10);
+        $trainingCenter = TrainingCenter::included()->filter()->paginate(intval($elements));
 
         return response()->json($trainingCenter);
     }

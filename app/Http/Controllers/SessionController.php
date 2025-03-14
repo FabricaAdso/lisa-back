@@ -45,7 +45,11 @@ class SessionController extends Controller
 
     public function destroy($id)
     {
-        $session =  Session::find($id);
+        $session =  Session::findOrFail($id);
+
+        if ($session->date < Carbon::now()) {
+            return response()->json(['message' => 'No se puede eliminar una sesión que ya ha pasado']);
+        }
         $session->assistances()->delete();
         $session->delete();
         return response()->json(['message' => 'Session eliminada exitosamente']);

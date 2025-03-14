@@ -22,7 +22,7 @@ class SessionServiceImpl implements SessionService
     {
 
         $request->validate([
-            'start_date' => 'required|date',
+            'start_date' => 'required|date|after_or_equal:today',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
             'rap_id' => 'required|exists:raps,id',
@@ -213,36 +213,41 @@ class SessionServiceImpl implements SessionService
     public function updateSessions(Request $request, $sessionIds)
     {
         // Validar los datos de entrada
-        $request->validate([
-            'start_date' => 'nullable|date',
-            'start_time' => 'nullable|date_format:H:i',
-            'end_time' => 'nullable|date_format:H:i|after:start_time',
-            'rap_id' => 'nullable|exists:raps,id',
-            'course_id' => 'nullable|exists:courses,id',
-            'instructor_id' => 'nullable|exists:instructors,id',
+       $validated = $request->validate([
+            'start_date' => 'required|date|after_or_equal:today',
+            'start_time' => 'required|date_format:H:i',
+            'end_time' => 'required|date_format:H:i|after:start_time',
+            'instructor_id' => 'required|exists:instructors,id',
             'instructor2_id' => 'nullable|exists:users,id',
-            'confirmed' => 'sometimes|boolean',
+            'confirmed' => 'nullable|boolean',
         ]);
 
         $sessionsUpdated = [];
         foreach ($sessionIds as $sessionId) {
-
-            $session = Session::findOrFail($sessionId);
-
-            // Verificar si el instructor ya tiene una sesión en la nueva fecha (si se actualiza la fecha)
-            if ($request->has('start_date')) {
-                $existingSession = Session::where('date', $request->start_date)
-                    ->where('instructor_id', $request->instructor_id ?? $session->instructor_id)
-                    ->where('id', '!=', $sessionId) // Excluir la sesión actual
-                    ->get();
-
-                if ($existingSession) {
-                    return response()->json(['message' => 'El instructor ya tiene una sesión asignada para esta fecha.', $existingSession], 422);
-                }
+            $session = Session::findOrFail($sessionId); 
+    
+            // Normalizar tiempos
+            $startTime = $validated['start_time'] ? $validated['start_time'] . ':00' : $session->start_time;
+            $endTime = $validated['end_time'] ? $validated['end_time'] . ':00' : $session->end_time;
+           
+            $conflict = Session::where('instructor_id', $validated['instructor_id'] ?? $session->instructor_id)
+                ->where('id', '!=', $session->id) 
+                ->where('date', $validated['start_date'] ?? $session->date)
+                ->where(function ($query) use ($startTime, $endTime) {
+                    $query->where(function ($q) use ($startTime, $endTime) {
+                        $q->where('start_time', '<', $endTime)
+                          ->where('end_time', '>', $startTime);
+                    });
+                })
+                ->first();
+    
+            if ($conflict && empty($validated['confirmed'])) {
+                return response()->json([
+                    'message' => 'Existe una sesión previamente agendada en ese horario.',
+                    'conflict_session' => $conflict
+                ], 422);
             }
-
-
-            // Actualizar los campos de la sesión
+    
             if ($request->has('start_date')) {
                 $session->date = $request->start_date;
             }

@@ -156,6 +156,44 @@ class Session extends Model
     return $query;
 }
 
+public function scopeLeaderFilter(Builder $query, array $filters, $courseIds)
+{
+    // Filtrar por código de curso usando 'course_'
+    if (isset($filters['course_'])) {
+        $query->whereHas('course', function ($q) use ($filters) {
+            $q->where('code', 'LIKE', '%' . $filters['course_'] . '%');
+        });
+    }
+
+    // Filtrar por rap usando 'rap_'
+    if (isset($filters['rap_'])) {
+        $query->whereHas('rap', function ($q) use ($filters) {
+            $q->where('description', 'LIKE', '%' . $filters['rap_'] . '%');
+        });
+    }
+
+    // Filtrar por subject usando 'subject_'
+    if (isset($filters['subject_'])) {
+        $query->whereHas('course.program.subjects', function ($q) use ($filters) {
+            $q->where('name', 'LIKE', '%' . $filters['subject_'] . '%');
+        });
+    }
+
+    // Filtrar por fechas
+    if (isset($filters['date_from'])) {
+        $query->where('date', '>=', $filters['date_from']);
+    }
+    if (isset($filters['date_to'])) {
+        $query->where('date', '<=', $filters['date_to']);
+    }
+
+    // Aquí se aplica el filtro para que solo traiga sesiones de cursos donde el usuario es líder
+    $query->whereIn('course_id', $courseIds);
+
+    return $query;
+}
+
+
 
 
 

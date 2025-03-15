@@ -85,6 +85,8 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::get('course/sessions', [CourseController::class, 'getCourseInstructor']);
     //sesiones del dia
     Route::post('course/sessionsNow', [CourseController::class, 'getCourseInstructorNow']);
+    Route::get('session/leader', [SessionController::class, 'indexLeader']);
+
 
     // Centros de formacion, ambientes y sedes
     Route::apiResource('headquarters', HeadquartersController::class);

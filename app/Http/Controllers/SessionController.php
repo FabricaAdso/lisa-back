@@ -74,4 +74,32 @@ class SessionController extends Controller
         return response()->json($session);
     }
 
+    public function indexLeader()
+    {
+        $user = User::find(Auth::id());
+        $instructor = Instructor::where('user_id', $user->id)->first();
+
+        if (!$instructor) {
+            return response()->json(['error' => 'El usuario no es un instructor'], 404);
+        }
+
+        // Obtener los cursos donde el usuario es líder
+        $courseIds = Course::where('course_leader_id', $instructor->id)->pluck('id');
+        if ($courseIds->isEmpty()) {
+            return response()->json(['error' => 'El instructor no es líder de ningún curso'], 404);
+        }
+        $elements = request()->query('elements', 10);
+
+        // Asumiendo que los filtros vienen en request('filter')
+        $filters = request('filter', []);
+
+        $sessions = Session::leaderFilter($filters, $courseIds)
+                      ->included()
+                      ->paginate(intval($elements));
+
+        return response()->json($sessions);
+    }
+
+
+
 }

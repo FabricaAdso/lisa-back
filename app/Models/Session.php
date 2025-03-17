@@ -165,12 +165,10 @@ public function scopeLeaderFilter(Builder $query, array $filters, $courseIds)
         });
     }
 
-    // Filtrar por rap usando 'rap_'
     if (isset($filters['rap_'])) {
-        $query->whereHas('rap', function ($q) use ($filters) {
-            $q->where('description', 'LIKE', '%' . $filters['rap_'] . '%');
-        });
+        $query->where('rap_id', $filters['rap_']);
     }
+
 
     // Filtrar por subject usando 'subject_'
     if (isset($filters['subject_'])) {
@@ -180,12 +178,21 @@ public function scopeLeaderFilter(Builder $query, array $filters, $courseIds)
     }
 
     // Filtrar por fechas
-    if (isset($filters['date_from'])) {
-        $query->where('date', '>=', $filters['date_from']);
+    if (isset($filters['pending']) && $filters['pending'] === 'true') {
+        $query->whereDate('date', '>=', now()->toDateString());
     }
-    if (isset($filters['date_to'])) {
-        $query->where('date', '<=', $filters['date_to']);
+    if (isset($filters['past']) && $filters['past'] === 'true') {
+        $query->whereDate('date', '<', now()->toDateString());
     }
+
+
+    if (isset($filters['instructor_'])) {
+        $query->where('instructor_id', $filters['instructor_']);
+    }
+
+
+
+
 
     // Aquí se aplica el filtro para que solo traiga sesiones de cursos donde el usuario es líder
     $query->whereIn('course_id', $courseIds);

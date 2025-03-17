@@ -12,6 +12,7 @@ use App\Services\SessionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class SessionController extends Controller
@@ -84,19 +85,24 @@ class SessionController extends Controller
             return response()->json(['error' => 'El usuario no es un instructor'], 404);
         }
 
-        // Obtener los cursos donde el usuario es líder
         $courseIds = Course::where('course_leader_id', $instructor->id)->pluck('id');
         if ($courseIds->isEmpty()) {
             return response()->json(['error' => 'El instructor no es líder de ningún curso'], 404);
         }
         $elements = request()->query('elements', 10);
-
-        // Asumiendo que los filtros vienen en request('filter')
         $filters = request('filter', []);
+        $page = isset($filters['page']) ? $filters['page'] : 1;
+        if (isset($filters['page'])) {
+            unset($filters['page']);
+        }
+        if (isset($filters['elements'])) {
+            unset($filters['elements']);
+        }
 
         $sessions = Session::leaderFilter($filters, $courseIds)
+            ->select('*', DB::raw("DATE_FORMAT(start_time, '%H:%i') as start_time"), DB::raw("DATE_FORMAT(end_time, '%H:%i') as end_time"))
             ->included()
-            ->paginate(intval($elements));
+            ->paginate(intval($elements), ['*'], 'page', $page);
 
         return response()->json($sessions);
     }
@@ -104,26 +110,21 @@ class SessionController extends Controller
 
     public function filterOptions()
     {
-        // Obtiene el usuario autenticado y el instructor relacionado
         $user = User::find(Auth::id());
         $instructor = Instructor::where('user_id', $user->id)->first();
         if (!$instructor) {
             return response()->json(['error' => 'El usuario no es un instructor'], 404);
         }
 
-        // Obtener los cursos donde el instructor es líder
         $courseIds = Course::where('course_leader_id', $instructor->id)->pluck('id');
         if ($courseIds->isEmpty()) {
             return response()->json(['error' => 'El instructor no es líder de ningún curso'], 404);
         }
 
-        // Obtener todas las sesiones (sin paginación) asociadas a esos cursos,
-        // incluyendo las relaciones necesarias para poblar los selects.
         $sessions = Session::whereIn('course_id', $courseIds)
             ->with(['course', 'instructor.user', 'rap'])
             ->get();
 
-        // Extraer las opciones únicas para cada filtro a partir de las sesiones
         $courses = $sessions->pluck('course')->unique('id')->values();
         $instructors = $sessions->pluck('instructor')->unique('id')->values();
         $raps = $sessions->pluck('rap')->unique('id')->values();

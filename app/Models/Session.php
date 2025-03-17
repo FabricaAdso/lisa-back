@@ -161,7 +161,7 @@ public function scopeLeaderFilter(Builder $query, array $filters, $courseIds)
     // Filtrar por código de curso usando 'course_'
     if (isset($filters['course_'])) {
         $query->whereHas('course', function ($q) use ($filters) {
-            $q->where('code', 'LIKE', '%' . $filters['course_'] . '%');
+            $q->where('code', $filters['course_']);
         });
     }
 

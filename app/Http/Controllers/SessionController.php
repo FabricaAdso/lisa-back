@@ -41,8 +41,8 @@ class SessionController extends Controller
         $elements = request()->query('elements', 10);
 
         $sessions = Session::where('instructor_id', $instructor->id)->included()
-        ->filter()
-        ->paginate(intval($elements));
+            ->filter()
+            ->paginate(intval($elements));
 
         // Log::info(json_encode($sessions, JSON_PRETTY_PRINT));
 
@@ -69,7 +69,8 @@ class SessionController extends Controller
         return $this->sessionService->updateSessions($request, $sessionIds);
     }
 
-    public function show($id) {
+    public function show($id)
+    {
         $session = Session::included()->find($id);
         return response()->json($session);
     }
@@ -94,12 +95,43 @@ class SessionController extends Controller
         $filters = request('filter', []);
 
         $sessions = Session::leaderFilter($filters, $courseIds)
-                      ->included()
-                      ->paginate(intval($elements));
+            ->included()
+            ->paginate(intval($elements));
 
         return response()->json($sessions);
     }
 
 
+    public function filterOptions()
+    {
+        // Obtiene el usuario autenticado y el instructor relacionado
+        $user = User::find(Auth::id());
+        $instructor = Instructor::where('user_id', $user->id)->first();
+        if (!$instructor) {
+            return response()->json(['error' => 'El usuario no es un instructor'], 404);
+        }
 
+        // Obtener los cursos donde el instructor es líder
+        $courseIds = Course::where('course_leader_id', $instructor->id)->pluck('id');
+        if ($courseIds->isEmpty()) {
+            return response()->json(['error' => 'El instructor no es líder de ningún curso'], 404);
+        }
+
+        // Obtener todas las sesiones (sin paginación) asociadas a esos cursos,
+        // incluyendo las relaciones necesarias para poblar los selects.
+        $sessions = Session::whereIn('course_id', $courseIds)
+            ->with(['course', 'instructor.user', 'rap'])
+            ->get();
+
+        // Extraer las opciones únicas para cada filtro a partir de las sesiones
+        $courses = $sessions->pluck('course')->unique('id')->values();
+        $instructors = $sessions->pluck('instructor')->unique('id')->values();
+        $raps = $sessions->pluck('rap')->unique('id')->values();
+
+        return response()->json([
+            'courses' => $courses,
+            'instructors' => $instructors,
+            'raps' => $raps
+        ]);
+    }
 }

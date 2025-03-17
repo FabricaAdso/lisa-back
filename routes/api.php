@@ -75,6 +75,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     //  Rutas para cursos y demas
     Route::get('course', [CourseController::class, 'index']);
     Route::get('course/leader', [CourseController::class, 'courseByCourseLeader']);
+
     Route::resource('educationLevel', EducationLevelController::class);
     Route::resource('programs', ProgramController::class);
     Route::resource('courses', CourseController::class);
@@ -83,6 +84,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::get('course/Instructorsessions', [CourseController::class, 'getInstructorAndSessions']);
     //instructores con fichas que tuvo formacion
     Route::get('course/sessions', [CourseController::class, 'getCourseInstructor']);
+    Route::get('session/leadersession', [SessionController::class, 'filterOptions']);
     //sesiones del dia
     Route::post('course/sessionsNow', [CourseController::class, 'getCourseInstructorNow']);
     Route::get('session/leader', [SessionController::class, 'indexLeader']);

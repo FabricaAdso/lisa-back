@@ -139,7 +139,6 @@ class SessionServiceImpl implements SessionService
                     'rap_id' => $request->rap_id,
                 ]);
 
-
                 $aprendices = Apprentice::where('course_id', $request->course_id)->get();
                 foreach ($aprendices as $aprendiz) {
                     Assistance::create([

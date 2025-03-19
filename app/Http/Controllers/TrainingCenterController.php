@@ -26,6 +26,18 @@ class TrainingCenterController extends Controller
         return response()->json($trainingCenter);
     }
 
+    public function checkCode(Request $request)
+    {
+        $code = $request->query('code');
+    
+        
+        $exists = TrainingCenter::where('code', $code)->exists();
+    
+        return response()->json(['exists' => $exists]);
+    }
+
+
+
     /**
      * Store a newly created resource in storage.
      *

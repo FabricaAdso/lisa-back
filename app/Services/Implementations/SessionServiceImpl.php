@@ -34,7 +34,8 @@ class SessionServiceImpl implements SessionService
         ]);
 
         $user = User::find(Auth::id());
-        $isValid = $this->validateForCreateSessions($request, $user);
+        $course = Course::find($request->course_id);
+        $isValid = $this->validateForCreateSessions($request, $user, $course);
         if ($isValid != null) {
             return $isValid;
         }
@@ -130,6 +131,7 @@ class SessionServiceImpl implements SessionService
                     return response()->json(['message' => 'Otro instructor ya tiene una sesión en el mismo día y curso.', $existingSessionForCourse], 422);
                 }
 
+
                 $session = Session::create([
                     'date' => $currentDate->format('Y-m-d'),
                     'start_time' => $startTime->format('H:i'),
@@ -138,15 +140,22 @@ class SessionServiceImpl implements SessionService
                     'course_id' => $request->course_id,
                     'rap_id' => $request->rap_id,
                 ]);
-
+                if ($course->end_date_training_stage <= $currentDate->format('Y-m-d')) {
+                    Session::where('id', $session->id)->delete();
+                    return response()->json(['message' => 'No se puede crear sesiones fuera de la etapa lectiva'], 422);
+                   
+                }
 
                 $aprendices = Apprentice::where('course_id', $request->course_id)->get();
                 foreach ($aprendices as $aprendiz) {
-                    Assistance::create([
-                        'apprentice_id' => $aprendiz->id,
-                        'session_id' => $session->id,
-                        'assistance' => null,
-                    ]);
+                    if ($aprendiz->state == 'Formacion') {
+                        Assistance::create([
+                            'apprentice_id' => $aprendiz->id,
+                            'session_id' => $session->id,
+                            'assistance' => null,
+                        ]);
+                    }
+            
                 }
 
                 $sessionsCreated[] = $session;
@@ -166,11 +175,11 @@ class SessionServiceImpl implements SessionService
     }
 
 
-    public function validateForCreateSessions($request, $user)
+    public function validateForCreateSessions($request, $user, $course)
     {
         // Verificar competencia por programa
         $rapCompetencia = Rap::findOrFail($request->rap_id);
-        $course = Course::findOrFail($request->course_id);
+        
         if ($rapCompetencia->subject->program->id !== $course->program_id) {
             return response()->json(['message' => 'La competencia no pertenece al curso seleccionado.'], 422);
         }
@@ -179,6 +188,7 @@ class SessionServiceImpl implements SessionService
         if ($course->state !== 'En_ejecucion') {
             return response()->json(['message' => 'El curso no está en ejecución. No se pueden crear sesiones.'], 422);
         }
+
 
         // Verificar si el instructor está activo
         $instructor = Instructor::findOrFail($request->instructor_id);

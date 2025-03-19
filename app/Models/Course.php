@@ -14,6 +14,7 @@ class Course extends Model
         'code',
         'date_start',
         'date_end',
+        'end_date_training_stage',
         'shift',
         'state',
         'stage',

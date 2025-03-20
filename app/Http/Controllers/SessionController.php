@@ -46,8 +46,7 @@ class SessionController extends Controller
 
         $sessions = Session::where('instructor_id', $instructor->id)->included()
             ->filter()
-            ->paginate(intval($elements));
-
+        ->get();
         // Log::info(json_encode($sessions, JSON_PRETTY_PRINT));
 
         return response()->json($sessions);

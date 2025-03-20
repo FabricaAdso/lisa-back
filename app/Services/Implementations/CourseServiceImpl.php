@@ -35,7 +35,7 @@ class CourseServiceImpl implements CourseService
         return $session;
     }
 
-    public function getCourseInstructor($request)
+    public function getCourseInstructor()
     {
       $user = User::find(Auth::id());
       $instructor = Instructor::where('user_id', $user->id)->first();

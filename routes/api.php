@@ -86,7 +86,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::get('course/sessions', [CourseController::class, 'getCourseInstructor']);
     Route::get('session/leadersession', [SessionController::class, 'filterOptions']);
     //sesiones del dia
-    Route::post('course/sessionsNow', [CourseController::class, 'getCourseInstructorNow']);
+    Route::get('course/sessionsNow', [CourseController::class, 'getCourseInstructorNow']);
     Route::get('session/leader', [SessionController::class, 'indexLeader']);
 
 

@@ -65,19 +65,30 @@ class TrainingCenterController extends Controller
      * @param  \App\Models\TrainingCenter
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request)
+    public function update(Request $request, $id)
     {
+        // Validar los datos de entrada
         $request->validate([
             'name' => 'required|max:100',
             'code' => 'required|max:100',
             'regional_id' => 'required|exists:regionals,id',
         ]);
-        $trainingCenter = TrainingCenter::where('code', $request->code)->exists();
-        if ($trainingCenter)
-            return response()->json("El centro de formación ya existe");
+
+        $trainingCenter = TrainingCenter::find($id);
+        if (!$trainingCenter) {
+            return response()->json(['error' => 'Centro de formación no encontrado'], 404);
+        }
+
+        $existsTrainingCenterCode = TrainingCenter::where('code', $request->code)
+            ->where('id', '!=', $id)
+            ->exists();
+        if ($existsTrainingCenterCode) {
+            return response()->json(['error' => 'El código ya está en uso por otro centro de formación'], 409);
+        }
+
         $trainingCenter->update($request->all());
 
-        return response()->json($trainingCenter);
+        return response()->json($trainingCenter, 200);
     }
 
     /**

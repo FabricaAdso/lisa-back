@@ -22,7 +22,7 @@ class SessionServiceImpl implements SessionService
     {
 
         $request->validate([
-            'start_date' => 'required|date',
+            'start_date' => 'required|date|after_or_equal:today',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
             'rap_id' => 'required|exists:raps,id',
@@ -30,30 +30,15 @@ class SessionServiceImpl implements SessionService
             'instructor_id' => 'required|exists:instructors,id',
             'instructor2_id' => 'nullable|exists:users,id',
             'days_of_week' => 'required|string',
-            'percentage' => 'required|integer',
+            'percentage' => 'required|integer|min:40|max:100',
         ]);
-        
-        // Verificar competencia por programa
-        $rapCompetencia = Rap::findOrFail($request->rap_id);
-        $course = Course::findOrFail($request->course_id);
 
-        if ($rapCompetencia->subject->program->id !== $course->program_id) {
-            return response()->json(['message' => 'La competencia no pertenece al curso seleccionado.'], 422);
-        }
-        
-        // Verificar si el curso está en ejecución
-        if ($course->state !== 'En_ejecucion') {
-            return response()->json(['message' => 'El curso no está en ejecución. No se pueden crear sesiones.'], 422);
-        }
-        
-        // Verificar si el instructor está activo
-        $instructor = Instructor::findOrFail($request->instructor_id);
-        if ($instructor->state !== 'Activo') {
-            return response()->json(['message' => 'El instructor no está activo. No se pueden crear sesiones.'], 422);
-        }
-        
-        // registro de cambio del porcentaje por usuario
         $user = User::find(Auth::id());
+        $isValid = $this->validateForCreateSessions($request, $user);
+        if ($isValid != null) {
+            return $isValid;
+        }
+        // registro de cambio del porcentaje por usuario
         $rapForUser = Rap::find($request->rap_id);
         $subject = Subject::find($rapForUser->subject_id);
 
@@ -120,13 +105,30 @@ class SessionServiceImpl implements SessionService
                 $currentDate->addDay();
             }
 
+            // Verificar si el instructor ya tiene una sesión en la misma fecha y horario
             $existingSession = Session::where('date', $currentDate->format('Y-m-d'))
                 ->where('instructor_id', $request->instructor_id)
-                ->exists();
+                ->where(function ($q) use ($startTime, $endTime) {
+                    $q->where('start_time', '<', $endTime->format('H:i'))
+                        ->where('end_time', '>', $startTime->format('H:i'));
+                })->get();
 
-            if ($existingSession) {
-                return response()->json(['message' => 'El instructor ya tiene asignadas sesiones para estas fechas']);
+            if ($existingSession->isNotEmpty()) {
+                return response()->json(['message' => 'El instructor ya tiene asignadas sesiones para estas fechas', $existingSession]);
             } else {
+
+                // Verificar si otro instructor tiene una sesión en el mismo día y curso
+                $existingSessionForCourse = Session::where('date', $currentDate->format('Y-m-d'))
+                    ->where('course_id', $request->course_id)
+                    ->where(function ($query) use ($startTime, $endTime) {
+                        // Verifica si el nuevo horario se solapa con algún horario existente
+                        $query->where('start_time', '<', $endTime->format('H:i'))
+                            ->where('end_time', '>', $startTime->format('H:i'));
+                    })->get();
+
+                if ($existingSessionForCourse->isNotEmpty()) {
+                    return response()->json(['message' => 'Otro instructor ya tiene una sesión en el mismo día y curso.', $existingSessionForCourse], 422);
+                }
 
                 $session = Session::create([
                     'date' => $currentDate->format('Y-m-d'),
@@ -136,7 +138,7 @@ class SessionServiceImpl implements SessionService
                     'course_id' => $request->course_id,
                     'rap_id' => $request->rap_id,
                 ]);
-             
+
 
                 $aprendices = Apprentice::where('course_id', $request->course_id)->get();
                 foreach ($aprendices as $aprendiz) {
@@ -162,48 +164,90 @@ class SessionServiceImpl implements SessionService
             'existing_sessions' => $existingSessions,
         ]);
     }
-    
-    
-    public function updateSessions(Request $request, $sessionIds)
+
+
+    public function validateForCreateSessions($request, $user)
     {
-        // Verificar si $sessionIds es un array y convertirlo a una cadena si es necesario
-        if (is_array($sessionIds)) {
-            // Si ya es un array, convertirlo a una cadena separada por comas
-            $sessionIds = implode(',', $sessionIds);
+        // Verificar competencia por programa
+        $rapCompetencia = Rap::findOrFail($request->rap_id);
+        $course = Course::findOrFail($request->course_id);
+        if ($rapCompetencia->subject->program->id !== $course->program_id) {
+            return response()->json(['message' => 'La competencia no pertenece al curso seleccionado.'], 422);
         }
 
-        // Convertir los sessionIds de la ruta a un array
-        $sessionIds = explode(',', $sessionIds);
+        // Verificar si el curso está en ejecución
+        if ($course->state !== 'En_ejecucion') {
+            return response()->json(['message' => 'El curso no está en ejecución. No se pueden crear sesiones.'], 422);
+        }
 
+        // Verificar si el instructor está activo
+        $instructor = Instructor::findOrFail($request->instructor_id);
+        if ($instructor->state !== 'Activo') {
+            return response()->json(['message' => 'El instructor no está activo. No se pueden crear sesiones.'], 422);
+        }
+
+        // Verificar si el usuario es el líder del curso
+        $leader_course = Instructor::where('user_id', $user->id)->first();
+        if (!$leader_course) {
+            return response()->json([
+                'message' => 'No estás registrado como instructor.'
+            ], 403);
+        }
+        if ($course->course_leader_id != $leader_course->id) {
+            return response()->json([
+                'message' => 'No eres el líder de esta ficha.',
+            ], 403);
+        }
+
+        // Verificar si ya existen sesiones creadas con este RAP en el curso seleccionado
+        // $existingSessionWithRap = Session::where('rap_id', $request->rap_id)
+        //     ->where('course_id', $request->course_id)
+        //     ->exists();
+
+        // if ($existingSessionWithRap) {
+        //     return response()->json(['message' => 'Ya existen sesiones creadas con este RAP en el curso seleccionado.'], 422);
+        // }
+    }
+
+
+    public function updateSessions(Request $request, $sessionIds)
+    {
         // Validar los datos de entrada
-        $request->validate([
-            'start_date' => 'nullable|date',
-            'start_time' => 'nullable|date_format:H:i',
-            'end_time' => 'nullable|date_format:H:i|after:start_time',
-            'rap_id' => 'nullable|exists:subjects,id',
-            'course_id' => 'nullable|exists:courses,id',
-            'instructor_id' => 'nullable|exists:instructors,id',
+       $validated = $request->validate([
+            'start_date' => 'required|date|after_or_equal:today',
+            'start_time' => 'required|date_format:H:i',
+            'end_time' => 'required|date_format:H:i|after:start_time',
+            'instructor_id' => 'required|exists:instructors,id',
             'instructor2_id' => 'nullable|exists:users,id',
+            'confirmed' => 'nullable|boolean',
         ]);
 
         $sessionsUpdated = [];
         foreach ($sessionIds as $sessionId) {
-
-            $session = Session::findOrFail($sessionId);
-
-            // Verificar si el instructor ya tiene una sesión en la nueva fecha (si se actualiza la fecha)
-            if ($request->has('start_date')) {
-                $existingSession = Session::where('date', $request->start_date)
-                    ->where('instructor_id', $request->instructor_id ?? $session->instructor_id)
-                    ->where('id', '!=', $sessionId) // Excluir la sesión actual
-                    ->exists();
-
-                if ($existingSession) {
-                    return response()->json(['message' => 'El instructor ya tiene una sesión asignada para esta fecha.'], 422);
-                }
+            $session = Session::findOrFail($sessionId); 
+    
+            // Normalizar tiempos
+            $startTime = $validated['start_time'] ? $validated['start_time'] . ':00' : $session->start_time;
+            $endTime = $validated['end_time'] ? $validated['end_time'] . ':00' : $session->end_time;
+           
+            $conflict = Session::where('instructor_id', $validated['instructor_id'] ?? $session->instructor_id)
+                ->where('id', '!=', $session->id) 
+                ->where('date', $validated['start_date'] ?? $session->date)
+                ->where(function ($query) use ($startTime, $endTime) {
+                    $query->where(function ($q) use ($startTime, $endTime) {
+                        $q->where('start_time', '<', $endTime)
+                          ->where('end_time', '>', $startTime);
+                    });
+                })
+                ->first();
+    
+            if ($conflict && empty($validated['confirmed'])) {
+                return response()->json([
+                    'message' => 'Existe una sesión previamente agendada en ese horario.',
+                    'conflict_session' => $conflict
+                ], 422);
             }
-
-            // Actualizar los campos de la sesión
+    
             if ($request->has('start_date')) {
                 $session->date = $request->start_date;
             }

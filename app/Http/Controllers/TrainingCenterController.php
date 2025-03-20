@@ -26,6 +26,24 @@ class TrainingCenterController extends Controller
         return response()->json($trainingCenter);
     }
 
+    public function checkCode(Request $request)
+{
+    $code = $request->query('code');
+    $id = $request->query('id'); // ID del registro actual (opcional)
+
+    $query = TrainingCenter::where('code', $code);
+
+    // Excluir el registro actual si se está editando
+    if ($id) {
+        $query->where('id', '!=', $id);
+    }
+
+    $exists = $query->exists();
+
+    return response()->json(['exists' => $exists]);
+}
+
+
     /**
      * Store a newly created resource in storage.
      *

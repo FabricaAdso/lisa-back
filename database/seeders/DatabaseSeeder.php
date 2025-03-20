@@ -22,11 +22,11 @@ class DatabaseSeeder extends Seeder
             SubjectSeeder::class,
             RapSeeder::class,
             InstructorSeeder::class,
-            SessionSeeder::class,
+            //SessionSeeder::class,
             ApprenticeSeeder::class,
-            AssistanceSeeder::class,
-            JustificationSeeder::class,
-            AprobationSeeder::class,
+            //AssistanceSeeder::class,
+            //JustificationSeeder::class,
+            //AprobationSeeder::class,
         ]);
     }
 }

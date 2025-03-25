@@ -28,7 +28,9 @@ class Course extends Model
         'program',
         'shifts',
         'apprentices.user',
-        'evoriment.headquarters',
+        'environment.headquarters',
+        'representative.user', // Relación con el aprendiz representante
+        'co_representative.user', // Relación con el aprendiz co-representante
     ];
 
     protected $allowFilter = [
@@ -58,6 +60,15 @@ class Course extends Model
     public function instructor()
     {
         return $this->belongsTo(Instructor::class);
+    }
+    public function representative()
+    {
+        return $this->belongsTo(Apprentice::class, 'representative_id');
+    }
+
+    public function co_representative()
+    {
+        return $this->belongsTo(Apprentice::class, 'co_representative_id');
     }
 
 

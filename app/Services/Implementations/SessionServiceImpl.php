@@ -167,6 +167,14 @@ class SessionServiceImpl implements SessionService
             }
         }
 
+        $lastSession = end($sessionsCreated);
+        foreach ($sessionsCreated as $session) {
+            if ($session->id != $lastSession->id) {
+                $session->end_date = $lastSession->date;
+                $session->save();
+            }
+        }
+
         return response()->json([
             'message' => 'Sesiones y asistencias creadas exitosamente.',
             'sessions_created' => $sessionsCreated,

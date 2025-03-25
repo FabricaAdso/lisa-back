@@ -27,7 +27,11 @@ class Course extends Model
         'program',
         'shifts',
         'apprentices.user',
-        'evoriment.headquarters',
+        'environment.headquarters',
+        'environment',
+        'representative_id',
+        'co_representative_id'
+
     ];
 
     protected $allowFilter = [

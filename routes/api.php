@@ -58,6 +58,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::post('users', [UserController::class, 'store']);
     Route::get('users/{id}', [UserController::class, 'show']);
     Route::put('usersUpdate/{id}', [UserController::class, 'update']);
+    Route::post('change-password', [AuthController::class, 'changePassword']);
 
     //Activar y desactivar usuarios. ver usuarios activos e inactivos
     Route::post('users/{id}/deactivate', [UserController::class, 'deactivate']);
@@ -146,12 +147,12 @@ Route::group(['middleware' => 'auth:api'], function () {
     //Ruta para red de conocimiento
     Route::get('/knowledgeNetwork/{id}', [KnowledgeNetworkController::class, 'show']);
     Route::resource('/knowledgeNetwork', KnowledgeNetworkController::class);
-    
+
     Route::get('regionals', [RegionalController::class, 'index'])->withoutMiddleware(['auth:api']);
-    
+
     //rutas de notificaciones
     Route::post('/message', [NotificationController::class, 'store']);
-    
+
     //rutas de notificaciones
     Route::get('/message', [NotificationController::class, 'index']);
 });

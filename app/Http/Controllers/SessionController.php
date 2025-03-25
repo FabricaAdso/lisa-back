@@ -142,7 +142,6 @@ class SessionController extends Controller
         return response()->json($sessions);
     }
 
-
     public function filterOptions()
     {
         $user = User::find(Auth::id());
@@ -160,14 +159,47 @@ class SessionController extends Controller
             ->with(['course', 'instructor.user', 'rap'])
             ->get();
 
+        // Se obtienen los cursos únicos
         $courses = $sessions->pluck('course')->unique('id')->values();
-        $instructors = $sessions->pluck('instructor')->unique('id')->values();
-        $raps = $sessions->pluck('rap')->unique('id')->values();
+
+        $rapsByCourse = [];
+        $instructorsByCourse = [];
+
+        foreach ($sessions as $session) {
+            // Usamos el código del curso para agrupar
+            $courseCode = $session->course->code;
+            $rap = $session->rap;
+            $instructor = $session->instructor;
+
+            if ($rap) {
+                if (!isset($rapsByCourse[$courseCode])) {
+                    $rapsByCourse[$courseCode] = collect();
+                }
+                $rapsByCourse[$courseCode]->push($rap);
+            }
+
+            if ($instructor) {
+                if (!isset($instructorsByCourse[$courseCode])) {
+                    $instructorsByCourse[$courseCode] = collect();
+                }
+                $instructorsByCourse[$courseCode]->push($instructor);
+            }
+        }
+
+        // Eliminar duplicados y formatear
+        foreach ($rapsByCourse as $courseCode => $raps) {
+            $rapsByCourse[$courseCode] = $raps->unique('id')->values();
+        }
+
+        foreach ($instructorsByCourse as $courseCode => $instructors) {
+            $instructorsByCourse[$courseCode] = $instructors->unique('id')->values();
+        }
 
         return response()->json([
             'courses' => $courses,
-            'instructors' => $instructors,
-            'raps' => $raps
+            'rapsByCourse' => $rapsByCourse,
+            'instructorsByCourse' => $instructorsByCourse,
         ]);
     }
+
 }

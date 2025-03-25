@@ -143,7 +143,6 @@ class SessionServiceImpl implements SessionService
                 if ($course->end_date_training_stage <= $currentDate->format('Y-m-d')) {
                     Session::where('id', $session->id)->delete();
                     return response()->json(['message' => 'No se puede crear sesiones fuera de la etapa lectiva'], 422);
-                   
                 }
 
                 $aprendices = Apprentice::where('course_id', $request->course_id)->get();
@@ -155,7 +154,6 @@ class SessionServiceImpl implements SessionService
                             'assistance' => null,
                         ]);
                     }
-            
                 }
 
                 $sessionsCreated[] = $session;
@@ -169,10 +167,8 @@ class SessionServiceImpl implements SessionService
 
         $lastSession = end($sessionsCreated);
         foreach ($sessionsCreated as $session) {
-            if ($session->id != $lastSession->id) {
-                $session->end_date = $lastSession->date;
-                $session->save();
-            }
+            $session->end_date = $lastSession->date;
+            $session->update();
         }
 
         return response()->json([
@@ -187,7 +183,7 @@ class SessionServiceImpl implements SessionService
     {
         // Verificar competencia por programa
         $rapCompetencia = Rap::findOrFail($request->rap_id);
-        
+
         if ($rapCompetencia->subject->program->id !== $course->program_id) {
             return response()->json(['message' => 'La competencia no pertenece al curso seleccionado.'], 422);
         }
@@ -231,7 +227,7 @@ class SessionServiceImpl implements SessionService
     public function updateSessions(Request $request, $sessionIds)
     {
         // Validar los datos de entrada
-       $validated = $request->validate([
+        $validated = $request->validate([
             'start_date' => 'required|date|after_or_equal:today',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
@@ -242,30 +238,30 @@ class SessionServiceImpl implements SessionService
 
         $sessionsUpdated = [];
         foreach ($sessionIds as $sessionId) {
-            $session = Session::findOrFail($sessionId); 
-    
+            $session = Session::findOrFail($sessionId);
+
             // Normalizar tiempos
             $startTime = $validated['start_time'] ? $validated['start_time'] . ':00' : $session->start_time;
             $endTime = $validated['end_time'] ? $validated['end_time'] . ':00' : $session->end_time;
-           
+
             $conflict = Session::where('instructor_id', $validated['instructor_id'] ?? $session->instructor_id)
-                ->where('id', '!=', $session->id) 
+                ->where('id', '!=', $session->id)
                 ->where('date', $validated['start_date'] ?? $session->date)
                 ->where(function ($query) use ($startTime, $endTime) {
                     $query->where(function ($q) use ($startTime, $endTime) {
                         $q->where('start_time', '<', $endTime)
-                          ->where('end_time', '>', $startTime);
+                            ->where('end_time', '>', $startTime);
                     });
                 })
                 ->first();
-    
+
             if ($conflict && empty($validated['confirmed'])) {
                 return response()->json([
                     'message' => 'Existe una sesión previamente agendada en ese horario.',
                     'conflict_session' => $conflict
                 ], 422);
             }
-    
+
             if ($request->has('start_date')) {
                 $session->date = $request->start_date;
             }

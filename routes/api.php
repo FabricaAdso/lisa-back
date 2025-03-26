@@ -153,6 +153,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     
     //rutas de notificaciones
     Route::get('/message', [NotificationController::class, 'index']);
+    Route::put('/message/{id}', [NotificationController::class, 'update']);
 });
 Route::post('/import-courses', [ExcelController::class, 'importCourses']);
 Route::post('/import-apprentices', [ExcelController::class, 'importApprentices']);

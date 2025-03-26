@@ -47,4 +47,11 @@ class NotificationController extends Controller
             'notification' => $data
         ]);
     }
+
+    public function update($id) {
+        $noti = Notification::findOrFail($id);
+        $noti->markAsRead();
+        $noti->update(['type' => 'info']);
+        return response()->json("actualizada correctamente");
+    }
 }

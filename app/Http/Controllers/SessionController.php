@@ -46,33 +46,57 @@ class SessionController extends Controller
 
         $sessions = Session::where('instructor_id', $instructor->id)->included()
             ->filter()
-        ->get();
+            ->get();
         // Log::info(json_encode($sessions, JSON_PRETTY_PRINT));
 
         return response()->json($sessions);
     }
 
     public function getInassitanceInstructor()
-    {
-        $user = User::find(Auth::id());
-        $elements = request()->query('elements', 15);
-        $instructor = Instructor::where('user_id', $user->id)->first();
+{
+    $user = User::find(Auth::id());
+    $perPage = request()->query('elements', 15);
+    $monthFilter = request()->query('month'); // Formato: "YYYY-MM"
+    $yearFilter = request()->query('year');   // Filtro adicional por año
 
-        if (!$instructor) {
-            return response()->json(['message' => 'Instructor not found'], 404);
-        }
-
-        // Obtener todas las sesiones del instructor y agruparlas por mes y año
-        $sessions = Session::where('instructor_id', $instructor->id)
-            ->included()
-            ->filter()
-            ->paginate(intval($elements))
-            ->groupBy(function ($session) {
-                return Carbon::parse($session->date)->format('Y-m'); // Agrupar por año y mes
-            });
-        // Devolver las sesiones agrupadas por mes
-        return response()->json($sessions);
+    $instructor = Instructor::where('user_id', $user->id)->first();
+    if (!$instructor) {
+        return response()->json(['message' => 'Instructor not found'], 404);
     }
+
+    // Consulta base para las sesiones del instructor
+    $query = Session::where('instructor_id', $instructor->id)
+        ->included()
+        ->filter();
+
+    // Aplicar filtros si existen
+    if ($monthFilter) {
+        $query->whereYear('date', substr($monthFilter, 0, 4))
+              ->whereMonth('date', substr($monthFilter, 5, 2));
+    } elseif ($yearFilter) {
+        $query->whereYear('date', $yearFilter);
+    }
+
+    // Paginar directamente la consulta (más eficiente que obtener todos los registros)
+    $paginatedSessions = $query->orderBy('date')->paginate($perPage);
+
+    // Si no hay filtros, agrupar por mes después de paginar
+    if (!$monthFilter && !$yearFilter) {
+        $groupedSessions = $paginatedSessions->groupBy(function ($session) {
+            return Carbon::parse($session->date)->format('Y-m');
+        });
+
+        // Convertir a estructura paginada manteniendo la agrupación
+        return response()->json([
+            'data' => $groupedSessions,
+            'current_page' => $paginatedSessions->currentPage(),
+            'per_page' => $paginatedSessions->perPage(),
+            'total' => $paginatedSessions->total(),
+            'last_page' => $paginatedSessions->lastPage(),
+        ]);
+    }
+
+}
 
 
     public function sessionRap()

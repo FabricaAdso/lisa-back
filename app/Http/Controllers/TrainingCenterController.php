@@ -26,6 +26,24 @@ class TrainingCenterController extends Controller
         return response()->json($trainingCenter);
     }
 
+    public function checkCode(Request $request)
+{
+    $code = $request->query('code');
+    $id = $request->query('id'); // ID del registro actual (opcional)
+
+    $query = TrainingCenter::where('code', $code);
+
+    // Excluir el registro actual si se está editando
+    if ($id) {
+        $query->where('id', '!=', $id);
+    }
+
+    $exists = $query->exists();
+
+    return response()->json(['exists' => $exists]);
+}
+
+
     /**
      * Store a newly created resource in storage.
      *
@@ -65,17 +83,30 @@ class TrainingCenterController extends Controller
      * @param  \App\Models\TrainingCenter
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, TrainingCenter $trainingCenter)
+    public function update(Request $request, $id)
     {
+        // Validar los datos de entrada
         $request->validate([
             'name' => 'required|max:100',
             'code' => 'required|max:100',
             'regional_id' => 'required|exists:regionals,id',
         ]);
 
+        $trainingCenter = TrainingCenter::find($id);
+        if (!$trainingCenter) {
+            return response()->json(['error' => 'Centro de formación no encontrado'], 404);
+        }
+
+        $existsTrainingCenterCode = TrainingCenter::where('code', $request->code)
+            ->where('id', '!=', $id)
+            ->exists();
+        if ($existsTrainingCenterCode) {
+            return response()->json(['error' => 'El código ya está en uso por otro centro de formación'], 409);
+        }
+
         $trainingCenter->update($request->all());
 
-        return response()->json($trainingCenter);
+        return response()->json($trainingCenter, 200);
     }
 
     /**

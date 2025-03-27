@@ -5,8 +5,6 @@ namespace Database\Seeders;
 use App\Models\Session;
 use Illuminate\Database\Seeder;
 
-// use Illuminate\Database\Seeder;
-
 class DatabaseSeeder extends Seeder
 {
     public function run()

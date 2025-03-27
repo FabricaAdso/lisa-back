@@ -66,7 +66,6 @@ Route::group(['middleware' => 'auth:api'], function () {
 
     // Ruta para gestionar roles
     Route::get('/roles', [RoleController::class, 'getRoles']);
-    Route::post('users/{userId}/training-centers/{trainingCenterId}/toggle-role', [RoleController::class, 'toggleRole']);
     Route::get('/users-by-training-center', [UserController::class, 'getUsersByTrainingCenter']);
     Route::post('/assign-role', [RoleController::class, 'assignRoles']);
     Route::get('/user/{id}/roles', [UserController::class, 'getUserRolesById']);
@@ -97,7 +96,9 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::get('sessions', [SessionController::class, 'sessionRap']);
     Route::apiresource('environments', EnvironmentController::class);
     Route::get('trainingCenters/page', [TrainingCenterController::class, 'trainingCenter']);
+    Route::get('/trainingCenters/check-code', [TrainingCenterController::class, 'checkCode']);
     Route::apiresource('trainingCenters', TrainingCenterController::class);
+
 
     // Centros de formacion del USUARIO
     Route::post('/user/{userId}/add-training-center', [AuthController::class, 'addTrainingCenter']);
@@ -144,8 +145,15 @@ Route::group(['middleware' => 'auth:api'], function () {
     //Ruta para red de conocimiento
     Route::get('/knowledgeNetwork/{id}', [KnowledgeNetworkController::class, 'show']);
     Route::resource('/knowledgeNetwork', KnowledgeNetworkController::class);
-
+    
     Route::get('regionals', [RegionalController::class, 'index'])->withoutMiddleware(['auth:api']);
+    
+    //rutas de notificaciones
+    Route::post('/message', [NotificationController::class, 'store']);
+    
+    //rutas de notificaciones
+    Route::get('/message', [NotificationController::class, 'index']);
+    Route::put('/message/{id}', [NotificationController::class, 'update']);
 });
 Route::post('/import-courses', [ExcelController::class, 'importCourses']);
 Route::post('/import-apprentices', [ExcelController::class, 'importApprentices']);
@@ -164,8 +172,3 @@ Route::get('/apprentices/{apprenticeId}/unjustified-absences', [AssistanceContro
 //trainig center for login
 Route::resource('trainingCentersLogin', TrainingCenterController::class);
 
-//rutas de notificaciones
-Route::post('/message', [NotificationController::class, 'store']);
-
-//rutas de notificaciones
-Route::get('/message', [NotificationController::class, 'index']);

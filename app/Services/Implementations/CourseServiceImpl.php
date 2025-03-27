@@ -35,7 +35,7 @@ class CourseServiceImpl implements CourseService
         return $session;
     }
 
-    public function getCourseInstructor($request)
+    public function getCourseInstructor()
     {
       $user = User::find(Auth::id());
       $instructor = Instructor::where('user_id', $user->id)->first();
@@ -46,7 +46,7 @@ class CourseServiceImpl implements CourseService
         ->where(function ($query){
             $query->where('date', '<', Carbon::now()->toDateString())
                   ->orWhere(function ($query){
-                    $query->where('date','=',Carbon::now()->toDateString())
+                    $query->where('date','<',Carbon::now()->toDateString())
                     ->where('start_time','<',Carbon::now()->toTimeString())
                     ->where('end_time','<',Carbon::now()->toTimeString());
                   });

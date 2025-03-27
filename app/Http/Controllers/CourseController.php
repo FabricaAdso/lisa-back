@@ -118,6 +118,11 @@ class CourseController extends Controller
         );
     }
 
+    public function getCourseInstructor() {
+        $courseIntructor = $this->courseService->getCourseInstructor();
+        return response()->json($courseIntructor);
+    }
+
     public function getCourseInstructorNow(Request $request)
     {
         $courseIntructor = $this->courseService->getCourseInstructorNow($request);

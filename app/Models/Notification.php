@@ -31,7 +31,7 @@ class Notification extends Model
     ];
 
     protected $casts = [
-        'reat_at' => 'datetime',
+        'read_at' => 'datetime',
         'data' => 'array'
     ];
 
@@ -41,6 +41,7 @@ class Notification extends Model
 
     public function markAsRead(){
         $this->read_at = now();
+        $this->save();
     }
 
     public function markAsUnread(){

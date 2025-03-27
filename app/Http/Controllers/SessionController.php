@@ -201,5 +201,4 @@ class SessionController extends Controller
             'instructorsByCourse' => $instructorsByCourse,
         ]);
     }
-
 }

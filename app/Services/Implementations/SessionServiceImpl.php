@@ -139,9 +139,9 @@ class SessionServiceImpl implements SessionService
                     'course_id' => $request->course_id,
                     'rap_id' => $request->rap_id,
                 ]);
-                if ($course->end_date_training_stage <= $currentDate->format('Y-m-d')) {
+                if ($session->date > $course->end_date_training_stage) {
                     Session::where('id', $session->id)->delete();
-                    return response()->json(['message' => 'No se puede crear sesiones fuera de la etapa lectiva'], 422);
+                    return response()->json(['message' => 'No se puede crear sesiones fuera de la etapa lectiva']);
                 }
 
                 $aprendices = Apprentice::where('course_id', $request->course_id)->get();
@@ -164,11 +164,15 @@ class SessionServiceImpl implements SessionService
             }
         }
 
-        $lastSession = end($sessionsCreated);
-        foreach ($sessionsCreated as $session) {
-            $session->end_date = $lastSession->date;
-            $session->update();
+        // **Actualizar la primera sesión con la fecha de la última sesión creada**
+        if (!empty($sessionsCreated)) {
+            $lastSession = end($sessionsCreated); // Última sesión creada
+
+            Session::where('id', $lastSession->id)->update([
+                'end_date' => $lastSession->date
+            ]);
         }
+
 
         return response()->json([
             'message' => 'Sesiones y asistencias creadas exitosamente.',

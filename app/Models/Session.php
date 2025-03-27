@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Facades\DB;
 
 class Session extends Model
 {
@@ -203,23 +204,18 @@ class Session extends Model
             $query->whereDate('date', '<', now()->toDateString());
         }
 
-        // Nuevo filtro: sesiones sin end_date
-          // Nuevo filtro: sesiones sin end_date
-    if (isset($filters['end_date']) && $filters['end_date'] === 'true') {
-        $query->whereNull('end_date');
-    }
-    
-
-
+        // Filtro por ultima fecha de las sesiones del rap
+        if (isset($filters['end_date']) && $filters['end_date'] === 'true') {
+            $query->whereIn('id', function ($q) {
+                $q->select(DB::raw('MAX(id)'))
+                    ->from('sessions')
+                    ->groupBy('rap_id');
+            })->whereNotNull('end_date');
+        }
 
         if (isset($filters['instructor_'])) {
             $query->where('instructor_id', $filters['instructor_']);
         }
-
-
-
-
-
 
         // Aquí se aplica el filtro para que solo traiga sesiones de cursos donde el usuario es líder
         $query->whereIn('course_id', $courseIds);

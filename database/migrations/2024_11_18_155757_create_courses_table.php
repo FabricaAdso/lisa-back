@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('code')->unique();
             $table->date('date_start')->nullable();
+            $table->date('end_date_training_stage')->nullable();
             $table->date('date_end')->nullable();
             $table->string('shift')->nullable();
             $table->enum('state', ['Terminada_por_fecha','En_ejecucion','Terminada','Termindad_por_unificacion']);//estado

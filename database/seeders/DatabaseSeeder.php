@@ -9,7 +9,10 @@ class DatabaseSeeder extends Seeder
 {
     public function run()
     {
+        // Primero, se crean los registros básicos que no dependen de otros seeders
+        //      // Los usuarios
 
+        // Llamada a seeders que dependen de los anteriores
         $this->call([
             RolesSeeder::class,
             DocumentTypeSeeder::class,
@@ -21,12 +24,12 @@ class DatabaseSeeder extends Seeder
             CourseSeeder::class,
             SubjectSeeder::class,
             RapSeeder::class,
-            InstructorSeeder::class,
-            //SessionSeeder::class,
-            ApprenticeSeeder::class,
-            //AssistanceSeeder::class,
-            //JustificationSeeder::class,
-            //AprobationSeeder::class,
+            InstructorSeeder::class, // El instructor con el usuario 30
+            SessionSeeder::class, // Las sesiones
+            ApprenticeSeeder::class, // Los aprendices
+            AssistanceSeeder::class, // Las asistencias
+            JustificationSeeder::class, // Las justificaciones
+            // AprobationSeeder::class,
         ]);
     }
 }

@@ -14,6 +14,7 @@ class Course extends Model
         'code',
         'date_start',
         'date_end',
+        'end_date_training_stage',
         'shift',
         'state',
         'stage',
@@ -28,10 +29,8 @@ class Course extends Model
         'shifts',
         'apprentices.user',
         'environment.headquarters',
-        'environment',
-        'representative_id',
-        'co_representative_id'
-
+        'representative.user', // Relación con el aprendiz representante
+        'co_representative.user', // Relación con el aprendiz co-representante
     ];
 
     protected $allowFilter = [
@@ -61,6 +60,15 @@ class Course extends Model
     public function instructor()
     {
         return $this->belongsTo(Instructor::class);
+    }
+    public function representative()
+    {
+        return $this->belongsTo(Apprentice::class, 'representative_id');
+    }
+
+    public function co_representative()
+    {
+        return $this->belongsTo(Apprentice::class, 'co_representative_id');
     }
 
 

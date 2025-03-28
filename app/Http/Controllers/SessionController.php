@@ -169,31 +169,43 @@ class SessionController extends Controller
         return response()->json($sessions);
     }
 
-    public function filterOptions()
-    {
-        $user = User::find(Auth::id());
-        $instructor = Instructor::where('user_id', $user->id)->first();
-        if (!$instructor) {
-            return response()->json(['error' => 'El usuario no es un instructor'], 404);
-        }
+    public function filterOptions(Request $request)
+{
+    $user = User::find(Auth::id());
+    $instructor = Instructor::where('user_id', $user->id)->first();
+    if (!$instructor) {
+        return response()->json(['error' => 'El usuario no es un instructor'], 404);
+    }
 
-        $courseIds = Course::where('course_leader_id', $instructor->id)->pluck('id');
-        if ($courseIds->isEmpty()) {
-            return response()->json(['error' => 'El instructor no es líder de ningún curso'], 404);
-        }
+    $courseIds = Course::where('course_leader_id', $instructor->id)->pluck('id');
+    if ($courseIds->isEmpty()) {
+        return response()->json(['error' => 'El instructor no es líder de ningún curso'], 404);
+    }
 
-        $sessions = Session::whereIn('course_id', $courseIds)
-            ->with(['course', 'instructor.user', 'rap'])
-            ->get();
+    // Obtener el filtro de curso (si se envía)
+    $courseFilter = $request->input('filter.course_');
 
-        // Se obtienen los cursos únicos
-        $courses = $sessions->pluck('course')->unique('id')->values();
+    $sessionsQuery = Session::whereIn('course_id', $courseIds)
+        ->with(['course', 'instructor.user', 'rap']);
 
-        $rapsByCourse = [];
-        $instructorsByCourse = [];
+    // Si se envía el filtro, limitar las sesiones al curso seleccionado
+    if ($courseFilter) {
+        $sessionsQuery->whereHas('course', function ($q) use ($courseFilter) {
+            $q->where('code', $courseFilter);
+        });
+    }
 
+    $sessions = $sessionsQuery->get();
+
+    // Se obtienen los cursos únicos a partir de las sesiones
+    $courses = $sessions->pluck('course')->unique('id')->values();
+
+    $rapsByCourse = [];
+    $instructorsByCourse = [];
+
+    // Sólo se procesan rap e instructores si se ha enviado el filtro de curso
+    if ($courseFilter) {
         foreach ($sessions as $session) {
-            // Usamos el código del curso para agrupar
             $courseCode = $session->course->code;
             $rap = $session->rap;
             $instructor = $session->instructor;
@@ -213,7 +225,6 @@ class SessionController extends Controller
             }
         }
 
-        // Eliminar duplicados y formatear
         foreach ($rapsByCourse as $courseCode => $raps) {
             $rapsByCourse[$courseCode] = $raps->unique('id')->values();
         }
@@ -221,11 +232,14 @@ class SessionController extends Controller
         foreach ($instructorsByCourse as $courseCode => $instructors) {
             $instructorsByCourse[$courseCode] = $instructors->unique('id')->values();
         }
-
-        return response()->json([
-            'courses' => $courses,
-            'rapsByCourse' => $rapsByCourse,
-            'instructorsByCourse' => $instructorsByCourse,
-        ]);
     }
+
+    return response()->json([
+        'courses' => $courses,
+        // Si no se envía filtro de curso, se devuelven arrays vacíos para rap e instructores
+        'rapsByCourse' => $courseFilter ? $rapsByCourse : [],
+        'instructorsByCourse' => $courseFilter ? $instructorsByCourse : [],
+    ]);
+}
+
 }

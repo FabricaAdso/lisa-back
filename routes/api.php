@@ -129,6 +129,8 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::post('logout', [AuthController::class, 'lgout']);
 
     // Ruta instructor & Apprentice
+    Route::get('/instructors/by-user/{userId}',[InstructorController::class, 'getByUserId']);
+    Route::get('/apprentices/by-user/{userId}',[ApprenticeController::class, 'getByUserId']);
     Route::resource('instructor', InstructorController::class);
     Route::resource('apprentice', ApprenticeController::class);
     // Competencia
@@ -145,12 +147,12 @@ Route::group(['middleware' => 'auth:api'], function () {
     //Ruta para red de conocimiento
     Route::get('/knowledgeNetwork/{id}', [KnowledgeNetworkController::class, 'show']);
     Route::resource('/knowledgeNetwork', KnowledgeNetworkController::class);
-    
+
     Route::get('regionals', [RegionalController::class, 'index'])->withoutMiddleware(['auth:api']);
-    
+
     //rutas de notificaciones
     Route::post('/message', [NotificationController::class, 'store']);
-    
+
     //rutas de notificaciones
     Route::get('/message', [NotificationController::class, 'index']);
     Route::put('/message/{id}', [NotificationController::class, 'update']);

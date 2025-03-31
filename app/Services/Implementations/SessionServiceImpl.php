@@ -89,7 +89,7 @@ class SessionServiceImpl implements SessionService
         $dayOfWeek = explode(',', $request->days_of_week);
         foreach ($dayOfWeek as $day) {
             if (!in_array($day, ['1', '2', '3', '4', '5', '6', '7'])) {
-                return response()->json(['message' => 'El campo days_of_week contiene valores inválidos.'], 422);
+                return response()->json(['message' => 'El campo dias de la semana contiene valores inválidos.'], 422);
             }
         }
 
@@ -114,7 +114,7 @@ class SessionServiceImpl implements SessionService
                 })->get();
 
             if ($existingSession->isNotEmpty()) {
-                return response()->json(['message' => 'El instructor ya tiene asignadas sesiones para estas fechas', $existingSession]);
+                return response()->json(['message' => 'El instructor ya tiene asignadas sesiones para estas fechas', $existingSession],409);//conflict
             } else {
 
                 // Verificar si otro instructor tiene una sesión en el mismo día y curso
@@ -127,7 +127,7 @@ class SessionServiceImpl implements SessionService
                     })->get();
 
                 if ($existingSessionForCourse->isNotEmpty()) {
-                    return response()->json(['message' => 'Otro instructor ya tiene una sesión en el mismo día y curso.', $existingSessionForCourse], 422);
+                    return response()->json(['message' => 'Otro instructor ya tiene una sesión en el mismo día y curso.', $existingSessionForCourse], 409);//conflict
                 }
 
 
@@ -141,7 +141,7 @@ class SessionServiceImpl implements SessionService
                 ]);
                 if ($session->date > $course->end_date_training_stage) {
                     Session::where('id', $session->id)->delete();
-                    return response()->json(['message' => 'No se puede crear sesiones fuera de la etapa lectiva']);
+                    return response()->json(['message' => 'No se puede crear sesiones fuera de la etapa lectiva'],422);//Unprocessable entity
                 }
 
                 $aprendices = Apprentice::where('course_id', $request->course_id)->get();
@@ -262,7 +262,7 @@ class SessionServiceImpl implements SessionService
                 return response()->json([
                     'message' => 'Existe una sesión previamente agendada en ese horario.',
                     'conflict_session' => $conflict
-                ], 422);
+                ], 409);
             }
 
             if ($request->has('start_date')) {

@@ -71,7 +71,7 @@ class AssistanceController extends Controller
         $validate = $request->validate([
             'data' => 'required|array',
             'data.*.id' => 'required|integer|exists:assistances,id',
-            'date.*.assistance' => 'required|boolean'
+            'data.*.assistance' => 'required|boolean'
         ]);
 
         DB::beginTransaction();
@@ -79,7 +79,7 @@ class AssistanceController extends Controller
         try {
             foreach ($validate['data'] as $item) {
                 $assistance = Assistance::findOrFail($item['id']);
-                $previousAssistance = $assistance->assistance;
+                $previousAssistance = (bool)$assistance->assistance;
                 $newAssistance = (bool)$item['assistance'];
 
                 if ($previousAssistance === $newAssistance) {
@@ -88,7 +88,7 @@ class AssistanceController extends Controller
 
                 if ($previousAssistance === false && $newAssistance === true) {
                     $this->handleJustificationRemoval($assistance);
-                } elseif ($previousAssistance === true && $newAssistance === false) {
+                } elseif ($newAssistance === false) {
                     $this->createJustificationAndAprobation($assistance);
                 }
 
@@ -114,10 +114,14 @@ class AssistanceController extends Controller
 
     protected function handleJustificationRemoval(Assistance $assistance)
     {
-        $justification = Justification::where('assistance_id', $assistance->id)->first();
+        $justification = Justification::with('aprobation')
+            ->where('assistance_id', $assistance->id)
+            ->first();
 
         if ($justification) {
-            $justification->aprobation->delete();
+            if ($justification->aprobation) {
+                $justification->aprobation->delete();
+            }
             $justification->delete();
         }
     }

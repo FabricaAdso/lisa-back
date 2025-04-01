@@ -217,13 +217,13 @@ class SessionServiceImpl implements SessionService
         }
 
         // Verificar si ya existen sesiones creadas con este RAP en el curso seleccionado
-        // $existingSessionWithRap = Session::where('rap_id', $request->rap_id)
-        //     ->where('course_id', $request->course_id)
-        //     ->exists();
+        $existingSessionWithRap = Session::where('rap_id', $request->rap_id)
+            ->where('course_id', $request->course_id)
+            ->exists();
 
-        // if ($existingSessionWithRap) {
-        //     return response()->json(['message' => 'Ya existen sesiones creadas con este RAP en el curso seleccionado.'], 422);
-        // }
+        if ($existingSessionWithRap) {
+            return response()->json(['message' => 'Ya existen sesiones creadas con este RAP en el curso seleccionado.'], 422);
+        }
     }
 
 

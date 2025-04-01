@@ -78,7 +78,7 @@ class SessionController extends Controller
         }
 
         // Paginar directamente la consulta (más eficiente que obtener todos los registros)
-        $paginatedSessions = $query->orderBy('date')->paginate($perPage);
+        $paginatedSessions = $query->orderBy('date');
 
         // Si no hay filtros, agrupar por mes después de paginar
         if (!$monthFilter && !$yearFilter) {
@@ -163,6 +163,7 @@ class SessionController extends Controller
 
         $sessions = Session::leaderFilter($filters, $courseIds)
             ->select('*', DB::raw("DATE_FORMAT(start_time, '%H:%i') as start_time"), DB::raw("DATE_FORMAT(end_time, '%H:%i') as end_time"))
+            ->orderBy('date','ASC')
             ->included()
             ->paginate(intval($elements), ['*'], 'page', $page);
 

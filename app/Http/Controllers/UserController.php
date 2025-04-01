@@ -138,6 +138,7 @@ class UserController extends Controller
     {
         $elementos = request()->query('elementos', 10);
         $page = request()->query('page', 1);
+
         try {
             $trainingCenterId = $this->token_service->getTrainingCenterIdFromToken();
 
@@ -145,20 +146,48 @@ class UserController extends Controller
                 return response()->json(['error' => 'Training center ID inválido'], 400);
             }
 
-            $users = User::whereHas('trainingCenters', function ($query) use ($trainingCenterId) {
+            // Preparando la consulta
+            $query = User::whereHas('trainingCenters', function ($query) use ($trainingCenterId) {
                 $query->where('training_center_id', $trainingCenterId);
             })
                 ->with(['trainingCenters' => function ($query) use ($trainingCenterId) {
                     $query->where('training_center_id', $trainingCenterId)
-                        ->select('training_centers.id', 'role_training_center_user.role_id');
-                }])
-                ->paginate(intval($elementos), ['*'], 'page', $page);
+                        ->withPivot('role_id');
+                }, 'roles']);
 
-            return response()->json($users, 200);
+            // Aplicando la paginación directamente sobre la consulta
+            $users = $query->paginate(intval($elementos), ['*'], 'page', $page);
+
+            // Formateando los resultados
+            $formattedUsers = $users->getCollection()->map(function ($user) {
+                return [
+                    'id' => $user->id,
+                    'identity_document' => $user->identity_document,
+                    'name' => $user->name,
+                    'last_name' => $user->last_name,
+                    'deactivation_date' => $user->deactivation_date,
+                    'is_superuser' => $user->is_superuser,
+                    'email' => $user->email,
+                    'email_verified_at' => $user->email_verified_at,
+                    'document_type_id' => $user->document_type_id,
+                    'created_at' => $user->created_at,
+                    'updated_at' => $user->updated_at,
+                    'roles' => $user->training_centers_with_roles,
+                ];
+            });
+
+            // Retornando la respuesta con los usuarios paginados y formateados
+            return response()->json([
+                'data' => $formattedUsers,
+                'current_page' => $users->currentPage(),
+                'total_pages' => $users->lastPage(),
+                'total_items' => $users->total(),
+            ], 200);
         } catch (Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
+
 
     public function getUsersByTrainingCenterSearch(Request $request)
     {

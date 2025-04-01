@@ -14,6 +14,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\EducationLevelController;
 use App\Http\Controllers\ExcelController;
+use App\Http\Controllers\GoogleCalendarController;
 use App\Http\Controllers\InstructorController;
 use App\Http\Controllers\JustificationController;
 use App\Http\Controllers\KnowledgeNetworkController;
@@ -164,3 +165,6 @@ Route::post('/message', [NotificationController::class, 'store']);
 
 //rutas de notificaciones
 Route::get('/message', [NotificationController::class, 'index']);
+
+// routes/api.php
+Route::get('/holidays', [GoogleCalendarController::class, 'index']);

@@ -68,6 +68,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     // Ruta para gestionar roles
     Route::get('/roles', [RoleController::class, 'getRoles']);
     Route::get('/users-by-training-center', [UserController::class, 'getUsersByTrainingCenter']);
+    Route::get('/users-by-training-center-search', [UserController::class, 'getUsersByTrainingCenterSearch']);
     Route::post('/assign-role', [RoleController::class, 'assignRoles']);
     Route::get('/user/{id}/roles', [UserController::class, 'getUserRolesById']);
 

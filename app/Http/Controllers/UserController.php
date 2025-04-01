@@ -28,8 +28,8 @@ class UserController extends Controller
             $filter = $request->input('filter');
             $query->where(function ($q) use ($filter) {
                 $q->where('identity_document', 'like', "%{$filter}%")
-                  ->orWhere('name', 'like', "%{$filter}%")
-                  ->orWhere('last_name', 'like', "%{$filter}%");
+                    ->orWhere('name', 'like', "%{$filter}%")
+                    ->orWhere('last_name', 'like', "%{$filter}%");
             });
         }
 
@@ -73,8 +73,8 @@ class UserController extends Controller
     {
         $user = User::findOrFail($id);
         $request->validate([
-           'email' => 'email|unique:users,email,' . $user->id,
-         ]);
+            'email' => 'email|unique:users,email,' . $user->id,
+        ]);
 
         $user->update($request->all());
 
@@ -146,8 +146,8 @@ class UserController extends Controller
             }
 
             $users = User::whereHas('trainingCenters', function ($query) use ($trainingCenterId) {
-                    $query->where('training_center_id', $trainingCenterId);
-                })
+                $query->where('training_center_id', $trainingCenterId);
+            })
                 ->with(['trainingCenters' => function ($query) use ($trainingCenterId) {
                     $query->where('training_center_id', $trainingCenterId)
                         ->select('training_centers.id', 'role_training_center_user.role_id');
@@ -160,5 +160,51 @@ class UserController extends Controller
         }
     }
 
+    public function getUsersByTrainingCenterSearch(Request $request)
+    {
+        try {
+            $searchTerm = $request->query('search', null);
+            $trainingCenterId = $this->token_service->getTrainingCenterIdFromToken();
 
+            if (!is_numeric($trainingCenterId)) {
+                return response()->json(['error' => 'Training center ID inválido'], 400);
+            }
+
+            $query = User::whereHas('trainingCenters', function ($query) use ($trainingCenterId) {
+                $query->where('training_center_id', $trainingCenterId);
+            })
+                ->with(['trainingCenters' => function ($query) use ($trainingCenterId) {
+                    $query->where('training_center_id', $trainingCenterId)
+                        ->withPivot('role_id');
+                }, 'roles']);
+
+            if ($searchTerm) {
+                $query->where(function ($q) use ($searchTerm) {
+                    $q->where('name', 'like', '%' . $searchTerm . '%')
+                        ->orWhere('last_name', 'like', '%' . $searchTerm . '%');
+                });
+            }
+
+            $users = $query->limit(20)->get()->map(function ($user) {
+                return [
+                    'id' => $user->id,
+                    'identity_document' => $user->identity_document,
+                    'name' => $user->name,
+                    'last_name' => $user->last_name,
+                    'deactivation_date' => $user->deactivation_date,
+                    'is_superuser' => $user->is_superuser,
+                    'email' => $user->email,
+                    'email_verified_at' => $user->email_verified_at,
+                    'document_type_id' => $user->document_type_id,
+                    'created_at' => $user->created_at,
+                    'updated_at' => $user->updated_at,
+                    'roles' => $user->training_centers_with_roles,
+                ];
+            });
+
+            return response()->json($users, 200);
+        } catch (Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
 }

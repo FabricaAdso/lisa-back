@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Facades\DB;
 
 class Session extends Model
 {
@@ -26,7 +27,8 @@ class Session extends Model
         'course.representative.user', // Relación con el aprendiz representante
         'course.co_representative.user', // Relación con el aprendiz co-representante
         'instructor.knowledgeNetwork',
-        'course.subject', 'rap.subject'
+        'course.subject',
+        'rap.subject'
 
     ];
     protected $fillable = ['date', 'start_time', 'end_time', 'instructor_id', 'instructor2_id', 'course_id', 'rap_id', 'KnowledgeNetwork.name'];
@@ -40,7 +42,8 @@ class Session extends Model
         'course.program.subjects.id',
         'instructor_',
         'date_from',
-        'date_to'
+        'date_to',
+        'end_date',
     ];
 
     public function assistances()
@@ -201,14 +204,18 @@ class Session extends Model
             $query->whereDate('date', '<', now()->toDateString());
         }
 
+        // Filtro por ultima fecha de las sesiones del rap
+        if (isset($filters['end_date']) && $filters['end_date'] === 'true') {
+            $query->whereIn('id', function ($q) {
+                $q->select(DB::raw('MAX(id)'))
+                    ->from('sessions')
+                    ->groupBy('rap_id');
+            })->whereNotNull('end_date');
+        }
 
         if (isset($filters['instructor_'])) {
             $query->where('instructor_id', $filters['instructor_']);
         }
-
-
-
-
 
         // Aquí se aplica el filtro para que solo traiga sesiones de cursos donde el usuario es líder
         $query->whereIn('course_id', $courseIds);

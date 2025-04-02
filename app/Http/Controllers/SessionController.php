@@ -46,7 +46,7 @@ class SessionController extends Controller
 
         $sessions = Session::where('instructor_id', $instructor->id)->included()
             ->filter()
-        ->get();
+            ->get();
         // Log::info(json_encode($sessions, JSON_PRETTY_PRINT));
 
         return response()->json($sessions);
@@ -55,24 +55,51 @@ class SessionController extends Controller
     public function getInassitanceInstructor()
     {
         $user = User::find(Auth::id());
-        $elements = request()->query('elements', 15);
-        $instructor = Instructor::where('user_id', $user->id)->first();
+        $perPage = request()->query('elements', 15);
+        $monthFilter = request()->query('month'); // Formato: "YYYY-MM"
+        $yearFilter = request()->query('year');   // Filtro adicional por año
 
+        $instructor = Instructor::where('user_id', $user->id)->first();
         if (!$instructor) {
             return response()->json(['message' => 'Instructor not found'], 404);
         }
 
-        // Obtener todas las sesiones del instructor y agruparlas por mes y año
-        $sessions = Session::where('instructor_id', $instructor->id)
+        // Consulta base para las sesiones del instructor
+        $query = Session::where('instructor_id', $instructor->id)
             ->included()
-            ->filter()
-            ->paginate(intval($elements))
-            ->groupBy(function ($session) {
-                return Carbon::parse($session->date)->format('Y-m'); // Agrupar por año y mes
+            ->filter();
+
+        // Aplicar filtros si existen
+        if ($monthFilter) {
+            $query->whereYear('date', substr($monthFilter, 0, 4))
+                ->whereMonth('date', substr($monthFilter, 5, 2));
+        } elseif ($yearFilter) {
+            $query->whereYear('date', $yearFilter);
+        }
+
+        // Paginar directamente la consulta (más eficiente que obtener todos los registros)
+        $paginatedSessions = $query->orderBy('date');
+
+        // Si no hay filtros, agrupar por mes después de paginar
+        if (!$monthFilter && !$yearFilter) {
+            $groupedSessions = $paginatedSessions->groupBy(function ($session) {
+                return Carbon::parse($session->date)->format('Y-m');
             });
-        // Devolver las sesiones agrupadas por mes
-        return response()->json($sessions);
+
+            // Convertir a estructura paginada manteniendo la agrupación
+            return response()->json([
+                'data' => $groupedSessions,
+                'current_page' => $paginatedSessions->currentPage(),
+                'per_page' => $paginatedSessions->perPage(),
+                'total' => $paginatedSessions->total(),
+                'last_page' => $paginatedSessions->lastPage(),
+            ]);
+        }
+
+        return response()->json($paginatedSessions);
     }
+
+
 
 
     public function sessionRap()
@@ -136,37 +163,50 @@ class SessionController extends Controller
 
         $sessions = Session::leaderFilter($filters, $courseIds)
             ->select('*', DB::raw("DATE_FORMAT(start_time, '%H:%i') as start_time"), DB::raw("DATE_FORMAT(end_time, '%H:%i') as end_time"))
+            ->orderBy('date', 'ASC')
             ->included()
             ->paginate(intval($elements), ['*'], 'page', $page);
 
         return response()->json($sessions);
     }
 
-    public function filterOptions()
-    {
-        $user = User::find(Auth::id());
-        $instructor = Instructor::where('user_id', $user->id)->first();
-        if (!$instructor) {
-            return response()->json(['error' => 'El usuario no es un instructor'], 404);
-        }
+    public function filterOptions(Request $request)
+{
+    $user = User::find(Auth::id());
+    $instructor = Instructor::where('user_id', $user->id)->first();
+    if (!$instructor) {
+        return response()->json(['error' => 'El usuario no es un instructor'], 404);
+    }
 
-        $courseIds = Course::where('course_leader_id', $instructor->id)->pluck('id');
-        if ($courseIds->isEmpty()) {
-            return response()->json(['error' => 'El instructor no es líder de ningún curso'], 404);
-        }
+    $courseIds = Course::where('course_leader_id', $instructor->id)->pluck('id');
+    if ($courseIds->isEmpty()) {
+        return response()->json(['error' => 'El instructor no es líder de ningún curso'], 404);
+    }
 
-        $sessions = Session::whereIn('course_id', $courseIds)
-            ->with(['course', 'instructor.user', 'rap'])
-            ->get();
+    // Obtener el filtro de curso (si se envía)
+    $courseFilter = $request->input('filter.course_');
 
-        // Se obtienen los cursos únicos
-        $courses = $sessions->pluck('course')->unique('id')->values();
+    $sessionsQuery = Session::whereIn('course_id', $courseIds)
+        ->with(['course', 'instructor.user', 'rap']);
 
-        $rapsByCourse = [];
-        $instructorsByCourse = [];
+    // Si se envía el filtro, limitar las sesiones al curso seleccionado
+    if ($courseFilter) {
+        $sessionsQuery->whereHas('course', function ($q) use ($courseFilter) {
+            $q->where('code', $courseFilter);
+        });
+    }
 
+    $sessions = $sessionsQuery->get();
+
+    // Se obtienen los cursos únicos a partir de las sesiones
+    $courses = $sessions->pluck('course')->unique('id')->values();
+
+    $rapsByCourse = [];
+    $instructorsByCourse = [];
+
+    // Sólo se procesan rap e instructores si se ha enviado el filtro de curso
+    if ($courseFilter) {
         foreach ($sessions as $session) {
-            // Usamos el código del curso para agrupar
             $courseCode = $session->course->code;
             $rap = $session->rap;
             $instructor = $session->instructor;
@@ -186,7 +226,6 @@ class SessionController extends Controller
             }
         }
 
-        // Eliminar duplicados y formatear
         foreach ($rapsByCourse as $courseCode => $raps) {
             $rapsByCourse[$courseCode] = $raps->unique('id')->values();
         }
@@ -194,11 +233,14 @@ class SessionController extends Controller
         foreach ($instructorsByCourse as $courseCode => $instructors) {
             $instructorsByCourse[$courseCode] = $instructors->unique('id')->values();
         }
-
-        return response()->json([
-            'courses' => $courses,
-            'rapsByCourse' => $rapsByCourse,
-            'instructorsByCourse' => $instructorsByCourse,
-        ]);
     }
+
+    return response()->json([
+        'courses' => $courses,
+        // Si no se envía filtro de curso, se devuelven arrays vacíos para rap e instructores
+        'rapsByCourse' => $courseFilter ? $rapsByCourse : [],
+        'instructorsByCourse' => $courseFilter ? $instructorsByCourse : [],
+    ]);
+}
+
 }

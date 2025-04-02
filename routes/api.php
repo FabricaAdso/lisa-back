@@ -58,6 +58,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::post('users', [UserController::class, 'store']);
     Route::get('users/{id}', [UserController::class, 'show']);
     Route::put('usersUpdate/{id}', [UserController::class, 'update']);
+    Route::post('change-password', [AuthController::class, 'changePassword']);
 
     //Activar y desactivar usuarios. ver usuarios activos e inactivos
     Route::post('users/{id}/deactivate', [UserController::class, 'deactivate']);
@@ -67,6 +68,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     // Ruta para gestionar roles
     Route::get('/roles', [RoleController::class, 'getRoles']);
     Route::get('/users-by-training-center', [UserController::class, 'getUsersByTrainingCenter']);
+    Route::get('/users-by-training-center-search', [UserController::class, 'getUsersByTrainingCenterSearch']);
     Route::post('/assign-role', [RoleController::class, 'assignRoles']);
     Route::get('/user/{id}/roles', [UserController::class, 'getUserRolesById']);
 
@@ -133,9 +135,11 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::get('/apprentices/by-user/{userId}',[ApprenticeController::class, 'getByUserId']);
     Route::resource('instructor', InstructorController::class);
     Route::resource('apprentice', ApprenticeController::class);
+    
     // Competencia
     Route::resource('subject', SubjectController::class);
     Route::resource('rap', RapController::class);
+
     //session
     Route::post('session', [SessionController::class, 'createSession']);
     Route::get('session', [SessionController::class, 'index']);
@@ -156,6 +160,9 @@ Route::group(['middleware' => 'auth:api'], function () {
     //rutas de notificaciones
     Route::get('/message', [NotificationController::class, 'index']);
     Route::put('/message/{id}', [NotificationController::class, 'update']);
+
+    // assistances
+    Route::put('/assistance/allAsistence', [AssistanceController::class, 'JustificationAndAprobation']);
 });
 Route::post('/import-courses', [ExcelController::class, 'importCourses']);
 Route::post('/import-apprentices', [ExcelController::class, 'importApprentices']);

@@ -73,7 +73,6 @@ class AssistanceController extends Controller
             'data.*.id' => 'required|integer|exists:assistances,id',
             'data.*.assistance' => 'required|boolean'
         ]);
-
         DB::beginTransaction();
 
         try {

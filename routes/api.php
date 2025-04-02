@@ -160,7 +160,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::put('/message/{id}', [NotificationController::class, 'update']);
 
     // assistances
-    Route::put('/assistance/allAsisence', [AssistanceController::class, 'JustificationAndAprobation']);
+    Route::put('/assistance/allAsistence', [AssistanceController::class, 'JustificationAndAprobation']);
 });
 Route::post('/import-courses', [ExcelController::class, 'importCourses']);
 Route::post('/import-apprentices', [ExcelController::class, 'importApprentices']);

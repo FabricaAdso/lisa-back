@@ -163,7 +163,7 @@ class SessionController extends Controller
 
         $sessions = Session::leaderFilter($filters, $courseIds)
             ->select('*', DB::raw("DATE_FORMAT(start_time, '%H:%i') as start_time"), DB::raw("DATE_FORMAT(end_time, '%H:%i') as end_time"))
-            ->orderBy('date','ASC')
+            ->orderBy('date', 'ASC')
             ->included()
             ->paginate(intval($elements), ['*'], 'page', $page);
 

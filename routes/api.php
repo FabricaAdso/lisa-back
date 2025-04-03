@@ -58,6 +58,8 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::post('users', [UserController::class, 'store']);
     Route::get('users/{id}', [UserController::class, 'show']);
     Route::put('usersUpdate/{id}', [UserController::class, 'update']);
+
+    Route::post('check-password', [AuthController::class, 'checkPassword']);
     Route::post('change-password', [AuthController::class, 'changePassword']);
 
     //Activar y desactivar usuarios. ver usuarios activos e inactivos

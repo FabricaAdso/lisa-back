@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -281,6 +282,40 @@ class AuthController extends Controller
             ], 500);
         }
     }
+
+
+
+
+public function checkPassword(Request $request)
+{
+    Log::info('Solicitud recibida en checkPassword', $request->all());
+
+    $request->validate([
+        'current_password' => 'required|string',
+    ]);
+
+    $user = Auth::user();
+
+    if (!$user) {
+        Log::error('Usuario no autenticado en checkPassword');
+        return response()->json(['message' => 'No autenticado'], 401);
+    }
+
+    Log::info('Usuario autenticado en checkPassword: ' . $user->email);
+
+    if (Hash::check($request->current_password, $user->password)) {
+        Log::info('Contraseña correcta');
+        return response()->json(['valid' => true]);
+    } else {
+        Log::warning('Contraseña incorrecta');
+        return response()->json(['valid' => false], 200);
+    }
+}
+
+
+
+
+
 
     public function resetPassword(Request $request)
     {

@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Headquarters;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class HeadquartersController extends Controller
 {
@@ -17,7 +19,7 @@ class HeadquartersController extends Controller
 
         return response()->json($headquarter);
     }
-
+    
     /**
      * Store a newly created resource in storage.
      *
@@ -26,17 +28,41 @@ class HeadquartersController extends Controller
      */
     public function store(Request $request)
     {
+        // Obtener el usuario autenticado
+        $user = User::find(Auth::id());
+
+        // Verificar si el usuario tiene centros de formación asociados
+        $trainingCenterId = $user->trainingCenters->first()->id;
 
         $request->validate([
             'name' => 'required|max:100',
             'adress' => 'required|max:100',
             'opening_time' => 'required|date_format:H:i',
-            'closing_time' => 'required|date_format:H:i|after: opening_time ',
+            'closing_time' => 'required|date_format:H:i|after:opening_time',
             'municipality' => 'required|max:100',
-            'training_center_id' => 'required|exists:training_centers,id'
         ]);
 
-        $headquarter = Headquarters::create($request->all());
+        // Verificar si ya existe una sede con los mismos parámetros
+        $existingHeadquarter = Headquarters::where('name', $request->name)
+            ->where('adress', $request->adress)
+            ->where('municipality', $request->municipality)
+            ->where('training_center_id', $trainingCenterId)
+            ->first();
+
+        if ($existingHeadquarter) {
+            return response()->json(['message' => 'Ya existe una sede con los mismos datos en este centro de formación'], 409);
+        }
+
+        // Establecer el training_center_id del usuario autenticado
+        $headquarter = Headquarters::create([
+            'name' => $request->name,
+            'adress' => $request->adress,
+            'opening_time' => $request->opening_time,
+            'closing_time' => $request->closing_time,
+            'municipality' => $request->municipality,
+            'training_center_id' => $trainingCenterId,  // Establecer el centro de formación del usuario autenticado
+        ]);
+
         $headquarter->load('trainingCenter');
         return response()->json($headquarter);
     }
@@ -62,18 +88,33 @@ class HeadquartersController extends Controller
      */
     public function update(Request $request, $id)
     {
+        // Obtener el usuario autenticado
+        $user = User::find(Auth::id());
+
+        // Obtener el training_center_id del usuario autenticado
+        $trainingCenterId = $user->trainingCenters->first()->id;
+
         $request->validate([
             'name' => 'required|max:100',
             'adress' => 'required|max:100',
             'opening_time' => 'required|date_format:H:i',
-            'closing_time' => 'required|date_format:H:i|after: opening_time ',
+            'closing_time' => 'required|date_format:H:i|after: opening_time',
             'municipality' => 'required|max:100',
-            'training_center_id' => 'required|exists:training_centers,id'
         ]);
 
-        $headquarter = Headquarters::find($id);
+        // Buscar la sede para actualizar
+        $headquarter = Headquarters::findOrFail($id);
 
-        $headquarter->update($request->all());
+        // Actualizar el registro
+        $headquarter->update([
+            'name' => $request->name,
+            'adress' => $request->adress,
+            'opening_time' => $request->opening_time,
+            'closing_time' => $request->closing_time,
+            'municipality' => $request->municipality,
+            'training_center_id' => $trainingCenterId,  // Confirmar que se mantenga el centro de formación del usuario
+        ]);
+
         $headquarter->load('trainingCenter');
         return response()->json($headquarter);
     }

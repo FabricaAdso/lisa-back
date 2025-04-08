@@ -99,6 +99,11 @@ class SessionController extends Controller
         return response()->json($paginatedSessions);
     }
 
+    public function show($id)
+    {
+        $session = Session::included()->find($id);
+        return response()->json($session);
+    }
 
 
 
@@ -108,34 +113,27 @@ class SessionController extends Controller
         return response()->json($sessions);
     }
 
-
-    public function destroy($id)
-    {
-        $session =  Session::findOrFail($id);
-
-        if ($session->date < Carbon::now()) {
-            return response()->json(['message' => 'No se puede eliminar una sesión que ya ha pasado']);
-        }
-        $session->assistances()->delete();
-        $session->delete();
-        return response()->json(['message' => 'Session eliminada exitosamente']);
-    }
-
     // Crear sesión
     public function createSession(Request $request)
     {
         return $this->sessionService->createSession($request);
     }
-
+    // Actualizar sesión
     public function updateSessions(Request $request, ...$sessionIds)
     {
         return $this->sessionService->updateSessions($request, $sessionIds);
     }
 
-    public function show($id)
+    // Eliminar sesión po Id
+    public function destroy($id)
     {
-        $session = Session::included()->find($id);
-        return response()->json($session);
+        return $this->sessionService->destroy($id);
+    }
+
+    // Eliminar sesiones por rango de fechas
+    public function deleteSessionsByDateRange(Request $request)
+    {
+        return $this->sessionService->deleteSessionsByDateRange($request);
     }
 
     public function indexLeader()
@@ -171,76 +169,75 @@ class SessionController extends Controller
     }
 
     public function filterOptions(Request $request)
-{
-    $user = User::find(Auth::id());
-    $instructor = Instructor::where('user_id', $user->id)->first();
-    if (!$instructor) {
-        return response()->json(['error' => 'El usuario no es un instructor'], 404);
-    }
+    {
+        $user = User::find(Auth::id());
+        $instructor = Instructor::where('user_id', $user->id)->first();
+        if (!$instructor) {
+            return response()->json(['error' => 'El usuario no es un instructor'], 404);
+        }
 
-    $courseIds = Course::where('course_leader_id', $instructor->id)->pluck('id');
-    if ($courseIds->isEmpty()) {
-        return response()->json(['error' => 'El instructor no es líder de ningún curso'], 404);
-    }
+        $courseIds = Course::where('course_leader_id', $instructor->id)->pluck('id');
+        if ($courseIds->isEmpty()) {
+            return response()->json(['error' => 'El instructor no es líder de ningún curso'], 404);
+        }
 
-    // Obtener el filtro de curso (si se envía)
-    $courseFilter = $request->input('filter.course_');
+        // Obtener el filtro de curso (si se envía)
+        $courseFilter = $request->input('filter.course_');
 
-    $sessionsQuery = Session::whereIn('course_id', $courseIds)
-        ->with(['course', 'instructor.user', 'rap']);
+        $sessionsQuery = Session::whereIn('course_id', $courseIds)
+            ->with(['course', 'instructor.user', 'rap']);
 
-    // Si se envía el filtro, limitar las sesiones al curso seleccionado
-    if ($courseFilter) {
-        $sessionsQuery->whereHas('course', function ($q) use ($courseFilter) {
-            $q->where('code', $courseFilter);
-        });
-    }
+        // Si se envía el filtro, limitar las sesiones al curso seleccionado
+        if ($courseFilter) {
+            $sessionsQuery->whereHas('course', function ($q) use ($courseFilter) {
+                $q->where('code', $courseFilter);
+            });
+        }
 
-    $sessions = $sessionsQuery->get();
+        $sessions = $sessionsQuery->get();
 
-    // Se obtienen los cursos únicos a partir de las sesiones
-    $courses = $sessions->pluck('course')->unique('id')->values();
+        // Se obtienen los cursos únicos a partir de las sesiones
+        $courses = $sessions->pluck('course')->unique('id')->values();
 
-    $rapsByCourse = [];
-    $instructorsByCourse = [];
+        $rapsByCourse = [];
+        $instructorsByCourse = [];
 
-    // Sólo se procesan rap e instructores si se ha enviado el filtro de curso
-    if ($courseFilter) {
-        foreach ($sessions as $session) {
-            $courseCode = $session->course->code;
-            $rap = $session->rap;
-            $instructor = $session->instructor;
+        // Sólo se procesan rap e instructores si se ha enviado el filtro de curso
+        if ($courseFilter) {
+            foreach ($sessions as $session) {
+                $courseCode = $session->course->code;
+                $rap = $session->rap;
+                $instructor = $session->instructor;
 
-            if ($rap) {
-                if (!isset($rapsByCourse[$courseCode])) {
-                    $rapsByCourse[$courseCode] = collect();
+                if ($rap) {
+                    if (!isset($rapsByCourse[$courseCode])) {
+                        $rapsByCourse[$courseCode] = collect();
+                    }
+                    $rapsByCourse[$courseCode]->push($rap);
                 }
-                $rapsByCourse[$courseCode]->push($rap);
+
+                if ($instructor) {
+                    if (!isset($instructorsByCourse[$courseCode])) {
+                        $instructorsByCourse[$courseCode] = collect();
+                    }
+                    $instructorsByCourse[$courseCode]->push($instructor);
+                }
             }
 
-            if ($instructor) {
-                if (!isset($instructorsByCourse[$courseCode])) {
-                    $instructorsByCourse[$courseCode] = collect();
-                }
-                $instructorsByCourse[$courseCode]->push($instructor);
+            foreach ($rapsByCourse as $courseCode => $raps) {
+                $rapsByCourse[$courseCode] = $raps->unique('id')->values();
+            }
+
+            foreach ($instructorsByCourse as $courseCode => $instructors) {
+                $instructorsByCourse[$courseCode] = $instructors->unique('id')->values();
             }
         }
 
-        foreach ($rapsByCourse as $courseCode => $raps) {
-            $rapsByCourse[$courseCode] = $raps->unique('id')->values();
-        }
-
-        foreach ($instructorsByCourse as $courseCode => $instructors) {
-            $instructorsByCourse[$courseCode] = $instructors->unique('id')->values();
-        }
+        return response()->json([
+            'courses' => $courses,
+            // Si no se envía filtro de curso, se devuelven arrays vacíos para rap e instructores
+            'rapsByCourse' => $courseFilter ? $rapsByCourse : [],
+            'instructorsByCourse' => $courseFilter ? $instructorsByCourse : [],
+        ]);
     }
-
-    return response()->json([
-        'courses' => $courses,
-        // Si no se envía filtro de curso, se devuelven arrays vacíos para rap e instructores
-        'rapsByCourse' => $courseFilter ? $rapsByCourse : [],
-        'instructorsByCourse' => $courseFilter ? $instructorsByCourse : [],
-    ]);
-}
-
 }

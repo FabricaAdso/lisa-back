@@ -10,13 +10,22 @@ use App\Models\Rap;
 use App\Models\Session;
 use App\Models\Subject;
 use App\Models\User;
+use App\Services\GoogleCalendarService;
 use App\Services\SessionService;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class SessionServiceImpl implements SessionService
 {
+    protected $googleCalendarService;
+
+    public function __construct(GoogleCalendarService $googleCalendarService)
+    {
+        $this->googleCalendarService = $googleCalendarService;
+    }
+
     public function createSession(Request $request)
     {
 
@@ -38,6 +47,7 @@ class SessionServiceImpl implements SessionService
         if ($isValid != null) {
             return $isValid;
         }
+
         // registro de cambio del porcentaje por usuario
         $rapForUser = Rap::find($request->rap_id);
         $subject = Subject::find($rapForUser->subject_id);
@@ -47,28 +57,14 @@ class SessionServiceImpl implements SessionService
             'percentage' => $request->percentage,
             'updated_porcentage' => Carbon::now()
         ]);
-
-
-        $festivos = [
-            '2025-01-01',
-            '2025-01-06',
-            '2025-03-24',
-            '2025-04-17',
-            '2025-04-18',
-            '2025-05-01',
-            '2025-06-02',
-            '2025-06-23',
-            '2025-06-30',
-            '2025-07-20',
-            '2025-08-07',
-            '2025-08-18',
-            '2025-10-13',
-            '2025-11-03',
-            '2025-11-17',
-            '2025-12-08',
-            '2025-12-25'
-        ];
-
+        
+        $festivos = array_map(function ($holiday) {
+            return $holiday['start']['date']; // Extrae solo la fecha de inicio
+        }, $this->googleCalendarService->getHolidays(date('Y')));
+        
+        // return response()->json($festivos);
+        
+        
         // Obtener la duración total de la competencia en horas
         $rap = Rap::findOrFail($request->rap_id);
         $totalHours = $rap->number_hours;
@@ -312,6 +308,46 @@ class SessionServiceImpl implements SessionService
         return response()->json([
             'message' => 'Sesiones actualizadas exitosamente.',
             'sessions' => $sessionsUpdated,
+        ]);
+    }
+
+    public function destroy($id)
+    {
+        try {
+            $session = Session::findOrFail($id);
+    
+            if ($session->date < Carbon::now()->toDateString()) {
+                return response()->json(['message' => 'No se puede eliminar una sesión que ya ha pasado'], 400);
+            }
+    
+            $session->assistances()->delete();
+            $session->delete();
+    
+            return response()->json(['message' => 'Sesión eliminada exitosamente']);
+            
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['message' => 'Sesión no encontrada'], 404);
+        }
+    }
+
+    
+    public function deleteSessionsByDateRange($request)
+    {
+        $request->validate([
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'rap_id' => 'required|integer|exists:raps,id',
+            'course_id' => 'required|integer|exists:courses,id',
+        ]);
+    
+        $deleted = Session::whereBetween('date', [$request->start_date, $request->end_date])
+            ->where('rap_id', $request->rap_id)
+            ->where('course_id', $request->course_id)
+            ->delete();
+    
+        return response()->json([
+            'message' => 'Sesiones eliminadas correctamente',
+            'deleted_count' => $deleted
         ]);
     }
 }

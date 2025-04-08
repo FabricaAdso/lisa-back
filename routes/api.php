@@ -14,6 +14,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\EducationLevelController;
 use App\Http\Controllers\ExcelController;
+use App\Http\Controllers\GoogleCalendarController;
 use App\Http\Controllers\InstructorController;
 use App\Http\Controllers\JustificationController;
 use App\Http\Controllers\KnowledgeNetworkController;
@@ -146,6 +147,8 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::get('session/{id}', [SessionController::class, 'show']); //traer los detalles de la sesion
     Route::put('session/update/{sessionIds}', [SessionController::class, 'updateSessions']);
     Route::delete('session/{id}', [SessionController::class, 'destroy']);
+    Route::delete('/sessions/delete-by-date', [SessionController::class, 'deleteSessionsByDateRange']);
+
     // Route::resource('sessions', SessionController::class);
 
     //Ruta para red de conocimiento
@@ -181,3 +184,5 @@ Route::get('/apprentices/{apprenticeId}/unjustified-absences', [AssistanceContro
 //trainig center for login
 Route::resource('trainingCentersLogin', TrainingCenterController::class);
 
+// routes/api.php
+Route::get('/holidays', [GoogleCalendarController::class, 'index']);

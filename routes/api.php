@@ -135,6 +135,8 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::get('session/{id}', [SessionController::class, 'show']); //traer los detalles de la sesion
     Route::put('session/update/{sessionIds}', [SessionController::class, 'updateSessions']);
     Route::delete('session/{id}', [SessionController::class, 'destroy']);
+    Route::delete('/sessions/delete-by-date', [SessionController::class, 'deleteSessionsByDateRange']);
+
     // Route::resource('sessions', SessionController::class);
 
     //Ruta para red de conocimiento

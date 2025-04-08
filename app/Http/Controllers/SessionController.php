@@ -60,23 +60,16 @@ class SessionController extends Controller
         return response()->json($sessions);
     }
 
+    public function show($id)
+    {
+        $session = Session::included()->find($id);
+        return response()->json($session);
+    }
 
     public function sessionRap()
     {
         $sessions = Session::included()->filter()->get();
         return response()->json($sessions);
-    }
-
-    public function destroy($id)
-    {
-        $session =  Session::findOrFail($id);
-
-        if ($session->date < Carbon::now()) {
-            return response()->json(['message' => 'No se puede eliminar una sesión que ya ha pasado']);
-        }
-        $session->assistances()->delete();
-        $session->delete();
-        return response()->json(['message' => 'Session eliminada exitosamente']);
     }
 
     // Crear sesión
@@ -90,9 +83,14 @@ class SessionController extends Controller
         return $this->sessionService->updateSessions($request, $sessionIds);
     }
 
-    public function show($id)
+ 
+    public function destroy ($id)
     {
-        $session = Session::included()->find($id);
-        return response()->json($session);
+        return $this->sessionService->destroy($id);
     }
+    public function deleteSessionsByDateRange(Request $request)
+    {
+        return $this->sessionService->deleteSessionsByDateRange($request);
+    }
+
 }

@@ -306,4 +306,37 @@ class SessionServiceImpl implements SessionService
             'sessions' => $sessionsUpdated,
         ]);
     }
+
+    public function destroy($id)
+    {
+        $session =  Session::findOrFail($id);
+
+        if ($session->date < Carbon::now()) {
+            return response()->json(['message' => 'No se puede eliminar una sesión que ya ha pasado']);
+        }
+        $session->assistances()->delete();
+        $session->delete();
+        return response()->json(['message' => 'Session eliminada exitosamente']);
+    }
+
+    
+    public function deleteSessionsByDateRange($request)
+    {
+        $request->validate([
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'rap_id' => 'required|integer|exists:raps,id',
+            'course_id' => 'required|integer|exists:courses,id',
+        ]);
+    
+        $deleted = Session::whereBetween('date', [$request->start_date, $request->end_date])
+            ->where('rap_id', $request->rap_id)
+            ->where('course_id', $request->course_id)
+            ->delete();
+    
+        return response()->json([
+            'message' => 'Sesiones eliminadas correctamente',
+            'deleted_count' => $deleted
+        ]);
+    }
 }

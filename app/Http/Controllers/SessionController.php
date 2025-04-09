@@ -240,4 +240,9 @@ class SessionController extends Controller
             'instructorsByCourse' => $courseFilter ? $instructorsByCourse : [],
         ]);
     }
+
+    public function updateSessionsByRange(Request $request)
+    {
+        return $this->sessionService->updateSessionsByRange($request);
+    }
 }

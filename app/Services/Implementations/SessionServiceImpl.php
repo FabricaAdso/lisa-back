@@ -213,13 +213,13 @@ class SessionServiceImpl implements SessionService
         }
 
         // Verificar si ya existen sesiones creadas con este RAP en el curso seleccionado
-        $existingSessionWithRap = Session::where('rap_id', $request->rap_id)
-            ->where('course_id', $request->course_id)
-            ->exists();
+        // $existingSessionWithRap = Session::where('rap_id', $request->rap_id)
+        //     ->where('course_id', $request->course_id)
+        //     ->exists();
 
-        if ($existingSessionWithRap) {
-            return response()->json(['message' => 'Ya existen sesiones creadas con este RAP en el curso seleccionado.'], 422);
-        }
+        // if ($existingSessionWithRap) {
+        //     return response()->json(['message' => 'Ya existen sesiones creadas con este RAP en el curso seleccionado.'], 422);
+        // }
     }
 
 
@@ -350,4 +350,91 @@ class SessionServiceImpl implements SessionService
             'deleted_count' => $deleted
         ]);
     }
+
+
+
+
+    public function updateSessionsByRange(Request $request)
+{
+    $validated = $request->validate([
+        'start_date' => 'required|date',
+        'end_date' => 'required|date|after_or_equal:start_date',
+        'rap_id' => 'required|integer|exists:raps,id',
+        'course_id' => 'required|integer|exists:courses,id',
+        'start_time' => 'nullable|date_format:H:i',
+        'end_time' => 'nullable|date_format:H:i|after:start_time',
+        'instructor_id' => 'nullable|exists:instructors,id',
+        'new_day_of_week' => 'required|integer|between:1,7',
+        'confirmed' => 'nullable|boolean'
+    ]);
+
+    $festivos = array_map(function ($holiday) {
+        return $holiday['start']['date'];
+    }, $this->googleCalendarService->getHolidays(date('Y')));
+
+    $sessions = Session::whereBetween('date', [$validated['start_date'], $validated['end_date']])
+        ->where('rap_id', $validated['rap_id'])
+        ->where('course_id', $validated['course_id'])
+        ->get();
+
+    $updated = [];
+
+    foreach ($sessions as $session) {
+        $originalDate = Carbon::parse($session->date);
+        $newDate = $originalDate;
+
+        if ($originalDate->dayOfWeekIso != $validated['new_day_of_week']) {
+            $newDate = $originalDate->copy()->next($validated['new_day_of_week']);
+            while (in_array($newDate->format('Y-m-d'), $festivos)) {
+                $newDate->addWeek();
+            }
+        }
+
+        $startTime = $validated['start_time'] ?? $session->start_time;
+        $endTime = $validated['end_time'] ?? $session->end_time;
+        $instructorId = $validated['instructor_id'] ?? $session->instructor_id;
+
+        // ⚠️ Validar conflicto de horarios con otras sesiones del instructor
+        $conflict = Session::where('instructor_id', $instructorId)
+            ->where('id', '!=', $session->id)
+            ->where('date', $newDate->format('Y-m-d'))
+            ->where(function ($query) use ($startTime, $endTime) {
+                $query->where(function ($q) use ($startTime, $endTime) {
+                    $q->where('start_time', '<', $endTime)
+                        ->where('end_time', '>', $startTime);
+                });
+            })
+            ->first();
+
+        if ($conflict && empty($validated['confirmed'])) {
+            return response()->json([
+                'message' => 'Existe una sesión previamente agendada en ese horario.',
+                'conflict_session' => $conflict
+            ], 409);
+        }
+
+        // ✅ Actualización segura
+        $session->date = $newDate->format('Y-m-d');
+        $session->start_time = $startTime;
+        $session->end_time = $endTime;
+        if (isset($validated['instructor_id'])) $session->instructor_id = $validated['instructor_id'];
+        $session->save();
+
+        $updated[] = $session;
+    }
+
+    if (!empty($updated)) {
+        $lastSession = end($updated); // Última sesión creada
+
+        Session::where('id', $lastSession->id)->update([
+            'end_date' => $lastSession->date
+        ]);
+    }
+
+    return response()->json([
+        'message' => 'Sesiones actualizadas exitosamente.',
+        'sessions' => $updated
+    ]);
+}
+
 }

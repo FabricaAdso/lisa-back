@@ -148,6 +148,8 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::put('session/update/{sessionIds}', [SessionController::class, 'updateSessions']);
     Route::delete('session/{id}', [SessionController::class, 'destroy']);
     Route::delete('/sessions/delete-by-date', [SessionController::class, 'deleteSessionsByDateRange']);
+    Route::put('/sessions/update-by-date-range', [SessionController::class, 'updateSessionsByRange']);
+
 
     // Route::resource('sessions', SessionController::class);
 
@@ -186,3 +188,5 @@ Route::resource('trainingCentersLogin', TrainingCenterController::class);
 
 // routes/api.php
 Route::get('/holidays', [GoogleCalendarController::class, 'index']);
+
+

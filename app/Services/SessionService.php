@@ -10,4 +10,5 @@ interface SessionService
     public function updateSessions(Request $request, $sessionIds);
     public function destroy($sessionIds);
     public function deleteSessionsByDateRange ($request);
+    public function updateSessionsByRange (Request $request );
 }

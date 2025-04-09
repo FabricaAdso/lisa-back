@@ -83,6 +83,10 @@ class AuthController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
+        if ($user->deactivation_date) {
+            return response()->json(['error' => 'Usuario inactivo'], 401);
+        }
+        
         $encryptedTrainingCenterId = Crypt::encrypt($request->training_center_id);
 
         $token = JWTAuth::claims([

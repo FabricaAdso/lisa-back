@@ -57,14 +57,14 @@ class SessionServiceImpl implements SessionService
             'percentage' => $request->percentage,
             'updated_porcentage' => Carbon::now()
         ]);
-        
+
         $festivos = array_map(function ($holiday) {
             return $holiday['start']['date']; // Extrae solo la fecha de inicio
         }, $this->googleCalendarService->getHolidays(date('Y')));
-        
+
         // return response()->json($festivos);
-        
-        
+
+
         // Obtener la duración total de la competencia en horas
         $rap = Rap::findOrFail($request->rap_id);
         $totalHours = $rap->number_hours;
@@ -110,7 +110,7 @@ class SessionServiceImpl implements SessionService
                 })->get();
 
             if ($existingSession->isNotEmpty()) {
-                return response()->json(['message' => 'El instructor ya tiene asignadas sesiones para estas fechas', $existingSession],409);//conflict
+                return response()->json(['message' => 'El instructor ya tiene asignadas sesiones para estas fechas', $existingSession], 409); //conflict
             } else {
 
                 // Verificar si otro instructor tiene una sesión en el mismo día y curso
@@ -123,7 +123,7 @@ class SessionServiceImpl implements SessionService
                     })->get();
 
                 if ($existingSessionForCourse->isNotEmpty()) {
-                    return response()->json(['message' => 'Otro instructor ya tiene una sesión en el mismo día y curso.', $existingSessionForCourse], 409);//conflict
+                    return response()->json(['message' => 'Otro instructor ya tiene una sesión en el mismo día y curso.', $existingSessionForCourse], 409); //conflict
                 }
 
 
@@ -137,7 +137,7 @@ class SessionServiceImpl implements SessionService
                 ]);
                 if ($session->date > $course->end_date_training_stage) {
                     Session::where('id', $session->id)->delete();
-                    return response()->json(['message' => 'No se puede crear sesiones fuera de la etapa lectiva'],422);//Unprocessable entity
+                    return response()->json(['message' => 'No se puede crear sesiones fuera de la etapa lectiva'], 422); //Unprocessable entity
                 }
 
                 $aprendices = Apprentice::where('course_id', $request->course_id)->get();
@@ -315,22 +315,21 @@ class SessionServiceImpl implements SessionService
     {
         try {
             $session = Session::findOrFail($id);
-    
+
             if ($session->date < Carbon::now()->toDateString()) {
                 return response()->json(['message' => 'No se puede eliminar una sesión que ya ha pasado'], 400);
             }
-    
+
             $session->assistances()->delete();
             $session->delete();
-    
+
             return response()->json(['message' => 'Sesión eliminada exitosamente']);
-            
         } catch (ModelNotFoundException $e) {
             return response()->json(['message' => 'Sesión no encontrada'], 404);
         }
     }
 
-    
+
     public function deleteSessionsByDateRange($request)
     {
         $request->validate([
@@ -339,15 +338,26 @@ class SessionServiceImpl implements SessionService
             'rap_id' => 'required|integer|exists:raps,id',
             'course_id' => 'required|integer|exists:courses,id',
         ]);
-    
+
         $deleted = Session::whereBetween('date', [$request->start_date, $request->end_date])
             ->where('rap_id', $request->rap_id)
             ->where('course_id', $request->course_id)
             ->delete();
+
+            $lastSession = Session::where('rap_id', $request->rap_id)
+            ->where('course_id', $request->course_id)
+            ->orderByDesc('date')
+            ->first();
+    
+        if ($lastSession) {
+            $lastSession->end_date = $lastSession->date;
+            $lastSession->save();
+        }
     
         return response()->json([
             'message' => 'Sesiones eliminadas correctamente',
-            'deleted_count' => $deleted
+            'deleted_count' => $deleted,
+            'last_session_updated' => $lastSession ? $lastSession->id : null
         ]);
     }
 }

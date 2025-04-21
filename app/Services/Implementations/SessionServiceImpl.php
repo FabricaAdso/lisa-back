@@ -135,9 +135,10 @@ class SessionServiceImpl implements SessionService
                     'course_id' => $request->course_id,
                     'rap_id' => $request->rap_id,
                 ]);
+
                 if ($session->date > $course->end_date_training_stage) {
                     Session::where('id', $session->id)->delete();
-                    return response()->json(['message' => 'No se puede crear sesiones fuera de la etapa lectiva'], 422); //Unprocessable entity
+                    return response()->json(['message' => 'No se puede crear sesiones fuera de la etapa lectiva'], 200); //Unprocessable entity
                 }
 
                 $aprendices = Apprentice::where('course_id', $request->course_id)->get();
@@ -213,13 +214,13 @@ class SessionServiceImpl implements SessionService
         }
 
         // Verificar si ya existen sesiones creadas con este RAP en el curso seleccionado
-        // $existingSessionWithRap = Session::where('rap_id', $request->rap_id)
-        //     ->where('course_id', $request->course_id)
-        //     ->exists();
+        $existingSessionWithRap = Session::where('rap_id', $request->rap_id)
+            ->where('course_id', $request->course_id)
+            ->exists();
 
-        // if ($existingSessionWithRap) {
-        //     return response()->json(['message' => 'Ya existen sesiones creadas con este RAP en el curso seleccionado.'], 422);
-        // }
+        if ($existingSessionWithRap) {
+            return response()->json(['message' => 'Ya existen sesiones creadas con este RAP en el curso seleccionado.'], 422);
+        }
     }
 
 

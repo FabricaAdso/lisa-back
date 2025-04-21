@@ -55,7 +55,6 @@ class SessionController extends Controller
     public function getInassitanceInstructor()
     {
         $user = User::find(Auth::id());
-        $perPage = request()->query('elements', 15);
         $monthFilter = request()->query('month'); // Formato: "YYYY-MM"
         $yearFilter = request()->query('year');   // Filtro adicional por año
 
@@ -78,7 +77,7 @@ class SessionController extends Controller
         }
 
         // Paginar directamente la consulta (más eficiente que obtener todos los registros)
-        $paginatedSessions = $query->orderBy('date');
+        $paginatedSessions = $query->orderBy('date')->paginate(1000);
 
         // Si no hay filtros, agrupar por mes después de paginar
         if (!$monthFilter && !$yearFilter) {

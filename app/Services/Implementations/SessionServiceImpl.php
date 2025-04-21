@@ -344,16 +344,20 @@ class SessionServiceImpl implements SessionService
             ->where('course_id', $request->course_id)
             ->delete();
 
-            $lastSession = Session::where('rap_id', $request->rap_id)
+        if ($deleted == 0) {
+            return response()->json(['message' => 'No se encontraron sesiones para eliminar']);
+        }
+
+        $lastSession = Session::where('rap_id', $request->rap_id)
             ->where('course_id', $request->course_id)
             ->orderByDesc('date')
             ->first();
-    
+
         if ($lastSession) {
             $lastSession->end_date = $lastSession->date;
             $lastSession->save();
         }
-    
+
         return response()->json([
             'message' => 'Sesiones eliminadas correctamente',
             'deleted_count' => $deleted,
@@ -365,86 +369,85 @@ class SessionServiceImpl implements SessionService
 
 
     public function updateSessionsByRange(Request $request)
-{
-    $validated = $request->validate([
-        'start_date' => 'required|date',
-        'end_date' => 'required|date|after_or_equal:start_date',
-        'rap_id' => 'required|integer|exists:raps,id',
-        'course_id' => 'required|integer|exists:courses,id',
-        'start_time' => 'nullable|date_format:H:i',
-        'end_time' => 'nullable|date_format:H:i|after:start_time',
-        'instructor_id' => 'nullable|exists:instructors,id',
-        'new_day_of_week' => 'required|integer|between:1,7',
-        'confirmed' => 'nullable|boolean'
-    ]);
+    {
+        $validated = $request->validate([
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'rap_id' => 'required|integer|exists:raps,id',
+            'course_id' => 'required|integer|exists:courses,id',
+            'start_time' => 'nullable|date_format:H:i',
+            'end_time' => 'nullable|date_format:H:i|after:start_time',
+            'instructor_id' => 'nullable|exists:instructors,id',
+            'new_day_of_week' => 'required|integer|between:1,7',
+            'confirmed' => 'nullable|boolean'
+        ]);
 
-    $festivos = array_map(function ($holiday) {
-        return $holiday['start']['date'];
-    }, $this->googleCalendarService->getHolidays(date('Y')));
+        $festivos = array_map(function ($holiday) {
+            return $holiday['start']['date'];
+        }, $this->googleCalendarService->getHolidays(date('Y')));
 
-    $sessions = Session::whereBetween('date', [$validated['start_date'], $validated['end_date']])
-        ->where('rap_id', $validated['rap_id'])
-        ->where('course_id', $validated['course_id'])
-        ->get();
+        $sessions = Session::whereBetween('date', [$validated['start_date'], $validated['end_date']])
+            ->where('rap_id', $validated['rap_id'])
+            ->where('course_id', $validated['course_id'])
+            ->get();
 
-    $updated = [];
+        $updated = [];
 
-    foreach ($sessions as $session) {
-        $originalDate = Carbon::parse($session->date);
-        $newDate = $originalDate;
+        foreach ($sessions as $session) {
+            $originalDate = Carbon::parse($session->date);
+            $newDate = $originalDate;
 
-        if ($originalDate->dayOfWeekIso != $validated['new_day_of_week']) {
-            $newDate = $originalDate->copy()->next($validated['new_day_of_week']);
-            while (in_array($newDate->format('Y-m-d'), $festivos)) {
-                $newDate->addWeek();
+            if ($originalDate->dayOfWeekIso != $validated['new_day_of_week']) {
+                $newDate = $originalDate->copy()->next($validated['new_day_of_week']);
+                while (in_array($newDate->format('Y-m-d'), $festivos)) {
+                    $newDate->addWeek();
+                }
             }
+
+            $startTime = $validated['start_time'] ?? $session->start_time;
+            $endTime = $validated['end_time'] ?? $session->end_time;
+            $instructorId = $validated['instructor_id'] ?? $session->instructor_id;
+
+            // ⚠️ Validar conflicto de horarios con otras sesiones del instructor
+            $conflict = Session::where('instructor_id', $instructorId)
+                ->where('id', '!=', $session->id)
+                ->where('date', $newDate->format('Y-m-d'))
+                ->where(function ($query) use ($startTime, $endTime) {
+                    $query->where(function ($q) use ($startTime, $endTime) {
+                        $q->where('start_time', '<', $endTime)
+                            ->where('end_time', '>', $startTime);
+                    });
+                })
+                ->first();
+
+            if ($conflict && empty($validated['confirmed'])) {
+                return response()->json([
+                    'message' => 'Existe una sesión previamente agendada en ese horario.',
+                    'conflict_session' => $conflict
+                ], 409);
+            }
+
+            // ✅ Actualización segura
+            $session->date = $newDate->format('Y-m-d');
+            $session->start_time = $startTime;
+            $session->end_time = $endTime;
+            if (isset($validated['instructor_id'])) $session->instructor_id = $validated['instructor_id'];
+            $session->save();
+
+            $updated[] = $session;
         }
 
-        $startTime = $validated['start_time'] ?? $session->start_time;
-        $endTime = $validated['end_time'] ?? $session->end_time;
-        $instructorId = $validated['instructor_id'] ?? $session->instructor_id;
+        if (!empty($updated)) {
+            $lastSession = end($updated); // Última sesión creada
 
-        // ⚠️ Validar conflicto de horarios con otras sesiones del instructor
-        $conflict = Session::where('instructor_id', $instructorId)
-            ->where('id', '!=', $session->id)
-            ->where('date', $newDate->format('Y-m-d'))
-            ->where(function ($query) use ($startTime, $endTime) {
-                $query->where(function ($q) use ($startTime, $endTime) {
-                    $q->where('start_time', '<', $endTime)
-                        ->where('end_time', '>', $startTime);
-                });
-            })
-            ->first();
-
-        if ($conflict && empty($validated['confirmed'])) {
-            return response()->json([
-                'message' => 'Existe una sesión previamente agendada en ese horario.',
-                'conflict_session' => $conflict
-            ], 409);
+            Session::where('id', $lastSession->id)->update([
+                'end_date' => $lastSession->date
+            ]);
         }
 
-        // ✅ Actualización segura
-        $session->date = $newDate->format('Y-m-d');
-        $session->start_time = $startTime;
-        $session->end_time = $endTime;
-        if (isset($validated['instructor_id'])) $session->instructor_id = $validated['instructor_id'];
-        $session->save();
-
-        $updated[] = $session;
-    }
-
-    if (!empty($updated)) {
-        $lastSession = end($updated); // Última sesión creada
-
-        Session::where('id', $lastSession->id)->update([
-            'end_date' => $lastSession->date
+        return response()->json([
+            'message' => 'Sesiones actualizadas exitosamente.',
+            'sessions' => $updated
         ]);
     }
-
-    return response()->json([
-        'message' => 'Sesiones actualizadas exitosamente.',
-        'sessions' => $updated
-    ]);
-}
-
 }

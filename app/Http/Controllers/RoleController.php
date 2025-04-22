@@ -24,8 +24,7 @@ class RoleController extends Controller
         return $roles;
     }
 
-    public function assignRoles(Request $request)
-    {
+    public function assignRoles(Request $request){
         $request->validate([
             'user_id' => 'required|exists:users,id',
             'role_ids' => 'required|array',

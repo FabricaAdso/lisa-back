@@ -134,6 +134,8 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::post('logout', [AuthController::class, 'lgout']);
 
     // Ruta instructor & Apprentice
+    Route::get('/instructors/by-user/{userId}',[InstructorController::class, 'getByUserId']);
+    Route::get('/apprentices/by-user/{userId}',[ApprenticeController::class, 'getByUserId']);
     Route::resource('instructor', InstructorController::class);
     Route::resource('apprentice', ApprenticeController::class);
     

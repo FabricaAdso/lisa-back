@@ -104,4 +104,61 @@ class InstructorController extends Controller
         $instructor->delete();
         return response()->json(['message' => 'Instructor deleted successfully']);
     }
+
+    //balvin
+    public function getByUserId($userId)
+{
+    // Verificar que el usuario existe y cargar sus datos completos
+    $user = User::with(['document_type', 'trainingCenters'])
+        ->where('id', $userId)
+        ->first();
+
+    if (!$user) {
+        return response()->json(['message' => 'Usuario no encontrado'], 404);
+    }
+
+    $trainingCenterId = $this->token_service->getTrainingCenterIdFromToken();
+
+    // Obtener el instructor con relaciones
+    $instructor = Instructor::with(['knowledgeNetwork', 'trainingCenter'])
+        ->where('user_id', $userId)
+        ->where('training_center_id', $trainingCenterId)
+        ->first();
+
+    if (!$instructor) {
+        return response()->json(['message' => 'Instructor no encontrado para este centro de formación'], 404);
+    }
+
+    // Verificar roles
+    $roles = DB::table('role_training_center_user')
+        ->where('user_id', $userId)
+        ->where('training_center_id', $trainingCenterId)
+        ->pluck('role_id')
+        ->map(function($roleId) {
+            return Role::findById($roleId)->name;
+        });
+
+    return response()->json([
+        'user' => [
+            'id' => $user->id,
+            'identity_document' => $user->identity_document,
+            'name' => $user->name,
+            'last_name' => $user->last_name,
+            'email' => $user->email,
+            'document_type' => $user->document_type,
+            'roles' => $roles,
+            'training_centers' => $user->trainingCenters
+        ],
+        'instructor_data' => [
+            'id' => $instructor->id,
+            'training_center_id' => $instructor->training_center_id,
+            'knowledge_network_id' => $instructor->knowledge_network_id,
+            'state' => $instructor->state,
+            'knowledge_network' => $instructor->knowledgeNetwork,
+            'training_center' => $instructor->trainingCenter,
+            'created_at' => $instructor->created_at,
+            'updated_at' => $instructor->updated_at
+        ]
+    ], 200);
+}
 }

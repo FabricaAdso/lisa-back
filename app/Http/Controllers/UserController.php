@@ -210,7 +210,9 @@ class UserController extends Controller
             if ($searchTerm) {
                 $query->where(function ($q) use ($searchTerm) {
                     $q->where('name', 'like', '%' . $searchTerm . '%')
-                        ->orWhere('last_name', 'like', '%' . $searchTerm . '%');
+                        ->orWhere('last_name', 'like', '%' . $searchTerm . '%')
+                        ->orWhere('identity_document', 'like', '%' . $searchTerm . '%');
+
                 });
             }
 

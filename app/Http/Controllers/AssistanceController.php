@@ -71,20 +71,23 @@ class AssistanceController extends Controller
         $validate = $request->validate([
             'data' => 'required|array',
             'data.*.id' => 'required|integer|exists:assistances,id',
-            'data.*.assistance' => 'required|boolean'
+            'data.*.assistance' => 'required',
         ]);
         DB::beginTransaction();
 
         try {
             foreach ($validate['data'] as $item) {
                 $assistance = Assistance::findOrFail($item['id']);
-                $previousAssistance = (bool)$assistance->assistance;
+                $previousAssistance = $assistance->assistance;
                 $newAssistance = (bool)$item['assistance'];
 
                 if ($previousAssistance === $newAssistance) {
                     continue;
                 }
 
+                if($previousAssistance === null && $newAssistance === false){
+                    $this->createJustificationAndAprobation($assistance);
+                }
                 if ($previousAssistance === false && $newAssistance === true) {
                     $this->handleJustificationRemoval($assistance);
                 } elseif ($newAssistance === false) {

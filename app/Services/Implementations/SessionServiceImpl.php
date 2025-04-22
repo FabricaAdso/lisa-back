@@ -16,6 +16,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class SessionServiceImpl implements SessionService
 {
@@ -41,6 +42,9 @@ class SessionServiceImpl implements SessionService
             'percentage' => 'required|integer|min:40|max:100',
         ]);
 
+        DB::beginTransaction();
+
+        try{
         $user = User::find(Auth::id());
         $course = Course::find($request->course_id);
         $isValid = $this->validateForCreateSessions($request, $user, $course);
@@ -110,6 +114,7 @@ class SessionServiceImpl implements SessionService
                 })->get();
 
             if ($existingSession->isNotEmpty()) {
+                DB::rollBack();
                 return response()->json(['message' => 'El instructor ya tiene asignadas sesiones para estas fechas', $existingSession], 409); //conflict
             } else {
 
@@ -123,6 +128,7 @@ class SessionServiceImpl implements SessionService
                     })->get();
 
                 if ($existingSessionForCourse->isNotEmpty()) {
+                    DB::rollBack();
                     return response()->json(['message' => 'Otro instructor ya tiene una sesión en el mismo día y curso.', $existingSessionForCourse], 409); //conflict
                 }
 
@@ -136,6 +142,7 @@ class SessionServiceImpl implements SessionService
                     'rap_id' => $request->rap_id,
                 ]);
                 if ($session->date > $course->end_date_training_stage) {
+                    DB::rollBack();
                     Session::where('id', $session->id)->delete();
                     return response()->json(['message' => 'No se puede crear sesiones fuera de la etapa lectiva'], 422); //Unprocessable entity
                 }
@@ -169,14 +176,18 @@ class SessionServiceImpl implements SessionService
             ]);
         }
 
+        DB::commit();
 
         return response()->json([
             'message' => 'Sesiones y asistencias creadas exitosamente.',
             'sessions_created' => $sessionsCreated,
             'existing_sessions' => $existingSessions,
         ]);
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json(['message' => 'Error al crear las sesiones: ' . $e->getMessage()], 500);
     }
-
+    }
 
     public function validateForCreateSessions($request, $user, $course)
     {
@@ -235,10 +246,20 @@ class SessionServiceImpl implements SessionService
             'confirmed' => 'nullable|boolean',
         ]);
 
+        $festivos = array_map(function ($holiday) {
+            return $holiday['start']['date'];
+        }, $this->googleCalendarService->getHolidays(date('Y')));
+
         $sessionsUpdated = [];
+        
         foreach ($sessionIds as $sessionId) {
             $session = Session::findOrFail($sessionId);
 
+            if (in_array($validated['start_date'], $festivos)) {
+                return response()->json([
+                    'message' => 'La fecha seleccionada es un día festivo y no se pueden asignar sesiones.'
+                ], 422);
+            }
             // Normalizar tiempos
             $startTime = $validated['start_time'] ? $validated['start_time'] . ':00' : $session->start_time;
             $endTime = $validated['end_time'] ? $validated['end_time'] . ':00' : $session->end_time;
@@ -382,6 +403,9 @@ class SessionServiceImpl implements SessionService
             'confirmed' => 'nullable|boolean'
         ]);
 
+        DB::beginTransaction();
+
+        try {
         $festivos = array_map(function ($holiday) {
             return $holiday['start']['date'];
         }, $this->googleCalendarService->getHolidays(date('Y')));
@@ -421,6 +445,7 @@ class SessionServiceImpl implements SessionService
                 ->first();
 
             if ($conflict && empty($validated['confirmed'])) {
+                DB::rollBack();
                 return response()->json([
                     'message' => 'Existe una sesión previamente agendada en ese horario.',
                     'conflict_session' => $conflict
@@ -445,9 +470,14 @@ class SessionServiceImpl implements SessionService
             ]);
         }
 
+        DB::commit();
         return response()->json([
             'message' => 'Sesiones actualizadas exitosamente.',
             'sessions' => $updated
         ]);
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json(['message' => 'Error al actualizar las sesiones: ' . $e->getMessage()], 500);
+    }
     }
 }

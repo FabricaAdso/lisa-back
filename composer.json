@@ -7,7 +7,7 @@
     "require": {
         "php": "^8.2",
         "cmixin/business-day": "^1.19",
-        "google/apiclient": "^2.18",
+        "google/apiclient": "^2.0",
         "google/apiclient-services": "^0.396.0",
         "laravel/framework": "^11.9",
         "laravel/reverb": "^1.4",

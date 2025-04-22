@@ -51,7 +51,7 @@ class NotificationController extends Controller
     public function update($id) {
         $noti = Notification::findOrFail($id);
         $noti->markAsRead();
-        $noti->update(['type' => 'info']);
+        $noti->update(['type' => 'sucess']);
         return response()->json("actualizada correctamente");
     }
 }

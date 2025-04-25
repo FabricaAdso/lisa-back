@@ -99,8 +99,8 @@ class SessionController extends Controller
 
         // Si no hay filtros, agrupar por mes después de paginar
         if (!$monthFilter && !$yearFilter) {
-            $groupedSessions = $$transformed->groupBy(function ($session) {
-                return Carbon::parse($session->date)->format('Y-m');
+            $groupedSessions = $transformed->groupBy(function ($session) {
+                return Carbon::parse($session['date'])->format('Y-m');
             });
 
             // Convertir a estructura paginada manteniendo la agrupación

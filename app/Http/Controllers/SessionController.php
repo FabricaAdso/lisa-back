@@ -90,7 +90,8 @@ class SessionController extends Controller
                 'instructor_id' => $session->instructor_id,
                 'rap_id' => $session->rap_id,
                 'instructor2_id' => $session->instructor2_id,
-                'course_id' => $session->course_id,
+                'course' => $session->course->code,
+                'program' => $session->course->program->name,
                 'environment' => $session->course->environment->name,
                 'headquarters' => optional(
                                 optional($session->course->environment)->headquarters

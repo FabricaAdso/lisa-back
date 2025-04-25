@@ -28,12 +28,12 @@ class CourseController extends Controller
         $trainingId = $user->trainingCenters->pluck('id');
         $paginate = request()->query('elements', 10);
 
-        $courses = Course::included()
-        ->whereHas('program.trainingCenter', function ($query) use ($trainingId) {
+        $courses = Course::whereHas('program.trainingCenter', function ($query) use ($trainingId) {
             $query->where('training_centers.id', '=', $trainingId);
         })
-        ->filter()
-        ->paginate(intval($paginate));
+            ->included()
+            ->filter()
+            ->paginate(intval($paginate));
 
         return response()->json($courses);
     }
@@ -57,7 +57,7 @@ class CourseController extends Controller
 
         // Asignación masiva
         $course = Course::create($request->all());
-        
+
         return response()->json($course, 201);
     }
 
@@ -71,7 +71,7 @@ class CourseController extends Controller
     {
         // Buscar el curso 
         $course = Course::findOrFail($id);
-        
+
         //usar la policity para vocero y co-vocero
         Gate::authorize('updateRepresentative', [$course, $request->only(['representative_id', 'co_representative_id'])]);
         //usar la policity para lider de ficha
@@ -97,7 +97,7 @@ class CourseController extends Controller
         return response()->json($course);
     }
 
-       // Eliminar un curso
+    // Eliminar un curso
     public function destroy($id)
     {
         $course = Course::findOrFail($id);
@@ -105,7 +105,7 @@ class CourseController extends Controller
 
         return response()->json(['message' => 'Course deleted successfully']);
     }
-    
+
     public function getInstructorAndSessions(Request $request)
     {
         $courseInstructorSession = $this->courseService->getInstructorAndSessions($request);
@@ -114,7 +114,8 @@ class CourseController extends Controller
         );
     }
 
-    public function getCourseInstructor() {
+    public function getCourseInstructor()
+    {
         $courseIntructor = $this->courseService->getCourseInstructor();
         return response()->json($courseIntructor);
     }
@@ -124,5 +125,4 @@ class CourseController extends Controller
         $courseIntructor = $this->courseService->getCourseInstructorNow($request);
         return response()->json($courseIntructor);
     }
-
 }

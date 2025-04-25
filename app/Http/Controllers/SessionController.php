@@ -52,7 +52,7 @@ class SessionController extends Controller
         return response()->json($sessions);
     }
 
-    public function getInassitanceInstructor()
+    public function getSessionsMount()
     {
         $user = User::find(Auth::id());
         $monthFilter = request()->query('month'); // Formato: "YYYY-MM"
@@ -64,8 +64,8 @@ class SessionController extends Controller
         }
 
         // Consulta base para las sesiones del instructor
-        $query = Session::where('instructor_id', $instructor->id)
-            ->included()
+        $query = Session::with(['course.environment.headquarters'])
+            ->where('instructor_id', $instructor->id)
             ->filter();
 
         // Aplicar filtros si existen
@@ -79,9 +79,25 @@ class SessionController extends Controller
         // Paginar directamente la consulta (más eficiente que obtener todos los registros)
         $paginatedSessions = $query->orderBy('date')->paginate(1000);
 
+        // nombre de la sede
+        $transformed = $paginatedSessions->getCollection()->map(function ($session) {
+            return [
+                'id' => $session->id,
+                'date' => $session->date,
+                'end_date' => $session->end_date,
+                'start_time' => $session->start_time,
+                'end_time' => $session->end_time,
+                'instructor_id' => $session->instructor_id,
+                'rap_id' => $session->rap_id,
+                'instructor2_id' => $session->instructor2_id,
+                'course_id' => $session->course_id,
+                'headquarters' => optional($session->course->environment->headquarters)->name
+            ];
+        });
+
         // Si no hay filtros, agrupar por mes después de paginar
         if (!$monthFilter && !$yearFilter) {
-            $groupedSessions = $paginatedSessions->groupBy(function ($session) {
+            $groupedSessions = $$transformed->groupBy(function ($session) {
                 return Carbon::parse($session->date)->format('Y-m');
             });
 
@@ -95,7 +111,15 @@ class SessionController extends Controller
             ]);
         }
 
-        return response()->json($paginatedSessions);
+        $paginatedSessions->setCollection($transformed);
+
+        return response()->json([
+            'data'         => $paginatedSessions->items(),
+            'current_page' => $paginatedSessions->currentPage(),
+            'per_page'     => $paginatedSessions->perPage(),
+            'total'        => $paginatedSessions->total(),
+            'last_page'    => $paginatedSessions->lastPage(),
+        ]);
     }
 
     public function show($id)

@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Services\Implementations;
-
+use Illuminate\Support\Facades\Log;
 use App\Models\Apprentice;
 use App\Models\Assistance;
 use App\Models\Course;
@@ -44,149 +44,147 @@ class SessionServiceImpl implements SessionService
 
         DB::beginTransaction();
 
-        try{
-        $user = User::find(Auth::id());
-        $course = Course::find($request->course_id);
-        $isValid = $this->validateForCreateSessions($request, $user, $course);
-        if ($isValid != null) {
-            return $isValid;
-        }
-
-        // registro de cambio del porcentaje por usuario
-        $rapForUser = Rap::find($request->rap_id);
-        $subject = Subject::find($rapForUser->subject_id);
-
-        $subject->update([
-            'user_id' => $user->id,
-            'percentage' => $request->percentage,
-            'updated_porcentage' => Carbon::now()
-        ]);
-
-        $festivos = array_map(function ($holiday) {
-            return $holiday['start']['date']; // Extrae solo la fecha de inicio
-        }, $this->googleCalendarService->getHolidays(date('Y')));
-
-        // return response()->json($festivos);
-
-
-        // Obtener la duración total de la competencia en horas
-        $rap = Rap::findOrFail($request->rap_id);
-        $totalHours = $rap->number_hours;
-        $percentage = $rap->subject->percentage;
-        $hours = $totalHours * $percentage / 100;
-
-        // Convertir las fechas y horas en objetos Carbon
-        $startDate = Carbon::parse($request->start_date);
-        $startTime = Carbon::parse($request->start_time);
-        $endTime = Carbon::parse($request->end_time);
-        $sessionDuration = $startTime->diffInHours($endTime);
-
-
-        if ($sessionDuration <= 0) {
-            return response()->json(['message' => 'El tiempo de sesión debe ser mayor a 0 horas.'], 422);
-        }
-
-        $dayOfWeek = explode(',', $request->days_of_week);
-        foreach ($dayOfWeek as $day) {
-            if (!in_array($day, ['1', '2', '3', '4', '5', '6', '7'])) {
-                return response()->json(['message' => 'El campo dias de la semana contiene valores inválidos.'], 422);
-            }
-        }
-
-        $sessionsNeeded = ceil($hours / $sessionDuration);
-        $sessionsCreated = [];
-        $existingSessions = [];
-        $currentDate = $startDate;
-
-
-        for ($i = 0; $i < $sessionsNeeded; $i++) {
-
-            while (!in_array($currentDate->dayOfWeek, $dayOfWeek) || in_array($currentDate->format('Y-m-d'), $festivos)) {
-                $currentDate->addDay();
+        try {
+            $user = User::find(Auth::id());
+            $course = Course::find($request->course_id);
+            $isValid = $this->validateForCreateSessions($request, $user, $course);
+            if ($isValid != null) {
+                return $isValid;
             }
 
-            // Verificar si el instructor ya tiene una sesión en la misma fecha y horario
-            $existingSession = Session::where('date', $currentDate->format('Y-m-d'))
-                ->where('instructor_id', $request->instructor_id)
-                ->where(function ($q) use ($startTime, $endTime) {
-                    $q->where('start_time', '<', $endTime->format('H:i'))
-                        ->where('end_time', '>', $startTime->format('H:i'));
-                })->get();
+            // registro de cambio del porcentaje por usuario
+            $rapForUser = Rap::find($request->rap_id);
+            $subject = Subject::find($rapForUser->subject_id);
 
-            if ($existingSession->isNotEmpty()) {
-                DB::rollBack();
-                return response()->json(['message' => 'El instructor ya tiene asignadas sesiones para estas fechas', $existingSession], 409); //conflict
-            } else {
+            $subject->update([
+                'user_id' => $user->id,
+                'percentage' => $request->percentage,
+                'updated_porcentage' => Carbon::now()
+            ]);
 
-                // Verificar si otro instructor tiene una sesión en el mismo día y curso
-                $existingSessionForCourse = Session::where('date', $currentDate->format('Y-m-d'))
-                    ->where('course_id', $request->course_id)
-                    ->where(function ($query) use ($startTime, $endTime) {
-                        // Verifica si el nuevo horario se solapa con algún horario existente
-                        $query->where('start_time', '<', $endTime->format('H:i'))
+            $festivos = array_map(function ($holiday) {
+                return $holiday['start']['date']; // Extrae solo la fecha de inicio
+            }, $this->googleCalendarService->getHolidays(date('Y')));
+
+
+            // Obtener la duración total de la competencia en horas
+            $rap = Rap::findOrFail($request->rap_id);
+            $totalHours = $rap->number_hours;
+            $percentage = $rap->subject->percentage;
+            $hours = $totalHours * $percentage / 100;
+
+            // Convertir las fechas y horas en objetos Carbon
+            $startDate = Carbon::parse($request->start_date);
+            $startTime = Carbon::parse($request->start_time);
+            $endTime = Carbon::parse($request->end_time);
+            $sessionDuration = $startTime->diffInHours($endTime);
+
+
+            if ($sessionDuration <= 0) {
+                return response()->json(['message' => 'El tiempo de sesión debe ser mayor a 0 horas.'], 422);
+            }
+
+            $dayOfWeek = explode(',', $request->days_of_week);
+            foreach ($dayOfWeek as $day) {
+                if (!in_array($day, ['1', '2', '3', '4', '5', '6', '7'])) {
+                    return response()->json(['message' => 'El campo dias de la semana contiene valores inválidos.'], 422);
+                }
+            }
+
+            $sessionsNeeded = ceil($hours / $sessionDuration);
+            $sessionsCreated = [];
+            $existingSessions = [];
+            $currentDate = $startDate;
+
+
+            for ($i = 0; $i < $sessionsNeeded; $i++) {
+
+                while (!in_array($currentDate->dayOfWeek, $dayOfWeek) || in_array($currentDate->format('Y-m-d'), $festivos)) {
+                    $currentDate->addDay();
+                }
+
+                // Verificar si el instructor ya tiene una sesión en la misma fecha y horario
+                $existingSession = Session::where('date', $currentDate->format('Y-m-d'))
+                    ->where('instructor_id', $request->instructor_id)
+                    ->where(function ($q) use ($startTime, $endTime) {
+                        $q->where('start_time', '<', $endTime->format('H:i'))
                             ->where('end_time', '>', $startTime->format('H:i'));
                     })->get();
 
-                if ($existingSessionForCourse->isNotEmpty()) {
+                if ($existingSession->isNotEmpty()) {
                     DB::rollBack();
-                    return response()->json(['message' => 'Otro instructor ya tiene una sesión en el mismo día y curso.', $existingSessionForCourse], 409); //conflict
-                }
+                    return response()->json(['message' => 'El instructor ya tiene asignadas sesiones para estas fechas', $existingSession], 409); //conflict
+                } else {
 
+                    // Verificar si otro instructor tiene una sesión en el mismo día y curso
+                    $existingSessionForCourse = Session::where('date', $currentDate->format('Y-m-d'))
+                        ->where('course_id', $request->course_id)
+                        ->where(function ($query) use ($startTime, $endTime) {
+                            // Verifica si el nuevo horario se solapa con algún horario existente
+                            $query->where('start_time', '<', $endTime->format('H:i'))
+                                ->where('end_time', '>', $startTime->format('H:i'));
+                        })->get();
 
-                $session = Session::create([
-                    'date' => $currentDate->format('Y-m-d'),
-                    'start_time' => $startTime->format('H:i'),
-                    'end_time' => $endTime->format('H:i'),
-                    'instructor_id' => $request->instructor_id,
-                    'course_id' => $request->course_id,
-                    'rap_id' => $request->rap_id,
-                ]);
-                if ($session->date > $course->end_date_training_stage) {
-                    DB::rollBack();
-                    Session::where('id', $session->id)->delete();
-                    return response()->json(['message' => 'No se puede crear sesiones fuera de la etapa lectiva'], 422); //Unprocessable entity
-                }
-
-                $aprendices = Apprentice::where('course_id', $request->course_id)->get();
-                foreach ($aprendices as $aprendiz) {
-                    if ($aprendiz->state == 'Formacion') {
-                        Assistance::create([
-                            'apprentice_id' => $aprendiz->id,
-                            'session_id' => $session->id,
-                            'assistance' => null,
-                        ]);
+                    if ($existingSessionForCourse->isNotEmpty()) {
+                        DB::rollBack();
+                        return response()->json(['message' => 'Otro instructor ya tiene una sesión en el mismo día y curso.', $existingSessionForCourse], 409); //conflict
                     }
+
+
+                    $session = Session::create([
+                        'date' => $currentDate->format('Y-m-d'),
+                        'start_time' => $startTime->format('H:i'),
+                        'end_time' => $endTime->format('H:i'),
+                        'instructor_id' => $request->instructor_id,
+                        'course_id' => $request->course_id,
+                        'rap_id' => $request->rap_id,
+                    ]);
+
+                    if ($session->date > $course->end_date_training_stage) {
+                        Session::where('id', $session->id)->delete();
+                        return response()->json(['message' => 'No se puede crear sesiones fuera de la etapa lectiva'], 200); //Unprocessable entity
+                    }
+
+                    $aprendices = Apprentice::where('course_id', $request->course_id)->get();
+                    foreach ($aprendices as $aprendiz) {
+                        if ($aprendiz->state == 'Formacion') {
+                            Assistance::create([
+                                'apprentice_id' => $aprendiz->id,
+                                'session_id' => $session->id,
+                                'assistance' => null,
+                            ]);
+                        }
+                    }
+
+                    $sessionsCreated[] = $session;
                 }
 
-                $sessionsCreated[] = $session;
-            }
-
-            $currentDate->addDay();
-            while (!in_array($currentDate->dayOfWeek, $dayOfWeek) || in_array($currentDate->format('Y-m-d'), $festivos)) {
                 $currentDate->addDay();
+                while (!in_array($currentDate->dayOfWeek, $dayOfWeek) || in_array($currentDate->format('Y-m-d'), $festivos)) {
+                    $currentDate->addDay();
+                }
             }
-        }
 
-        // **Actualizar la primera sesión con la fecha de la última sesión creada**
-        if (!empty($sessionsCreated)) {
-            $lastSession = end($sessionsCreated); // Última sesión creada
+            // *Actualizar la primera sesión con la fecha de la última sesión creada*
+            if (!empty($sessionsCreated)) {
+                $lastSession = end($sessionsCreated); // Última sesión creada
 
-            Session::where('id', $lastSession->id)->update([
-                'end_date' => $lastSession->date
+                Session::where('id', $lastSession->id)->update([
+                    'end_date' => $lastSession->date
+                ]);
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Sesiones y asistencias creadas exitosamente.',
+                'sessions_created' => $sessionsCreated,
+                'existing_sessions' => $existingSessions,
             ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Error al crear las sesiones: ' . $e->getMessage()], 500);
         }
-
-        DB::commit();
-
-        return response()->json([
-            'message' => 'Sesiones y asistencias creadas exitosamente.',
-            'sessions_created' => $sessionsCreated,
-            'existing_sessions' => $existingSessions,
-        ]);
-    } catch (\Exception $e) {
-        DB::rollBack();
-        return response()->json(['message' => 'Error al crear las sesiones: ' . $e->getMessage()], 500);
-    }
     }
 
     public function validateForCreateSessions($request, $user, $course)
@@ -389,58 +387,72 @@ class SessionServiceImpl implements SessionService
 
 
 
-    public function updateSessionsByRange(Request $request)
-    {
-        $validated = $request->validate([
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date',
-            'rap_id' => 'required|integer|exists:raps,id',
-            'course_id' => 'required|integer|exists:courses,id',
-            'start_time' => 'nullable|date_format:H:i',
-            'end_time' => 'nullable|date_format:H:i|after:start_time',
-            'instructor_id' => 'nullable|exists:instructors,id',
-            'new_day_of_week' => 'required|integer|between:1,7',
-            'confirmed' => 'nullable|boolean'
-        ]);
+public function updateSessionsByRange(Request $request)
+{
+    $validated = $request->validate([
+        'start_date'            => 'required|date',
+        'end_date'              => 'required|date|after_or_equal:start_date',
+        'rap_id'                => 'required|integer|exists:raps,id',
+        'course_id'             => 'required|integer|exists:courses,id',
+        'start_time'            => 'nullable|date_format:H:i',
+        'end_time'              => 'nullable|date_format:H:i|after:start_time',
+        'instructor_id'         => 'nullable|exists:instructors,id',
+        'new_days_of_week'      => 'required|array|min:1',
+        'new_days_of_week.*'    => 'integer|between:1,7',
+        'confirmed'             => 'nullable|boolean',
+    ]);
 
-        DB::beginTransaction();
-
-        try {
+    DB::beginTransaction();
+    try {
+        // Obtener festivos del año
         $festivos = array_map(function ($holiday) {
             return $holiday['start']['date'];
         }, $this->googleCalendarService->getHolidays(date('Y')));
 
+        //  Traer sesiones en el rango
         $sessions = Session::whereBetween('date', [$validated['start_date'], $validated['end_date']])
             ->where('rap_id', $validated['rap_id'])
             ->where('course_id', $validated['course_id'])
+            ->orderBy('date')
             ->get();
+
+        $newDays = $validated['new_days_of_week'];
+
+        $validDates = [];
+        $currentDate = Carbon::parse($validated['start_date']);
+        $endDate     = Carbon::parse($validated['end_date']);
+
+        while ($currentDate <= $endDate) {
+            if (in_array($currentDate->dayOfWeekIso, $newDays) &&
+                !in_array($currentDate->format('Y-m-d'), $festivos)) {
+                $validDates[] = $currentDate->copy();
+            }
+            $currentDate->addDay();
+        }
+
+        if (count($validDates) < $sessions->count()) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'No hay suficientes fechas disponibles para reasignar todas las sesiones.'
+            ], 400);
+        }
 
         $updated = [];
 
-        foreach ($sessions as $session) {
-            $originalDate = Carbon::parse($session->date);
-            $newDate = $originalDate;
+        foreach ($sessions as $index => $session) {
+            $newDate = $validDates[$index];
 
-            if ($originalDate->dayOfWeekIso != $validated['new_day_of_week']) {
-                $newDate = $originalDate->copy()->next($validated['new_day_of_week']);
-                while (in_array($newDate->format('Y-m-d'), $festivos)) {
-                    $newDate->addWeek();
-                }
-            }
-
-            $startTime = $validated['start_time'] ?? $session->start_time;
-            $endTime = $validated['end_time'] ?? $session->end_time;
+            $startTime    = $validated['start_time']  ?? $session->start_time;
+            $endTime      = $validated['end_time']    ?? $session->end_time;
             $instructorId = $validated['instructor_id'] ?? $session->instructor_id;
 
-            // ⚠️ Validar conflicto de horarios con otras sesiones del instructor
+            // Verificar conflictos con otras sesiones
             $conflict = Session::where('instructor_id', $instructorId)
                 ->where('id', '!=', $session->id)
                 ->where('date', $newDate->format('Y-m-d'))
-                ->where(function ($query) use ($startTime, $endTime) {
-                    $query->where(function ($q) use ($startTime, $endTime) {
-                        $q->where('start_time', '<', $endTime)
-                            ->where('end_time', '>', $startTime);
-                    });
+                ->where(function($q) use ($startTime, $endTime) {
+                    $q->where('start_time', '<', $endTime)
+                      ->where('end_time',   '>', $startTime);
                 })
                 ->first();
 
@@ -452,32 +464,42 @@ class SessionServiceImpl implements SessionService
                 ], 409);
             }
 
-            // ✅ Actualización segura
-            $session->date = $newDate->format('Y-m-d');
+            $session->date       = $newDate->format('Y-m-d');
             $session->start_time = $startTime;
-            $session->end_time = $endTime;
-            if (isset($validated['instructor_id'])) $session->instructor_id = $validated['instructor_id'];
+            $session->end_time   = $endTime;
+            if (isset($validated['instructor_id'])) {
+                $session->instructor_id = $validated['instructor_id'];
+            }
             $session->save();
 
             $updated[] = $session;
         }
 
         if (!empty($updated)) {
-            $lastSession = end($updated); // Última sesión creada
+            $lastSession = Session::where('rap_id', $validated['rap_id'])
+                ->where('course_id', $validated['course_id'])
+                ->orderBy('date', 'desc')
+                ->first();
 
-            Session::where('id', $lastSession->id)->update([
-                'end_date' => $lastSession->date
-            ]);
+            if ($lastSession) {
+                Session::where('id', $lastSession->id)->update([
+                    'end_date' => $lastSession->date
+                ]);
+            }
         }
 
         DB::commit();
         return response()->json([
-            'message' => 'Sesiones actualizadas exitosamente.',
-            'sessions' => $updated
+            'message'  => 'Sesiones actualizadas exitosamente.',
+            'sessions' => $updated,
         ]);
     } catch (\Exception $e) {
         DB::rollBack();
-        return response()->json(['message' => 'Error al actualizar las sesiones: ' . $e->getMessage()], 500);
+        return response()->json([
+            'message' => 'Error al actualizar las sesiones: ' . $e->getMessage()
+        ], 500);
     }
-    }
+}
+
+
 }

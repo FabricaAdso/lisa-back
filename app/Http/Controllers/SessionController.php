@@ -87,11 +87,9 @@ class SessionController extends Controller
                 'end_date' => $session->end_date,
                 'start_time' => $session->start_time,
                 'end_time' => $session->end_time,
-                'instructor_id' => $session->instructor_id,
                 'rap_id' => $session->rap_id,
-                'instructor2_id' => $session->instructor2_id,
-                'course' => $session->course->code,
-                'program' => $session->course->program->name,
+                'course_code' => $session->course->code,
+                'program_name' => $session->course->program->name,
                 'environment' => $session->course->environment->name,
                 'headquarters' => optional(
                                 optional($session->course->environment)->headquarters

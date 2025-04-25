@@ -12,6 +12,8 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 
+use function PHPSTORM_META\map;
+
 class CourseController extends Controller
 {
     protected $courseService;
@@ -22,23 +24,17 @@ class CourseController extends Controller
 
     public function index()
     {
-        $courses = Course::included()->filter()->get();
-        //$courses = Course::included()->get();
+        $user = User::with(['trainingCenters'])->find(Auth::id());
+        $trainingId = $user->trainingCenters->pluck('id');
+        $paginate = request()->query('elements', 10);
 
-        return response()->json($courses);
-    }
+        $courses = Course::included()
+        ->whereHas('program.trainingCenter', function ($query) use ($trainingId) {
+            $query->where('training_centers.id', '=', $trainingId);
+        })
+        ->filter()
+        ->paginate(intval($paginate));
 
-    public function courseByCourseLeader() {
-        $user = User::find(Auth::id());
-        $instructor = Instructor::where('user_id', $user->id)->first();
-
-        if (!$instructor) {
-            // Si no se encuentra un instructor, devolver un mensaje de error
-            return response()->json(['error' => 'Instructor no encontrado'], 404);
-        }
-        $courses = Course::where('course_leader_id', $instructor->id)
-                            ->where('state','En_ejecucion')
-                            ->get();
         return response()->json($courses);
     }
 

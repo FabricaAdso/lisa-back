@@ -12,6 +12,8 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 
+use function PHPSTORM_META\map;
+
 class CourseController extends Controller
 {
     protected $courseService;
@@ -22,23 +24,17 @@ class CourseController extends Controller
 
     public function index()
     {
-        $courses = Course::included()->filter()->get();
-        //$courses = Course::included()->get();
+        $user = User::with(['trainingCenters'])->find(Auth::id());
+        $trainingId = $user->trainingCenters->pluck('id');
+        $paginate = request()->query('elements', 10);
 
-        return response()->json($courses);
-    }
+        $courses = Course::whereHas('program.trainingCenter', function ($query) use ($trainingId) {
+            $query->where('training_centers.id',$trainingId);
+        })
+            ->included()
+            ->filter()
+            ->paginate(intval($paginate));
 
-    public function courseByCourseLeader() {
-        $user = User::find(Auth::id());
-        $instructor = Instructor::where('user_id', $user->id)->first();
-
-        if (!$instructor) {
-            // Si no se encuentra un instructor, devolver un mensaje de error
-            return response()->json(['error' => 'Instructor no encontrado'], 404);
-        }
-        $courses = Course::where('course_leader_id', $instructor->id)
-                            ->where('state','En_ejecucion')
-                            ->get();
         return response()->json($courses);
     }
 
@@ -61,7 +57,7 @@ class CourseController extends Controller
 
         // Asignación masiva
         $course = Course::create($request->all());
-        
+
         return response()->json($course, 201);
     }
 
@@ -71,11 +67,25 @@ class CourseController extends Controller
         return response()->json($course);
     }
 
+    public function courseByCourseLeader() {
+        $user = User::find(Auth::id());
+        $instructor = Instructor::where('user_id', $user->id)->first();
+
+        if (!$instructor) {
+            // Si no se encuentra un instructor, devolver un mensaje de error
+            return response()->json(['error' => 'Instructor no encontrado'], 404);
+        }
+        $courses = Course::where('course_leader_id', $instructor->id)
+                            ->where('state','En_ejecucion')
+                            ->get();
+        return response()->json($courses);
+    }
+
     public function update(Request $request, $id)
     {
         // Buscar el curso 
         $course = Course::findOrFail($id);
-        
+
         //usar la policity para vocero y co-vocero
         Gate::authorize('updateRepresentative', [$course, $request->only(['representative_id', 'co_representative_id'])]);
         //usar la policity para lider de ficha
@@ -101,7 +111,7 @@ class CourseController extends Controller
         return response()->json($course);
     }
 
-       // Eliminar un curso
+    // Eliminar un curso
     public function destroy($id)
     {
         $course = Course::findOrFail($id);
@@ -109,7 +119,7 @@ class CourseController extends Controller
 
         return response()->json(['message' => 'Course deleted successfully']);
     }
-    
+
     public function getInstructorAndSessions(Request $request)
     {
         $courseInstructorSession = $this->courseService->getInstructorAndSessions($request);
@@ -118,7 +128,8 @@ class CourseController extends Controller
         );
     }
 
-    public function getCourseInstructor() {
+    public function getCourseInstructor()
+    {
         $courseIntructor = $this->courseService->getCourseInstructor();
         return response()->json($courseIntructor);
     }
@@ -127,6 +138,16 @@ class CourseController extends Controller
     {
         $courseIntructor = $this->courseService->getCourseInstructorNow($request);
         return response()->json($courseIntructor);
+    }
+
+    public function search(Request $request){
+        $response = $this->courseService->search($request);
+        return response()->json($response);
+    }
+
+    public function deleteAllRelations($id) {
+        $response = $this->courseService->deleteAllRelations($id);
+        return $response;
     }
 
 }

@@ -79,6 +79,8 @@ Route::group(['middleware' => 'auth:api'], function () {
     //  Rutas para cursos y demas
     Route::get('course', [CourseController::class, 'index']);
     Route::get('course/leader', [CourseController::class, 'courseByCourseLeader']);
+    Route::get('courses/search', [CourseController::class, 'search']);
+    Route::delete('courses/delete-all-relations/{id}', [CourseController::class, 'deleteAllRelations']);
 
     Route::resource('educationLevel', EducationLevelController::class);
     Route::resource('programs', ProgramController::class);
@@ -97,7 +99,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     // Centros de formacion, ambientes y sedes
     Route::apiResource('headquarters', HeadquartersController::class);
     Route::get('environments', [EnvironmentController::class, 'index']);
-    Route::get('sessions/mount', [SessionController::class, 'getInassitanceInstructor']);
+    Route::get('sessions/mount', [SessionController::class, 'getSessionsMount']);
     Route::get('sessions', [SessionController::class, 'sessionRap']);
     Route::apiresource('environments', EnvironmentController::class);
     Route::get('trainingCenters/page', [TrainingCenterController::class, 'trainingCenter']);

@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Services\Implementations;
+
 use Illuminate\Support\Facades\Log;
 use App\Models\Apprentice;
 use App\Models\Assistance;
@@ -29,7 +30,6 @@ class SessionServiceImpl implements SessionService
 
     public function createSession(Request $request)
     {
-
         $request->validate([
             'start_date' => 'required|date|after_or_equal:today',
             'start_time' => 'required|date_format:H:i',
@@ -52,7 +52,7 @@ class SessionServiceImpl implements SessionService
                 return $isValid;
             }
 
-            // registro de cambio del porcentaje por usuario
+            // Registro de cambio del porcentaje por usuario
             $rapForUser = Rap::find($request->rap_id);
             $subject = Subject::find($rapForUser->subject_id);
 
@@ -66,19 +66,16 @@ class SessionServiceImpl implements SessionService
                 return $holiday['start']['date']; // Extrae solo la fecha de inicio
             }, $this->googleCalendarService->getHolidays(date('Y')));
 
-
             // Obtener la duración total de la competencia en horas
             $rap = Rap::findOrFail($request->rap_id);
             $totalHours = $rap->number_hours;
             $percentage = $rap->subject->percentage;
             $hours = $totalHours * $percentage / 100;
 
-            // Convertir las fechas y horas en objetos Carbon
             $startDate = Carbon::parse($request->start_date);
             $startTime = Carbon::parse($request->start_time);
             $endTime = Carbon::parse($request->end_time);
             $sessionDuration = $startTime->diffInHours($endTime);
-
 
             if ($sessionDuration <= 0) {
                 return response()->json(['message' => 'El tiempo de sesión debe ser mayor a 0 horas.'], 422);
@@ -93,9 +90,8 @@ class SessionServiceImpl implements SessionService
 
             $sessionsNeeded = ceil($hours / $sessionDuration);
             $sessionsCreated = [];
-            $existingSessions = [];
             $currentDate = $startDate;
-
+            $lastValidSession = null;
 
             for ($i = 0; $i < $sessionsNeeded; $i++) {
 
@@ -112,7 +108,6 @@ class SessionServiceImpl implements SessionService
                     })->get();
 
                 if ($existingSession->isNotEmpty()) {
-                    DB::rollBack();
                     return response()->json(['message' => 'El instructor ya tiene asignadas sesiones para estas fechas', $existingSession], 409); //conflict
                 } else {
 
@@ -120,16 +115,13 @@ class SessionServiceImpl implements SessionService
                     $existingSessionForCourse = Session::where('date', $currentDate->format('Y-m-d'))
                         ->where('course_id', $request->course_id)
                         ->where(function ($query) use ($startTime, $endTime) {
-                            // Verifica si el nuevo horario se solapa con algún horario existente
                             $query->where('start_time', '<', $endTime->format('H:i'))
                                 ->where('end_time', '>', $startTime->format('H:i'));
                         })->get();
 
                     if ($existingSessionForCourse->isNotEmpty()) {
-                        DB::rollBack();
                         return response()->json(['message' => 'Otro instructor ya tiene una sesión en el mismo día y curso.', $existingSessionForCourse], 409); //conflict
                     }
-
 
                     $session = Session::create([
                         'date' => $currentDate->format('Y-m-d'),
@@ -140,11 +132,9 @@ class SessionServiceImpl implements SessionService
                         'rap_id' => $request->rap_id,
                     ]);
 
-                    if ($session->date > $course->end_date_training_stage) {
-                        Session::where('id', $session->id)->delete();
-                        return response()->json(['message' => 'No se puede crear sesiones fuera de la etapa lectiva'], 200); //Unprocessable entity
-                    }
+                    $sessionsCreated[] = $session;
 
+                    // Crear asistencias para los aprendices
                     $aprendices = Apprentice::where('course_id', $request->course_id)->get();
                     foreach ($aprendices as $aprendiz) {
                         if ($aprendiz->state == 'Formacion') {
@@ -156,7 +146,9 @@ class SessionServiceImpl implements SessionService
                         }
                     }
 
-                    $sessionsCreated[] = $session;
+                    if ($session->date <= $course->end_date_training_stage) {
+                        $lastValidSession = $session;
+                    }
                 }
 
                 $currentDate->addDay();
@@ -165,12 +157,17 @@ class SessionServiceImpl implements SessionService
                 }
             }
 
-            // *Actualizar la primera sesión con la fecha de la última sesión creada*
-            if (!empty($sessionsCreated)) {
-                $lastSession = end($sessionsCreated); // Última sesión creada
+            // Eliminar las sesiones fuera de la etapa lectiva solo al final
+            foreach ($sessionsCreated as $session) {
+                if ($session->date > $course->end_date_training_stage) {
+                    // Eliminar la sesión si está fuera de la etapa lectiva
+                    Session::where('id', $session->id)->delete();
+                }
+            }
 
-                Session::where('id', $lastSession->id)->update([
-                    'end_date' => $lastSession->date
+            if ($lastValidSession) {
+                Session::where('id', $lastValidSession->id)->update([
+                    'end_date' => $lastValidSession->date
                 ]);
             }
 
@@ -179,13 +176,14 @@ class SessionServiceImpl implements SessionService
             return response()->json([
                 'message' => 'Sesiones y asistencias creadas exitosamente.',
                 'sessions_created' => $sessionsCreated,
-                'existing_sessions' => $existingSessions,
+
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json(['message' => 'Error al crear las sesiones: ' . $e->getMessage()], 500);
         }
     }
+
 
     public function validateForCreateSessions($request, $user, $course)
     {
@@ -234,7 +232,6 @@ class SessionServiceImpl implements SessionService
 
     public function updateSessions(Request $request, $sessionIds)
     {
-        // Validar los datos de entrada
         $validated = $request->validate([
             'start_date' => 'required|date|after_or_equal:today',
             'start_time' => 'required|date_format:H:i',
@@ -249,7 +246,8 @@ class SessionServiceImpl implements SessionService
         }, $this->googleCalendarService->getHolidays(date('Y')));
 
         $sessionsUpdated = [];
-        
+        $courseId = null;
+
         foreach ($sessionIds as $sessionId) {
             $session = Session::findOrFail($sessionId);
 
@@ -258,10 +256,23 @@ class SessionServiceImpl implements SessionService
                     'message' => 'La fecha seleccionada es un día festivo y no se pueden asignar sesiones.'
                 ], 422);
             }
+
+            $course = Course::find($session->course_id ?? $request->course_id);
+            if ($course && $course->end_date_training_stage) {
+                $sessionDate = $request->start_date ?? $session->date;
+
+                if (Carbon::parse($sessionDate)->gt(Carbon::parse($course->end_date_training_stage))) {
+                    return response()->json([
+                        'message' => 'No puedes actualizar una sesión fuera de la fecha fin de la etapa lectiva del curso.'
+                    ], 422);
+                }
+            }
+
             // Normalizar tiempos
             $startTime = $validated['start_time'] ? $validated['start_time'] . ':00' : $session->start_time;
             $endTime = $validated['end_time'] ? $validated['end_time'] . ':00' : $session->end_time;
 
+            // Verificar conflictos de horario
             $conflict = Session::where('instructor_id', $validated['instructor_id'] ?? $session->instructor_id)
                 ->where('id', '!=', $session->id)
                 ->where('date', $validated['start_date'] ?? $session->date)
@@ -280,6 +291,7 @@ class SessionServiceImpl implements SessionService
                 ], 409);
             }
 
+            // Actualizar campos
             if ($request->has('start_date')) {
                 $session->date = $request->start_date;
             }
@@ -302,15 +314,18 @@ class SessionServiceImpl implements SessionService
                 $session->instructor2_id = $request->instructor2_id;
             }
 
+            if ($request->has('end_time') || $session->end_time != $endTime) {
+                $session->end_date = Carbon::parse($session->date . ' ' . $endTime)->format('Y-m-d H:i:s');
+            }
 
             $session->save();
+            $sessionsUpdated[] = $session;
 
-            // Si se cambia el curso, actualizar las asistencias
+            $courseId = $session->course_id ?? $request->course_id;
+
             if ($request->has('course_id')) {
-                // Eliminar las asistencias existentes
                 Assistance::where('session_id', $sessionId)->delete();
 
-                // Crear nuevas asistencias para los aprendices del nuevo curso
                 $aprendices = Apprentice::where('course_id', $request->course_id)->get();
                 foreach ($aprendices as $aprendiz) {
                     Assistance::create([
@@ -320,8 +335,23 @@ class SessionServiceImpl implements SessionService
                     ]);
                 }
             }
+        }
 
-            $sessionsUpdated[] = $session;
+        // Actualizar última sesión del curso
+        if ($courseId) {
+            $lastSession = Session::where('course_id', $courseId)
+                ->orderBy('date', 'desc')
+                ->first();
+
+            if ($lastSession) {
+                $lastSession->end_date = $lastSession->date;
+                $lastSession->save();
+
+                Session::where('course_id', $courseId)
+                    ->where('id', '!=', $lastSession->id)
+                    ->whereNotNull('end_date')
+                    ->update(['end_date' => null]);
+            }
         }
 
         return response()->json([
@@ -329,6 +359,7 @@ class SessionServiceImpl implements SessionService
             'sessions' => $sessionsUpdated,
         ]);
     }
+
 
     public function destroy($id)
     {
@@ -339,14 +370,31 @@ class SessionServiceImpl implements SessionService
                 return response()->json(['message' => 'No se puede eliminar una sesión que ya ha pasado'], 400);
             }
 
+            $courseId = $session->course_id;
+
             $session->assistances()->delete();
             $session->delete();
 
-            return response()->json(['message' => 'Sesión eliminada exitosamente']);
+            // Buscar la última sesión que queda del curso
+            $lastSession = Session::where('course_id', $courseId)
+                ->orderBy('date', 'desc')
+                ->first();
+
+            // Guardar su propia fecha como end_date
+            if ($lastSession) {
+                $lastSession->end_date = $lastSession->date;
+                $lastSession->save();
+            }
+
+            return response()->json([
+                'message' => 'Sesión eliminada exitosamente',
+
+            ]);
         } catch (ModelNotFoundException $e) {
             return response()->json(['message' => 'Sesión no encontrada'], 404);
         }
     }
+
 
 
     public function deleteSessionsByDateRange($request)
@@ -387,119 +435,119 @@ class SessionServiceImpl implements SessionService
 
 
 
-public function updateSessionsByRange(Request $request)
-{
-    $validated = $request->validate([
-        'start_date'            => 'required|date',
-        'end_date'              => 'required|date|after_or_equal:start_date',
-        'rap_id'                => 'required|integer|exists:raps,id',
-        'course_id'             => 'required|integer|exists:courses,id',
-        'start_time'            => 'nullable|date_format:H:i',
-        'end_time'              => 'nullable|date_format:H:i|after:start_time',
-        'instructor_id'         => 'nullable|exists:instructors,id',
-        'new_days_of_week'      => 'required|array|min:1',
-        'new_days_of_week.*'    => 'integer|between:1,7',
-        'confirmed'             => 'nullable|boolean',
-    ]);
+    public function updateSessionsByRange(Request $request)
+    {
+        $validated = $request->validate([
+            'start_date'            => 'required|date',
+            'end_date'              => 'required|date|after_or_equal:start_date',
+            'rap_id'                => 'required|integer|exists:raps,id',
+            'course_id'             => 'required|integer|exists:courses,id',
+            'start_time'            => 'nullable|date_format:H:i',
+            'end_time'              => 'nullable|date_format:H:i|after:start_time',
+            'instructor_id'         => 'nullable|exists:instructors,id',
+            'new_days_of_week'      => 'required|array|min:1',
+            'new_days_of_week.*'    => 'integer|between:1,7',
+            'confirmed'             => 'nullable|boolean',
+        ]);
 
-    DB::beginTransaction();
-    try {
-        // Obtener festivos del año
-        $festivos = array_map(function ($holiday) {
-            return $holiday['start']['date'];
-        }, $this->googleCalendarService->getHolidays(date('Y')));
+        DB::beginTransaction();
+        try {
+            // Obtener festivos del año
+            $festivos = array_map(function ($holiday) {
+                return $holiday['start']['date'];
+            }, $this->googleCalendarService->getHolidays(date('Y')));
 
-        //  Traer sesiones en el rango
-        $sessions = Session::whereBetween('date', [$validated['start_date'], $validated['end_date']])
-            ->where('rap_id', $validated['rap_id'])
-            ->where('course_id', $validated['course_id'])
-            ->orderBy('date')
-            ->get();
+            //  Traer sesiones en el rango
+            $sessions = Session::whereBetween('date', [$validated['start_date'], $validated['end_date']])
+                ->where('rap_id', $validated['rap_id'])
+                ->where('course_id', $validated['course_id'])
+                ->orderBy('date')
+                ->get();
 
-        $newDays = $validated['new_days_of_week'];
+            $newDays = $validated['new_days_of_week'];
 
-        $validDates = [];
-        $currentDate = Carbon::parse($validated['start_date']);
-        $endDate     = Carbon::parse($validated['end_date']);
+            $validDates = [];
+            $currentDate = Carbon::parse($validated['start_date']);
+            $endDate     = Carbon::parse($validated['end_date']);
 
-        while ($currentDate <= $endDate) {
-            if (in_array($currentDate->dayOfWeekIso, $newDays) &&
-                !in_array($currentDate->format('Y-m-d'), $festivos)) {
-                $validDates[] = $currentDate->copy();
+            while ($currentDate <= $endDate) {
+                if (
+                    in_array($currentDate->dayOfWeekIso, $newDays) &&
+                    !in_array($currentDate->format('Y-m-d'), $festivos)
+                ) {
+                    $validDates[] = $currentDate->copy();
+                }
+                $currentDate->addDay();
             }
-            $currentDate->addDay();
-        }
 
-        if (count($validDates) < $sessions->count()) {
-            DB::rollBack();
-            return response()->json([
-                'message' => 'No hay suficientes fechas disponibles para reasignar todas las sesiones.'
-            ], 400);
-        }
-
-        $updated = [];
-
-        foreach ($sessions as $index => $session) {
-            $newDate = $validDates[$index];
-
-            $startTime    = $validated['start_time']  ?? $session->start_time;
-            $endTime      = $validated['end_time']    ?? $session->end_time;
-            $instructorId = $validated['instructor_id'] ?? $session->instructor_id;
-
-            // Verificar conflictos con otras sesiones
-            $conflict = Session::where('instructor_id', $instructorId)
-                ->where('id', '!=', $session->id)
-                ->where('date', $newDate->format('Y-m-d'))
-                ->where(function($q) use ($startTime, $endTime) {
-                    $q->where('start_time', '<', $endTime)
-                      ->where('end_time',   '>', $startTime);
-                })
-                ->first();
-
-            if ($conflict && empty($validated['confirmed'])) {
+            if (count($validDates) < $sessions->count()) {
                 DB::rollBack();
                 return response()->json([
-                    'message' => 'Existe una sesión previamente agendada en ese horario.',
-                    'conflict_session' => $conflict
-                ], 409);
+                    'message' => 'No hay suficientes fechas disponibles para reasignar todas las sesiones.'
+                ], 400);
             }
 
-            $session->date       = $newDate->format('Y-m-d');
-            $session->start_time = $startTime;
-            $session->end_time   = $endTime;
-            if (isset($validated['instructor_id'])) {
-                $session->instructor_id = $validated['instructor_id'];
-            }
-            $session->save();
+            $updated = [];
 
-            $updated[] = $session;
+            foreach ($sessions as $index => $session) {
+                $newDate = $validDates[$index];
+
+                $startTime    = $validated['start_time']  ?? $session->start_time;
+                $endTime      = $validated['end_time']    ?? $session->end_time;
+                $instructorId = $validated['instructor_id'] ?? $session->instructor_id;
+
+                // Verificar conflictos con otras sesiones
+                $conflict = Session::where('instructor_id', $instructorId)
+                    ->where('id', '!=', $session->id)
+                    ->where('date', $newDate->format('Y-m-d'))
+                    ->where(function ($q) use ($startTime, $endTime) {
+                        $q->where('start_time', '<', $endTime)
+                            ->where('end_time',   '>', $startTime);
+                    })
+                    ->first();
+
+                if ($conflict && empty($validated['confirmed'])) {
+                    DB::rollBack();
+                    return response()->json([
+                        'message' => 'Existe una sesión previamente agendada en ese horario.',
+                        'conflict_session' => $conflict
+                    ], 409);
+                }
+
+                $session->date       = $newDate->format('Y-m-d');
+                $session->start_time = $startTime;
+                $session->end_time   = $endTime;
+                if (isset($validated['instructor_id'])) {
+                    $session->instructor_id = $validated['instructor_id'];
+                }
+                $session->save();
+
+                $updated[] = $session;
+            }
+
+            if (!empty($updated)) {
+                $lastSession = Session::where('rap_id', $validated['rap_id'])
+                    ->where('course_id', $validated['course_id'])
+                    ->orderBy('date', 'desc')
+                    ->first();
+
+                if ($lastSession) {
+                    Session::where('id', $lastSession->id)->update([
+                        'end_date' => $lastSession->date
+                    ]);
+                }
+            }
+
+            DB::commit();
+            return response()->json([
+                'message'  => 'Sesiones actualizadas exitosamente.',
+                'sessions' => $updated,
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Error al actualizar las sesiones: ' . $e->getMessage()
+            ], 500);
         }
-
-        if (!empty($updated)) {
-            $lastSession = Session::where('rap_id', $validated['rap_id'])
-                ->where('course_id', $validated['course_id'])
-                ->orderBy('date', 'desc')
-                ->first();
-
-            if ($lastSession) {
-                Session::where('id', $lastSession->id)->update([
-                    'end_date' => $lastSession->date
-                ]);
-            }
-        }
-
-        DB::commit();
-        return response()->json([
-            'message'  => 'Sesiones actualizadas exitosamente.',
-            'sessions' => $updated,
-        ]);
-    } catch (\Exception $e) {
-        DB::rollBack();
-        return response()->json([
-            'message' => 'Error al actualizar las sesiones: ' . $e->getMessage()
-        ], 500);
     }
-}
-
-
 }

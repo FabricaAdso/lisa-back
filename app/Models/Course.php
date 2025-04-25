@@ -117,6 +117,12 @@ class Course extends Model
                     $q->where('code', 'LIKE', '%' . $value . '%');
                 });
             }
+            if ($filter === 'program_q' && $allowFilter->contains($filter)) {
+                $query->whereHas('program', function ($q) use ($value) {
+                    $q->where('name', 'LIKE', '%' . $value . '%');
+                });
+            }
+
         }
     }
 }

@@ -140,10 +140,10 @@ class SessionServiceImpl implements SessionService
                         'rap_id' => $request->rap_id,
                     ]);
 
-                    if ($session->date > $course->end_date_training_stage) {
-                        Session::where('id', $session->id)->delete();
-                        return response()->json(['message' => 'No se puede crear sesiones fuera de la etapa lectiva'], 200); //Unprocessable entity
-                    }
+                    // if ($session->date > $course->end_date_training_stage) {
+                    //     Session::where('id', $session->id)->delete();
+                    //     return response()->json(['message' => 'No se puede crear sesiones fuera de la etapa lectiva'], 200); //Unprocessable entity
+                    // }
 
                     $aprendices = Apprentice::where('course_id', $request->course_id)->get();
                     foreach ($aprendices as $aprendiz) {

@@ -91,7 +91,9 @@ class SessionController extends Controller
                 'rap_id' => $session->rap_id,
                 'instructor2_id' => $session->instructor2_id,
                 'course_id' => $session->course_id,
-                'headquarters' => optional($session->course->environment->headquarters)->name
+                'headquarters' => optional(
+                                optional($session->course->environment)->headquarters
+                             )->name,
             ];
         });
 

@@ -3,17 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Models\Program;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ProgramController extends Controller
 {
     public function index()
     {
-        //$Programs = Program::all();
-        $Programs = Program::included()->filter()->get();
-        //$Programs = Program::included()->get();
+        $user = User::with(['trainingCenters'])->find(Auth::id());
+        $trainingId = $user->trainingCenters->pluck('id');
 
-        return response()->json($Programs);
+        $Program = Program::whereIn('training_center_id', $trainingId)->get();
+
+        return response()->json($Program);
     }
 
     public function store(Request $request)
@@ -45,7 +48,7 @@ class ProgramController extends Controller
             'education_level_id' => 'required|exists:education_levels,id',
             'training_center_id' => 'required|exists:training_centers,id'
         ]);
-        
+
         $Program = Program::find($id);
         $Program->update($request->all());
         return response()->json($Program);

@@ -111,6 +111,20 @@ class CourseController extends Controller
         return response()->json($course);
     }
 
+    public function asignarLider($idCourse, $idLeader) {
+        $course = Course::find($idCourse);
+        $leader = Instructor::find($idLeader);
+
+        if (!$leader || !$course) {
+            return response()->json(['error' => 'elemento no encontrado'], 404);
+        }
+
+        $course->course_leader_id = $idLeader;
+        $course->save();
+
+        return response()->json($course);
+    } 
+
     // Eliminar un curso
     public function destroy($id)
     {

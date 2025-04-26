@@ -81,8 +81,10 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::get('course/leader', [CourseController::class, 'courseByCourseLeader']);
     Route::get('courses/search', [CourseController::class, 'search']);
     Route::delete('courses/delete-all-relations/{id}', [CourseController::class, 'deleteAllRelations']);
+    Route::put('courses/asignar-lider/{idCourse}/{idLeader}', [CourseController::class, 'asignarLider']);
 
     Route::resource('educationLevel', EducationLevelController::class);
+    Route::get('programs', [ProgramController::class, 'index']);
     Route::resource('programs', ProgramController::class);
     Route::resource('courses', CourseController::class);
 

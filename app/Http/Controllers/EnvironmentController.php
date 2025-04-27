@@ -10,8 +10,7 @@ class EnvironmentController extends Controller
     //
     public function index()
 {
-    $environments = Environment::byTrainingCenter()
-                               ->included()
+    $environments = Environment::included()
                                ->filter()
                                ->get();
 
@@ -43,7 +42,7 @@ class EnvironmentController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\Environment 
+     * @param  \App\Models\Environment
      * @return \Illuminate\Http\Response
      */
     public function show($id) //si se pasa $id se utiliza la comentada

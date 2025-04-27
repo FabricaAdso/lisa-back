@@ -10,13 +10,15 @@ use App\Models\Justification;
 use App\Models\Session;
 use App\Models\User;
 use App\Services\ApprenticeService;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Support\Facades\DB;
 
 class AssistanceController extends Controller
 {
-    
+
     protected $apprenticeService;
 
     public function __construct(ApprenticeService $apprenticeService)
@@ -24,7 +26,8 @@ class AssistanceController extends Controller
         $this->apprenticeService = $apprenticeService;
     }
 
-    public function index(){
+    public function index()
+    {
         $assistance = Assistance::included()->filter()->get();
         return response()->json($assistance);
     }
@@ -48,7 +51,7 @@ class AssistanceController extends Controller
         $newAssistance = $request->input('assistance');
         $assistance->assistance = $newAssistance;
         $assistance->save();
-        $this->JustificationAndAprobation($assistance ,$assistancePrevius, $newAssistance);
+        $this->JustificationAndAprobation($assistance, $assistancePrevius, $newAssistance);
 
         return response()->json([
             'message' => 'Asistencia actualizada correctamente.',
@@ -63,34 +66,88 @@ class AssistanceController extends Controller
         return response()->json(['unjustifiedAbsences' => $faults]);
     }
 
-    public function JustificationAndAprobation($assistance, $assistancePrevius, $newAssistance)
+    public function JustificationAndAprobation(Request $request)
     {
-        if ($assistancePrevius == 0 && $newAssistance == 1) {
-            $justificationDelete = Justification::where('assistance_id', $assistance->id)->first();
-            
-            if ($justificationDelete) {
-                if($justificationDelete->aprobation){
-                    $justificationDelete->aprobation->delete();
+        $validate = $request->validate([
+            'data' => 'required|array',
+            'data.*.id' => 'required|integer|exists:assistances,id',
+            'data.*.assistance' => 'required',
+        ]);
+        DB::beginTransaction();
+
+        try {
+            foreach ($validate['data'] as $item) {
+                $assistance = Assistance::findOrFail($item['id']);
+                $previousAssistance = $assistance->assistance;
+                $newAssistance = (bool)$item['assistance'];
+
+                if ($previousAssistance === $newAssistance) {
+                    continue;
                 }
-                $justificationDelete->delete();
+
+                if($previousAssistance === null && $newAssistance === false){
+                    $this->createJustificationAndAprobation($assistance);
+                }
+                if ($previousAssistance === false && $newAssistance === true) {
+                    $this->handleJustificationRemoval($assistance);
+                } elseif ($newAssistance === false) {
+                    $this->createJustificationAndAprobation($assistance);
+                }
+
+                $assistance->assistance = $newAssistance;
+                $assistance->save();
             }
-        } elseif ($newAssistance == 0) {
-            $Justification = Justification::firstOrCreate([
-                'assistance_id' => $assistance->id,
-            ], [
-                'file_url' => null,  
-                'description' => null,
-            ]);
-            Aprobation::firstOrCreate([
-                'justification_id' => $Justification->id,
-            ],[
-                'state' => 'En_espera',
-                'motive' => null,
-            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'asistencia tomada correctamente'
+            ], 200);
+        } catch (Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'error ' . $e->getMessage()
+            ], 409);
         }
     }
 
-    public function getInassitanceApprentice ()
+    protected function handleJustificationRemoval(Assistance $assistance)
+    {
+        $justification = Justification::with('aprobation')
+            ->where('assistance_id', $assistance->id)
+            ->first();
+
+        if ($justification) {
+            if ($justification->aprobation) {
+                $justification->aprobation->delete();
+            }
+            $justification->delete();
+        }
+    }
+
+    protected function createJustificationAndAprobation(Assistance $assistance)
+    {
+        $justification = Justification::firstOrCreate(
+            ['assistance_id' => $assistance->id],
+            [
+                'file_url' => null,
+                'motive' => null
+            ]
+        );
+
+        Aprobation::firstOrCreate(
+            ['justification_id' => $justification->id],
+            [
+                'state' => 'En_espera',
+                'motive' => null
+            ]
+        );
+    }
+
+    public function getInassitanceApprentice()
     {
         $user = User::find(Auth::id());
         $apprentice = Apprentice::where('user_id', $user->id)->first();
@@ -98,10 +155,10 @@ class AssistanceController extends Controller
             ->included()
             ->filter()
             ->get();
-        return response()->json([$apprentice ,$assistance]);
+        return response()->json([$apprentice, $assistance]);
     }
 
-    public function getInassitanceInstructor ()
+    public function getInassitanceInstructor()
     {
         $user = User::find(Auth::id());
         $instructor = Instructor::where('user_id', $user->id)->first();
@@ -109,7 +166,7 @@ class AssistanceController extends Controller
             ->included()
             ->filter()
             ->get();
-        return response()->json([$instructor ,$session]);
+        return response()->json([$instructor, $session]);
     }
 
     public function getAssistanceForSession($id)
@@ -119,5 +176,15 @@ class AssistanceController extends Controller
             ->included()
             ->get();
         return response()->json($assistance);
+    }
+
+    public function allAsisence(Request $request)
+    {
+
+        $validate = $request->validate([
+            'data' => 'required|array',
+            'data.*.aid' => 'required|integer|exists:assistances,id',
+            'date.*.assistance' => 'required|boolean'
+        ]);
     }
 }

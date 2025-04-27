@@ -14,6 +14,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\EducationLevelController;
 use App\Http\Controllers\ExcelController;
+use App\Http\Controllers\GoogleCalendarController;
 use App\Http\Controllers\InstructorController;
 use App\Http\Controllers\JustificationController;
 use App\Http\Controllers\KnowledgeNetworkController;
@@ -59,6 +60,9 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::get('users/{id}', [UserController::class, 'show']);
     Route::put('usersUpdate/{id}', [UserController::class, 'update']);
 
+    Route::post('check-password', [AuthController::class, 'checkPassword']);
+    Route::post('change-password', [AuthController::class, 'changePassword']);
+
     //Activar y desactivar usuarios. ver usuarios activos e inactivos
     Route::post('users/{id}/deactivate', [UserController::class, 'deactivate']);
     Route::get('deactivated', [UserController::class, 'deactivated']);
@@ -66,8 +70,8 @@ Route::group(['middleware' => 'auth:api'], function () {
 
     // Ruta para gestionar roles
     Route::get('/roles', [RoleController::class, 'getRoles']);
-    Route::post('users/{userId}/training-centers/{trainingCenterId}/toggle-role', [RoleController::class, 'toggleRole']);
     Route::get('/users-by-training-center', [UserController::class, 'getUsersByTrainingCenter']);
+    Route::get('/users-by-training-center-search', [UserController::class, 'getUsersByTrainingCenterSearch']);
     Route::post('/assign-role', [RoleController::class, 'assignRoles']);
     Route::get('/user/{id}/roles', [UserController::class, 'getUserRolesById']);
 
@@ -75,6 +79,8 @@ Route::group(['middleware' => 'auth:api'], function () {
     //  Rutas para cursos y demas
     Route::get('course', [CourseController::class, 'index']);
     Route::get('course/leader', [CourseController::class, 'courseByCourseLeader']);
+    Route::get('courses/search', [CourseController::class, 'search']);
+    Route::delete('courses/delete-all-relations/{id}', [CourseController::class, 'deleteAllRelations']);
 
     Route::resource('educationLevel', EducationLevelController::class);
     Route::resource('programs', ProgramController::class);
@@ -86,15 +92,20 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::get('course/sessions', [CourseController::class, 'getCourseInstructor']);
     Route::get('session/leadersession', [SessionController::class, 'filterOptions']);
     //sesiones del dia
-    Route::post('course/sessionsNow', [CourseController::class, 'getCourseInstructorNow']);
+    Route::get('course/sessionsNow', [CourseController::class, 'getCourseInstructorNow']);
     Route::get('session/leader', [SessionController::class, 'indexLeader']);
 
 
     // Centros de formacion, ambientes y sedes
     Route::apiResource('headquarters', HeadquartersController::class);
     Route::get('environments', [EnvironmentController::class, 'index']);
+    Route::get('sessions/mount', [SessionController::class, 'getSessionsMount']);
+    Route::get('sessions', [SessionController::class, 'sessionRap']);
     Route::apiresource('environments', EnvironmentController::class);
+    Route::get('trainingCenters/page', [TrainingCenterController::class, 'trainingCenter']);
+    Route::get('/trainingCenters/check-code', [TrainingCenterController::class, 'checkCode']);
     Route::apiresource('trainingCenters', TrainingCenterController::class);
+
 
     // Centros de formacion del USUARIO
     Route::post('/user/{userId}/add-training-center', [AuthController::class, 'addTrainingCenter']);
@@ -125,17 +136,25 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::post('logout', [AuthController::class, 'lgout']);
 
     // Ruta instructor & Apprentice
+    Route::get('/instructors/by-user/{userId}',[InstructorController::class, 'getByUserId']);
+    Route::get('/apprentices/by-user/{userId}',[ApprenticeController::class, 'getByUserId']);
     Route::resource('instructor', InstructorController::class);
     Route::resource('apprentice', ApprenticeController::class);
+    
     // Competencia
     Route::resource('subject', SubjectController::class);
     Route::resource('rap', RapController::class);
+
     //session
     Route::post('session', [SessionController::class, 'createSession']);
     Route::get('session', [SessionController::class, 'index']);
     Route::get('session/{id}', [SessionController::class, 'show']); //traer los detalles de la sesion
     Route::put('session/update/{sessionIds}', [SessionController::class, 'updateSessions']);
     Route::delete('session/{id}', [SessionController::class, 'destroy']);
+    Route::delete('/sessions/delete-by-date', [SessionController::class, 'deleteSessionsByDateRange']);
+    Route::put('/sessions/update-by-date-range', [SessionController::class, 'updateSessionsByRange']);
+
+
     // Route::resource('sessions', SessionController::class);
 
     //Ruta para red de conocimiento
@@ -143,6 +162,16 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::resource('/knowledgeNetwork', KnowledgeNetworkController::class);
 
     Route::get('regionals', [RegionalController::class, 'index'])->withoutMiddleware(['auth:api']);
+
+    //rutas de notificaciones
+    Route::post('/message', [NotificationController::class, 'store']);
+
+    //rutas de notificaciones
+    Route::get('/message', [NotificationController::class, 'index']);
+    Route::put('/message/{id}', [NotificationController::class, 'update']);
+
+    // assistances
+    Route::put('/assistance/allAsistence', [AssistanceController::class, 'JustificationAndAprobation']);
 });
 Route::post('/import-courses', [ExcelController::class, 'importCourses']);
 Route::post('/import-apprentices', [ExcelController::class, 'importApprentices']);
@@ -161,8 +190,7 @@ Route::get('/apprentices/{apprenticeId}/unjustified-absences', [AssistanceContro
 //trainig center for login
 Route::resource('trainingCentersLogin', TrainingCenterController::class);
 
-//rutas de notificaciones
-Route::post('/message', [NotificationController::class, 'store']);
+// routes/api.php
+Route::get('/holidays', [GoogleCalendarController::class, 'index']);
 
-//rutas de notificaciones
-Route::get('/message', [NotificationController::class, 'index']);
+

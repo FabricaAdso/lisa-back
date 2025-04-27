@@ -8,7 +8,7 @@ import sys
 db_config = {
     'host': 'localhost',
     'user': 'root',  # Cambia por tu usuario de MySQL
-    'password': '@p1061701851',  # Cambia por tu contraseña de MySQL
+    'password': 'fabrica123',  # Cambia por tu contraseña de MySQL
     'database': 'lisa_back'  # Cambia por el nombre de tu base de datos
 }
 

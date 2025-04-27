@@ -4,13 +4,16 @@ namespace App\Http\Controllers;
 
 use App\Events\NotificationEvent;
 use App\Models\Notification;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class NotificationController extends Controller
 {
 
     public function index(){
-        $notifications = Notification::included()->filter()->get();
+        $user = User::find(Auth::id());
+        $notifications = Notification::where('user_id',$user->id)->get();
         return response()->json($notifications);
     }
 
@@ -43,5 +46,12 @@ class NotificationController extends Controller
             'message' => 'Notificación enviada correctamente.',
             'notification' => $data
         ]);
+    }
+
+    public function update($id) {
+        $noti = Notification::findOrFail($id);
+        $noti->markAsRead();
+        $noti->update(['type' => 'sucess']);
+        return response()->json("actualizada correctamente");
     }
 }

@@ -10,8 +10,11 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Str;
 class AuthController extends Controller
@@ -81,6 +84,10 @@ class AuthController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
+        if ($user->deactivation_date) {
+            return response()->json(['error' => 'Usuario inactivo'], 401);
+        }
+        
         $encryptedTrainingCenterId = Crypt::encrypt($request->training_center_id);
 
         $token = JWTAuth::claims([
@@ -227,6 +234,92 @@ class AuthController extends Controller
 
         return response()->json(['message' => 'Se ha enviado el enlace de restablecimiento de contraseña.']);
     }
+
+    public function changePassword(Request $request)
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json(['error' => 'Usuario no autenticado'], 401);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'current_password' => 'required|string',
+            'new_password' => [
+                'required',
+                'string',
+                'min:8',
+                'confirmed',
+                'different:current_password',
+                'regex:/^(?!\s)(?=.*[a-zA-Z])(?=.*\d)(?=.*[\W_]).*(?!\s)$/'
+            ],
+        ], [
+            'current_password.required' => 'La contraseña actual es requerida',
+            'new_password.required' => 'La nueva contraseña es requerida',
+            'new_password.min' => 'La contraseña debe tener al menos 8 caracteres',
+            'new_password.confirmed' => 'La confirmación no coincide',
+            'new_password.different' => 'La nueva contraseña debe ser diferente',
+            'new_password.regex' => 'Debe contener letras, números y/o símbolos sin espacios al inicio/fin'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        if (!Hash::check($request->current_password, $user->password)) {
+            return response()->json(['error' => 'Contraseña actual incorrecta'], 400);
+        }
+
+        try {
+            User::where('id', $user->id)->update([
+                'password' => Hash::make($request->new_password)
+            ]);
+
+            JWTAuth::invalidate(JWTAuth::getToken());
+
+            return response()->json(['message' => 'Contraseña actualizada. Por favor inicie sesión nuevamente.']);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Error al actualizar contraseña',
+                'details' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+
+
+
+public function checkPassword(Request $request)
+{
+    Log::info('Solicitud recibida en checkPassword', $request->all());
+
+    $request->validate([
+        'current_password' => 'required|string',
+    ]);
+
+    $user = Auth::user();
+
+    if (!$user) {
+        Log::error('Usuario no autenticado en checkPassword');
+        return response()->json(['message' => 'No autenticado'], 401);
+    }
+
+    Log::info('Usuario autenticado en checkPassword: ' . $user->email);
+
+    if (Hash::check($request->current_password, $user->password)) {
+        Log::info('Contraseña correcta');
+        return response()->json(['valid' => true]);
+    } else {
+        Log::warning('Contraseña incorrecta');
+        return response()->json(['valid' => false], 200);
+    }
+}
+
+
+
+
+
 
     public function resetPassword(Request $request)
     {

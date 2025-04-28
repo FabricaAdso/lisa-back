@@ -28,7 +28,8 @@ class Session extends Model
         'course.co_representative.user', // Relación con el aprendiz co-representante
         'instructor.knowledgeNetwork',
         'course.subject',
-        'rap.subject'
+        'rap.subject',
+        'course.course_leader.user'
 
     ];
     protected $fillable = ['date', 'start_time', 'end_time', 'instructor_id', 'instructor2_id', 'course_id', 'rap_id', 'KnowledgeNetwork.name'];

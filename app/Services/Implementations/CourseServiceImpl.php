@@ -11,12 +11,21 @@ use App\Models\Justification;
 use App\Models\Session;
 use App\Models\User;
 use App\Services\CourseService;
+use App\Services\TokenService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Spatie\Permission\Models\Role;
 
 class CourseServiceImpl implements CourseService
 {
+  protected $token_service;
+
+  public function __construct(TokenService $token_service)
+  {
+    $this->token_service = $token_service;
+  }
+
   public function getInstructorAndSessions($request)
   {
     $user = User::find(Auth::id());
@@ -77,7 +86,7 @@ class CourseServiceImpl implements CourseService
     foreach ($fichas as $ficha) {
       $sesionesCercana = Session::where('instructor_id', $instructor->id)
         ->where('course_id', $ficha->id)
-        ->where('date', '>=', Carbon::now()->toDateString())
+        ->where('date', '>=', Carbon::today()->toDateString())
         ->orderBy('created_at', 'asc')
         ->included()
         ->first();
@@ -135,20 +144,26 @@ class CourseServiceImpl implements CourseService
 
   public function deleteAllRelations($id)
   {
+    // 1. Obtener usuario autenticado con sus centros de formación
     $user = User::find(Auth::id())->load('trainingCenters');
+
     // 2. Recuperar curso con su centro a través de program.trainingCenter
     $course = Course::with('program.trainingCenter')
       ->findOrFail($id);
 
     // 3. Validar que el usuario pertenece al mismo centro
     $courseCenterId = $course->program->trainingCenter->id;
-    if (! $user->trainingCenters->pluck('id')->contains($courseCenterId)) {
+    if (!$user->trainingCenters->pluck('id')->contains($courseCenterId)) {
       return response()->json([
         'error'   => 'forbidden',
         'message' => 'No autorizado: centro de formación distinto'
       ], 403);
     }
-    DB::transaction(function () use ($id) {
+
+    // Obtener el trainingCenterId del token
+    $trainingCenterId = $this->token_service->getTrainingCenterIdFromToken();
+
+    DB::transaction(function () use ($id, $trainingCenterId) {
       $courseId = $id;
 
       // 1. Eliminar aprobaciones relacionadas
@@ -169,15 +184,35 @@ class CourseServiceImpl implements CourseService
       // 4. Eliminar sesiones del curso
       Session::where('course_id', $courseId)->delete();
 
-      // 5. Eliminar aprendices del curso
+      // 5. Obtener los aprendices asociados al curso
+      $apprentices = DB::table('apprentices')
+        ->where('course_id', $courseId)
+        ->pluck('user_id');
+
+      // 6. Eliminar las relaciones de roles para esos usuarios
+      if ($apprentices->isNotEmpty()) {
+        DB::table('role_training_center_user')
+          ->whereIn('user_id', $apprentices)
+          ->where('training_center_id', $trainingCenterId)
+          ->delete();
+
+        // Eliminar también instructores si existen
+        DB::table('instructors')
+          ->whereIn('user_id', $apprentices)
+          ->where('training_center_id', $trainingCenterId)
+          ->delete();
+      }
+
+      // 7. Eliminar aprendices del curso
       Apprentice::where('course_id', $courseId)->delete();
 
-      // 6. Eliminar el curso
+      // 8. Eliminar el curso
       Course::destroy($courseId);
     });
 
     return response()->json([
-      'succes'   => 'eliminado',
-    ], 200);
+      'success' => true,
+      'message' => 'Todas las relaciones del curso han sido eliminadas correctamente'
+    ]);
   }
 }

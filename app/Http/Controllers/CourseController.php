@@ -29,7 +29,7 @@ class CourseController extends Controller
         $paginate = request()->query('elements', 10);
 
         $courses = Course::whereHas('program.trainingCenter', function ($query) use ($trainingId) {
-            $query->where('training_centers.id',$trainingId);
+            $query->whereIn('training_centers.id',$trainingId);
         })
             ->included()
             ->filter()

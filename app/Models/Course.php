@@ -31,6 +31,7 @@ class Course extends Model
         'environment.headquarters',
         'representative.user', // Relación con el aprendiz representante
         'co_representative.user', // Relación con el aprendiz co-representante
+        'course_leader.user'
     ];
 
     protected $allowFilter = [
@@ -69,6 +70,11 @@ class Course extends Model
     public function co_representative()
     {
         return $this->belongsTo(Apprentice::class, 'co_representative_id');
+    }
+
+    public function course_leader()
+    {
+        return $this->belongsTo(Instructor::class, 'course_leader_id');
     }
 
 
